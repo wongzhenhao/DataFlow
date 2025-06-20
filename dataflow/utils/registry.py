@@ -3,6 +3,7 @@ import importlib.util
 import types
 import os
 from .utils import get_logger
+from pathlib import Path
 class Registry():
     """
     The registry that provides name -> object mapping, to support third-party
@@ -109,6 +110,7 @@ class LazyLoader(types.ModuleType):
         super().__init__(name)
         self._import_structure = import_structure
         self._loaded_classes = {}
+        self._base_folder = Path(__file__).resolve().parents[2]
         self.__path__ = [path]
 
     def _load_class_from_file(self, file_path, class_name):
@@ -119,12 +121,13 @@ class LazyLoader(types.ModuleType):
         :param class_name: 类的名字
         :return: 类对象
         """
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File {file_path} does not exist")
+        abs_file_path = os.path.join(self._base_folder, file_path)
+        if not os.path.exists(abs_file_path):
+            raise FileNotFoundError(f"File {abs_file_path} does not exist")
         logger = get_logger()
         # 动态加载模块
         try:
-            spec = importlib.util.spec_from_file_location(class_name, file_path)
+            spec = importlib.util.spec_from_file_location(class_name, abs_file_path)
             logger.debug(f"LazyLoader {self.__path__} successfully imported spec {spec.__str__()}")
             module = importlib.util.module_from_spec(spec)
             logger.debug(f"LazyLoader {self.__path__} successfully imported module {module.__str__()} from spec {spec.__str__()}")
@@ -135,7 +138,7 @@ class LazyLoader(types.ModuleType):
 
         # 提取类
         if not hasattr(module, class_name):
-            raise AttributeError(f"Class {class_name} not found in {file_path}")
+            raise AttributeError(f"Class {class_name} not found in {abs_file_path}")
         return getattr(module, class_name)
 
     def __getattr__(self, item):

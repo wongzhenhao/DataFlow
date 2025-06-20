@@ -5,7 +5,7 @@ import logging
 import colorlog
 
 def get_operator(operator_name, args):
-    from dataflow.utils.registry import OPERATOR_REGISTRY
+    from dataflow.utils import OPERATOR_REGISTRY
     print(operator_name, args)
     operator = OPERATOR_REGISTRY.get(operator_name)(args)
     logger = get_logger()
