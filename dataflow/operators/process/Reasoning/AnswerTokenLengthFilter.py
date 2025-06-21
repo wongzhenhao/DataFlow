@@ -1,46 +1,33 @@
-from dataflow.core import ReasonerFilter
+from tqdm import tqdm
+import pandas as pd
 import numpy as np
 from dataflow.utils.registry import PROCESSOR_REGISTRY
-from transformers import AutoTokenizer
 from dataflow.utils.utils import get_logger
-from datasets import Dataset
-from dataflow.data import TextDataset
-from dataflow.utils import Operator
+from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Operator import Operator
+from math_verify import parse, verify, LatexExtractionConfig
+from transformers import AutoTokenizer
+
 
 @PROCESSOR_REGISTRY.register()
 class AnswerTokenLengthFilter(Operator):
     def __init__(self, config: dict):
         self.check_config(config)
-        self.filter_name = 'AnswerTokenLengthFilter'
-        self.max_answer_token_length = config['max_answer_token_length']
-        self.tokenizer = AutoTokenizer.from_pretrained(config['tokenizer_dir'])
+        self.config = config
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
+        self.input_key = self.config['input_key']
+        self.max_answer_token_length = self.config['max_answer_token_length']
+        self.tokenizer_dir = self.config['tokenizer_dir']
+
         self.logger = get_logger()
-        if "db_name" in config.keys():
-            self.read_min_score: list = config['read_min_score']
-            self.read_max_score: list = config['read_max_score']
-            self.eval_stage = config['eval_stage']
-            self.stage = config["stage"]
-            self.pipeline_id = config["pipeline_id"]
-            self.dataset = self._load_input()
+        self.datastorage = FileStorage(config)
 
     def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
+        required_keys = ['input_file', 'output_file', 'input_key', 'max_answer_token_length', 'tokenizer_dir']
         missing_keys = [key for key in required_keys if key not in config]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
-        
-    def _load_input(self):
-        pass
-        
-    def _write_output(self, labels, ids):
-        pass
-
-    def run(self, dataset):
-        def get_token_count(input_string):
-            tokens = self.tokenizer.encode(input_string, add_special_tokens=False)
-            return len(tokens)
-
-        return np.array([get_token_count(item[self.keys]) <= self.max_answer_token_length for item in dataset]).astype(int)
 
     @staticmethod
     def get_desc(self, lang):
@@ -66,3 +53,47 @@ class AnswerTokenLengthFilter(Operator):
             )
         else:
             return "AnswerTokenLengthFilter enforces answer length constraints"
+
+
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.input_key]
+        forbidden_keys = []
+
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            raise ValueError(f"Missing required column(s): {missing}")
+        if conflict:
+            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+        missing_keys = [key for key in required_keys if key not in dataframe.columns]
+
+        if missing_keys:
+            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
+
+    # def run(self, dataset):
+    #     def get_token_count(input_string):
+    #         tokens = self.tokenizer.encode(input_string, add_special_tokens=False)
+    #         return len(tokens)
+
+    #     return np.array([get_token_count(item[self.keys]) <= self.max_answer_token_length for item in dataset]).astype(int)
+
+    def run(self):
+        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.logger.info(f"Found {len(dataframe)} rows in the dataframe")
+        self._validate_dataframe(dataframe)
+
+        def get_token_count(input_string):
+            tokens = self.tokenizer.encode(input_string, add_special_tokens=False)
+            return len(tokens)
+
+        valid_flags = []
+        for text in tqdm(dataframe[self.input_key], desc="Checking token lengths"):
+            is_valid = get_token_count(text) <= self.max_answer_token_length
+            valid_flags.append(int(is_valid))
+
+        dataframe[self.input_key] = valid_flags
+        dataframe = dataframe[dataframe[self.input_key] == 1]
+
+        self.datastorage.write(self.output_file, dataframe)
+        self.logger.info(f"Saved {len(dataframe)} filtered rows to {self.output_file}")

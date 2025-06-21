@@ -1,13 +1,7 @@
 from dataflow.utils.reasoning_utils.Prompts import AnswerGeneratorPrompt
-from dataflow.utils.LocalModelGenerator import LocalModelGenerator
-from dataflow.utils.APIGenerator_aisuite import APIGenerator_aisuite
-from dataflow.utils.APIGenerator_request import APIGenerator_request
-import yaml
-import logging
 import pandas as pd
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.utils import Operator
 
 from dataflow.utils.Storage import FileStorage
 from dataflow.utils.Operator import Operator
@@ -24,9 +18,7 @@ class AnswerGenerator(Operator):
         self.input_file = self.config['input_file']
         self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
-        self.output_text_key = self.config.get("output_key", "response")
-        self.input_key = self.config.get("input_key")
-        self.output_key = self.config.get("output_key")
+        self.output_key = self.config.get("output_key", "response")
         self.logger = get_logger()
 
         self.generator = init_model(config)
@@ -37,8 +29,6 @@ class AnswerGenerator(Operator):
         missing_keys = [key for key in required_keys if key not in config]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
-
-    
     
     @staticmethod
     def get_desc(self, lang):
@@ -70,24 +60,38 @@ class AnswerGenerator(Operator):
         else:
             return "AnswerGenerator produces standardized answers for mathematical questions."
 
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.input_key]
+        forbidden_keys = [self.output_key]
+
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            raise ValueError(f"Missing required column(s): {missing}")
+        if conflict:
+            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+
+    def _reformat_prompt(self, dataframe):
+        """
+        Reformat the prompts in the dataframe to generate questions.
+        """
+        formatted_prompts = []
+        for text in dataframe[self.input_key]:
+            used_prompt = self.prompts.Classic_COT_Prompt(text)
+            formatted_prompts.append(used_prompt.strip())
+
+        return formatted_prompts
+
     def run(self):
         '''
         Runs the answer generation process, reading from the input file and saving results to output.
         '''
         dataframe = self.datastorage.read(self.input_file, "dataframe")
         self._validate_dataframe(dataframe)
-        user_prompts = dataframe[self.input_key].tolist()
-        answers = self.generator.generate_text_from_input(user_prompts)
+        formatted_prompts = self._reformat_prompt(dataframe)
+        answers = self.generator.generate_text_from_input(formatted_prompts)
 
-        dataframe[self.output_text_key] = answers
+        dataframe[self.output_key] = answers
         self.datastorage.write(self.output_file, dataframe)
-
-    def _validate_dataframe(self, dataframe: pd.DataFrame):
-        '''
-        Helper method to validate the input dataframe columns.
-        '''
-        if self.input_key not in dataframe.columns:
-            raise ValueError(f"input_key: {self.input_key} not found in the dataframe.")
-        
-        if self.output_text_key in dataframe.columns:
-            raise ValueError(f"Found {self.output_text_key} in the dataframe, which would overwrite an existing column. Please use a different output_key.")
+        self.logger.info(f"Results saved to {self.output_file}")

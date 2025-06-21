@@ -1,26 +1,26 @@
-from dataflow.core import TextFilter, ReasonerFilter
 import numpy as np
+import pandas as pd
 from dataflow.utils.registry import PROCESSOR_REGISTRY
-import re
-from datasets import Dataset
-from dataflow.data import TextDataset
 from dataflow.utils.utils import get_logger
-from dataflow.utils import Operator
+
+from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Operator import Operator
+from dataflow.utils.utils import init_model
 
 @PROCESSOR_REGISTRY.register()
 class AnswerFormatterFilter(Operator):
     def __init__(self, config: dict):
         self.check_config(config)
-        self.filter_name = 'AnswerFormatterFilter'
+        self.config = config
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
+        self.input_key = self.config['input_key']
         self.logger = get_logger()
-        self.eval_stage = config.get('eval_stage', 4)
-        self.stage = config.get("stage",0)
-        self.pipeline_id = config.get("pipeline_id","")
-        if "db_name" in config.keys():
-            self.dataset = self._load_input()
+
+        self.datastorage = FileStorage(config)
 
     def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
+        required_keys = ['input_file', 'output_file', 'input_key']
         missing_keys = [key for key in required_keys if key not in config]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
@@ -31,12 +31,6 @@ class AnswerFormatterFilter(Operator):
         #     return False
         
         return True 
-    
-    def _load_input(self):
-        pass
-        
-    def _write_output(self, labels, ids):
-        pass
 
     @staticmethod
     def get_desc(self, lang):
@@ -63,13 +57,35 @@ class AnswerFormatterFilter(Operator):
         else:
             return "AnswerFormatterFilter validates mathematical answer formatting"
     
-    
-    def run(self, dataset):
-        indexes =  np.zeros(len(dataset)).astype(int)
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.input_key]
+        forbidden_keys = []
 
-        for i, item in enumerate(dataset):
-            answer = item[self.keys]
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            raise ValueError(f"Missing required column(s): {missing}")
+        if conflict:
+            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+        missing_keys = [key for key in required_keys if key not in dataframe.columns]
+
+        if missing_keys:
+            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
+    
+    def run(self):
+        '''
+        Execute the answer format filter process
+        '''
+        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self._validate_dataframe(dataframe)
+
+        indexes =  np.zeros(len(dataframe)).astype(int)
+        for i, item in dataframe.iterrows():
+            answer = item[self.input_key]
             if AnswerFormatterFilter.is_valid_answer(answer):
                 indexes[i] = 1
+        dataframe = dataframe[np.array(indexes) == 1]
 
-        return indexes
+        self.datastorage.write(self.output_file, dataframe)
+        self.logger.info(f"Results saved to {self.output_file}")

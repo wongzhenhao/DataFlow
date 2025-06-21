@@ -1,64 +1,34 @@
-from dataflow.core import ReasonerFilter
+from tqdm import tqdm
+import pandas as pd
 import numpy as np
 import re
 from dataflow.utils.registry import PROCESSOR_REGISTRY
-from dataflow.Eval.Text import NgramScorer
 from dataflow.utils.utils import get_logger
-from datasets import Dataset
-from dataflow.data import TextDataset
-from dataflow.utils import Operator
+
+from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Operator import Operator
+from dataflow.Eval.Text import NgramScorer
 
 @PROCESSOR_REGISTRY.register()
 class AnswerNgramFilter(Operator):
     def __init__(self, config: dict):
+        self.check_config(config)
         self.config = config
-        self.filter_name = 'AnswerNgramFilter'
-        self.min_score = config['min_score']
-        self.max_score = config['max_score']
-        self.ngrams = config['ngrams']
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
+        self.question_key = self.config['question_key']
+        self.answer_key = self.config['answer_key']
+        self.min_score = self.config['min_score']
+        self.max_score = self.config['max_score']
         self.logger = get_logger()
-        if "db_name" in config.keys():
-            self.read_min_score: list = config['read_min_score']
-            self.read_max_score: list = config['read_max_score']
-            self.eval_stage = config['eval_stage']
-            self.stage = config["stage"]
-            self.pipeline_id = config["pipeline_id"]
-            self.dataset = self._load_input()
+        self.datastorage = FileStorage(config)
 
     def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
+        required_keys = ['input_file', 'output_file', 'question_key', 'answer_key', 'min_score', 'max_score']
         missing_keys = [key for key in required_keys if key not in config]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
         
-    def _load_input(self):
-        pass
-        
-    def _write_output(self, labels, ids):
-        pass
-
-    def run(self, dataset):
-        scores = []
-        for sample in dataset:
-            answer = sample[self.question_key]
-            try:
-                answer += sample[self.answer_key]
-            except:
-                pass
-            content = answer.lower()
-            content = re.sub(r'[^\w\s]', '', content)
-            words = content.split()
-            ngrams = [' '.join(words[i:i + self.ngrams]) for i in range(len(words) - (self.ngrams - 1))]
-            unique_ngrams = set(ngrams)
-
-            total_ngrams = len(ngrams)
-            unique_ngrams_count = len(unique_ngrams)
-
-            repetition_score = unique_ngrams_count / total_ngrams if total_ngrams > 0 else 0.0
-            scores.append(repetition_score) 
-
-        return np.array([self.min_score <= score <= self.max_score for score in scores]).astype(int)
-
     @staticmethod
     def get_desc(self, lang):
         if lang == "zh":
@@ -83,3 +53,53 @@ class AnswerNgramFilter(Operator):
             )
         else:
             return "AnswerNgramFilter detects answer repetition"
+    
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.question_key, self.answer_key]
+        forbidden_keys = []
+
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            raise ValueError(f"Missing required column(s): {missing}")
+        if conflict:
+            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+        missing_keys = [key for key in required_keys if key not in dataframe.columns]
+
+        if missing_keys:
+            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
+        
+    def run(self):
+        '''
+        
+        '''
+        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.logger.info(f"Found {len(dataframe)} rows in the dataframe")
+
+        scores = []
+        for sample in dataframe.itertuples(index=False):
+            try:
+                answer = getattr(sample, self.question_key)
+                answer += getattr(sample, self.answer_key, "")
+            except AttributeError:
+                answer = getattr(sample, self.question_key)
+
+            content = answer.lower()
+            content = re.sub(r'[^\w\s]', '', content)
+            words = content.split()
+            ngrams = [' '.join(words[i:i + self.ngrams]) for i in range(len(words) - (self.ngrams - 1))]
+            unique_ngrams = set(ngrams)
+
+            total_ngrams = len(ngrams)
+            unique_ngrams_count = len(unique_ngrams)
+
+            repetition_score = unique_ngrams_count / total_ngrams if total_ngrams > 0 else 0.0
+            scores.append(repetition_score)
+
+        indexes = np.array([self.min_score <= s <= self.max_score for s in scores])
+        dataframe = dataframe[indexes]
+
+        self.logger.info(f"Filtered down to {len(dataframe)} rows with repetition score in [{self.min_score}, {self.max_score}]")
+        self.datastorage.write(self.output_file, dataframe)
+        self.logger.info(f"Results saved to {self.output_file}")
