@@ -41,7 +41,10 @@ class FileStorage(DataFlowStorage):
         file_path: str, the path of the file to read, it should end with json, jsonl, csv, parquet, pickle
         type: type that you want to read to, such as "datatrame", List[dict], etc.
         """
-        
+        # make file directory
+        output_dir = os.path.dirname(file_path)
+        os.makedirs(output_dir, exist_ok=True)
+
         # load data from file
         ends = file_path.split(".")[-1]
         if ends == "json":

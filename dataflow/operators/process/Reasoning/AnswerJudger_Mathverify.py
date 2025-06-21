@@ -1,12 +1,13 @@
-import pandas as pd
 from tqdm import tqdm
-from math_verify import parse, verify, LatexExtractionConfig
-import logging
-from dataflow.utils.registry import GENERATOR_REGISTRY
+import pandas as pd
+from dataflow.utils.registry import PROCESSOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.utils import Operator
 
-@GENERATOR_REGISTRY.register()
+from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Operator import Operator
+from math_verify import parse, verify, LatexExtractionConfig
+
+@PROCESSOR_REGISTRY.register()
 class AnswerJudger_MathVerify(Operator):
     def __init__(self, config: dict):
         self.check_config(config)
@@ -17,7 +18,9 @@ class AnswerJudger_MathVerify(Operator):
         self.answer_key = self.config['answer_key']
         self.gt_key = self.config['gt_key']
         self.result_key = self.config['result_key']
+
         self.logger = get_logger()
+        self.datastorage = FileStorage(config)
 
     def check_config(self, config; dict) -> None:
         required_keys = [
@@ -27,7 +30,7 @@ class AnswerJudger_MathVerify(Operator):
         for key in required_keys:
             if key not in config:
                 raise ValueError(f"Key {key} is not in the config")
-    
+
     @staticmethod
     def get_desc(self, lang):
         if lang == "zh":
@@ -55,25 +58,35 @@ class AnswerJudger_MathVerify(Operator):
             )
         else:
             return "AnswerJudger_MathVerify validates mathematical answer correctness."
-        
-    def _load_input(self):
-        return pd.read_json(self.input_file, lines=True)
 
-    def _write_output(self,save_path, dataframe, extractions):
-        dataframe.to_json(save_path, orient="records", lines=True)
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.input_key, self.answer_key, self.gt_key]
+        forbidden_keys = []
+
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            raise ValueError(f"Missing required column(s): {missing}")
+        if conflict:
+            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+        missing_keys = [key for key in required_keys if key not in dataframe.columns]
+
+        if missing_keys:
+            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
 
     def run(self):
-        # raw_dataframe = pd.read_json(self.input_file, lines=True)
-        raw_dataframe = self._load_input()
-        key_list = raw_dataframe.columns.to_list()
-        if self.answer_key not in key_list:
-            raise ValueError(f"answer_key: {self.answer_key} not found in the dataframe, please check the input_key: {key_list}")
-        if self.gt_key not in key_list:
-            raise ValueError(f"gt_key: {self.gt_key} not found in the dataframe, please check the input_key: {key_list}")
-        self.logger.info(f"Found {len(raw_dataframe)} rows in the dataframe")
+        '''
+
+        '''
+        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.logger.info(f"Found {len(dataframe)} rows in the dataframe")
+        self._validate_dataframe(dataframe)
+
         results = []
-        for answer, gt in tqdm(zip(raw_dataframe[self.answer_key], raw_dataframe[self.gt_key]), total=len(raw_dataframe), desc='processed'):
+        for answer, gt in tqdm(zip(dataframe[self.answer_key], dataframe[self.gt_key]), total=len(dataframe), desc='processed'):
             results.append(float(verify(parse(answer), parse(gt))) > 0)
-        raw_dataframe[self.result_key] = results
-        # raw_dataframe.to_json(self.output_file, orient='records', lines=True)
-        self._write_output(self.output_file, raw_dataframe, None)
+        dataframe[self.result_key] = results
+
+        self.datastorage.write(self.output_file, dataframe)
+        self.logger.info(f"Results saved to {self.output_file}")
