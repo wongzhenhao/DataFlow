@@ -6,57 +6,38 @@ from dataflow.Eval.Text import NgramScorer
 from dataflow.utils.utils import get_logger
 from datasets import Dataset
 from dataflow.data import TextDataset
-
+from dataflow.utils import Operator
 
 @PROCESSOR_REGISTRY.register()
-class AnswerNgramFilter(ReasonerFilter):
-    def __init__(self, args_dict: dict):
-        super().__init__(args_dict)
+class AnswerNgramFilter(Operator):
+    def __init__(self, config: dict):
+        self.config = config
         self.filter_name = 'AnswerNgramFilter'
-        self.min_score = args_dict['min_score']
-        self.max_score = args_dict['max_score']
-        self.ngrams = args_dict['ngrams']
+        self.min_score = config['min_score']
+        self.max_score = config['max_score']
+        self.ngrams = config['ngrams']
         self.logger = get_logger()
-        if "db_name" in args_dict.keys():
-            self.read_min_score: list = args_dict['read_min_score']
-            self.read_max_score: list = args_dict['read_max_score']
-            self.eval_stage = args_dict['eval_stage']
-            self.stage = args_dict["stage"]
-            self.pipeline_id = args_dict["pipeline_id"]
+        if "db_name" in config.keys():
+            self.read_min_score: list = config['read_min_score']
+            self.read_max_score: list = config['read_max_score']
+            self.eval_stage = config['eval_stage']
+            self.stage = config["stage"]
+            self.pipeline_id = config["pipeline_id"]
             self.dataset = self._load_input()
 
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+        
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[dict(zip(['min_score', 'max_score'], list(_))) for _ in list(zip(self.read_min_score, self.read_max_score))], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            value_list = [        
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ]
-            
-            dataset = Dataset.from_list(value_list)
-            return TextDataset(
-                dataset=dataset,
-                keys=value_list[0].keys(),
-                metadata=None 
-            )
-        else:
-            pass
+        pass
         
     def _write_output(self, labels, ids):
-        if hasattr(self, 'storage'):
-            output_rows = []
-            for _, label in zip(ids, labels):
-                output_rows.append({
-                    self.result_key: label,
-                    'id': _
-                })
-            self.storage.write_eval(output_rows, algo_name=self.filter_name, score_key=self.result_key, stage=self.stage+1)
-        else:
-            pass
+        pass
 
-    def filter_func(self, dataset):
+    def run(self, dataset):
         scores = []
         for sample in dataset:
             answer = sample[self.question_key]

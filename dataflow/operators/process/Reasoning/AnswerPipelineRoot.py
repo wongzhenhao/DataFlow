@@ -9,7 +9,7 @@ import re
 from word2number import w2n
 import pandas as pd
 from tqdm import tqdm
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 class StringProcessor:
     """
@@ -221,29 +221,23 @@ class AnswerExtractor:
 
 
 @GENERATOR_REGISTRY.register()
-class AnswerPipelineRoot:
+class AnswerPipelineRoot(Operator):
     def __init__(self, config: dict):
+        self.check_config(config)
         self.config = config
-        if "db_name" in config.keys():
-            self.storage = MyScaleStorage(config['db_port'], config['db_name'], config['table_name'])
-            self.input_file = None
-            self.output_file_with_gt = None
-            self.output_file_without_gt = None
-            self.stage = config.get("stage",0)
-            self.pipeline_id = config.get("pipeline_id","")
-            self.read_min_score = self.config.get('read_min_score', 0.9)
-            self.read_max_score = self.config.get('read_max_score', 2.0)
-            self.eval_stage = self.config.get('eval_stage', 3)
-            self.read_format = self.config.get('read_format', '')
-            self.read_syn = self.config.get('read_syn', '')
-        else:
-            self.input_file = config.get("input_file")
-            self.output_file_with_gt = config.get("output_file_with_gt")
-            self.output_file_without_gt = config.get("output_file_without_gt")
+        self.input_file = config.get("input_file")
+        self.output_file_with_gt = config.get("output_file_with_gt")
+        self.output_file_without_gt = config.get("output_file_without_gt")
         self.input_key = config.get("input_key")
         self.input_answer_key = config.get("input_answer_key")
         self.input_gt_key = config.get("input_gt_key", "")
         self.logger = get_logger()
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
 
     @staticmethod
     def get_desc(self, lang):
@@ -273,39 +267,17 @@ class AnswerPipelineRoot:
             return "AnswerPipelineRoot routes data to different processing branches."
         
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[{'max_score': self.read_max_score, 'min_score': self.read_min_score}], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            output_rows = [
-                {
-                    "id": row.get("id"),
-                    "with_golden_answer": extractions
-                }
-                for i, row in enumerate(output_rows)
-            ]
-            self.storage.write_eval(output_rows, algo_name="AnswerPipelineRoot", score_key="with_golden_answer", stage=self.stage+1)
-        else:
-            dataframe.to_json(save_path, orient="records", lines=True)
+        dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         # 读取输入文件
         # df = pd.read_json(self.input_file, lines=True)
         df = self._load_input()
         
-        if not hasattr(self,"storage") and (not self.input_gt_key or self.input_gt_key not in df.columns):
-            # df.to_json(self.output_file_without_gt, orient="records", lines=True)
-            self._write_output(self.output_file_without_gt, df, None) ### how?
+        if not self.input_gt_key or self.input_gt_key not in df.columns:
             self.logger.warning("No valid gt key in input file, copy input file to output file without gt")
             return
             

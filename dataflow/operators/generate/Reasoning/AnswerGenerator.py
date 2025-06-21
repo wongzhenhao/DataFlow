@@ -7,42 +7,29 @@ import logging
 import pandas as pd
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class AnswerGenerator:
+class AnswerGenerator(Operator):
     '''
     Answer Generator is a class that generates answers for given questions.
     '''
     def __init__(self, config: dict):
+        self.check_config(config)
         self.config = config
         self.prompt = AnswerGeneratorPrompt()
         self.model_generator = self.__init_model__()
-        if "db_name" in config.keys():
-            self.storage = MyScaleStorage(config['db_port'], config['db_name'], config['table_name'])
-            self.input_file = None
-            self.output_file= None
-            self.stage = config.get("stage",0)
-            self.pipeline_id = config.get("pipeline_id","")
-            self.read_min_score: list = self.config.get('read_min_score', [])
-            self.read_max_score: list = self.config.get('read_max_score', [])
-            self.read_format = self.config.get('read_format', '')
-            self.read_syn = self.config.get('read_syn', '')
-            self.write_format = self.config.get('write_format', '')
-            self.write_syn = self.config.get('write_syn', '')
-            self.eval_stage = self.config.get('eval_stage', 4)
-        else:
-            self.input_file = self.config['input_file']
-            self.output_file = self.config['output_file']
-        # self.input_file = self.config.get("input_file")
-        # self.output_file = self.config.get("output_file")
-        self.input_key = self.config.get("input_key", "data")
-        self.read_key = self.config.get("read_key", "prompt")
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
+        self.input_key = self.config['input_key']
         self.output_text_key = self.config.get("output_key", "response")
         self.logger = get_logger()
-        # Ensure required paths and keys are provided
-        if not hasattr(self,"storage") and (not self.input_file or not self.output_file):
-            raise ValueError("Both input_file and output_file must be specified in the config.")
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'input_key']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
 
     def __init_model__(self):
         '''
@@ -87,58 +74,29 @@ class AnswerGenerator:
             return "AnswerGenerator produces standardized answers for mathematical questions."
         
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[dict(zip(['min_score', 'max_score'], list(_))) for _ in list(zip(self.read_min_score, self.read_max_score))], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self,save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            # output_rows = []
-            # for i, row in dataframe.iterrows():
-            #     output_rows.append({
-            #         self.read_key: row[self.read_key],
-            #         self.output_text_key: row[self.output_text_key]
-            #     })
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            self.storage.write_data(output_rows, format=self.write_format, Synthetic=self.write_syn, stage=self.stage+1)
-        else:
             dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         '''
         Runs the answer generation process, reading from the input file and saving results to output.
         '''
-        # Read input file: only accept jsonl format
-        # dataframe = pd.read_json(self.input_file, lines=True)
         dataframe = self._load_input()
-        # print(dataframe)
-        # Ensure the input and output keys are correctly set
         self._validate_dataframe(dataframe)
-
-        # Extract the prompts and generate answers
-        user_prompts = dataframe[self.read_key].tolist()
+        user_prompts = dataframe[self.input_key].tolist()
         answers = self.model_generator.generate_text_from_input(user_prompts)
 
-        # Save the generated answers to the output file
         dataframe[self.output_text_key] = answers
-        # dataframe.to_json(self.output_file, orient="records", lines=True)
         self._write_output(self.output_file, dataframe, None)
 
     def _validate_dataframe(self, dataframe: pd.DataFrame):
         '''
         Helper method to validate the input dataframe columns.
         '''
-        # Check if the input prompt key exists in the dataframe
-        if self.read_key not in dataframe.columns:
-            raise ValueError(f"read_key: {self.read_key} not found in the dataframe.")
+        if self.input_key not in dataframe.columns:
+            raise ValueError(f"input_key: {self.input_key} not found in the dataframe.")
         
-        # Check if the output text key already exists in the dataframe
         if self.output_text_key in dataframe.columns:
             raise ValueError(f"Found {self.output_text_key} in the dataframe, which would overwrite an existing column. Please use a different output_key.")

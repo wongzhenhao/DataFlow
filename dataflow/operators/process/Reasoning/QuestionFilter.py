@@ -28,25 +28,32 @@ from dataflow.utils.registry import PROCESSOR_REGISTRY
 import logging
 from datasets import Dataset
 from dataflow.utils.utils import get_logger
+from dataflow.utils import Operator
 
 @PROCESSOR_REGISTRY.register()
-class MathProblemFilter(ReasonerFilter):
-    def __init__(self, args_dict: dict):
-        super().__init__(args_dict)
-        self.system_prompt = args_dict.get("system_prompt", 
+class QuestionFilter(Operator):
+    def __init__(self, config: dict):
+        self.check_config(config)
+        self.system_prompt = config.get("system_prompt", 
             "You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format."
         )
         # need to set api_key first
         self.model = self.model_name
-        self.api_key = args_dict.get("api_key", "")
-        self.filter_name = 'MathProblemFilter'
+        self.api_key = config.get("api_key", "")
+        self.filter_name = 'QuestionFilter'
         self.logger = get_logger()
-        self.eval_stage = args_dict.get("eval_stage",0)
-        self.stage = args_dict.get("stage",0)
-        self.pipeline_id = args_dict.get("pipeline_id","")
-        if "db_name" in args_dict.keys():
+        self.eval_stage = config.get("eval_stage",0)
+        self.stage = config.get("stage",0)
+        self.pipeline_id = config.get("pipeline_id","")
+        if "db_name" in config.keys():
             self.dataset = self._load_input()
-        
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+
     @staticmethod
     def get_desc(self, lang):
         if lang == "zh":
@@ -77,64 +84,39 @@ class MathProblemFilter(ReasonerFilter):
             )
         else:
             return (
-                "MathProblemFilter performs correctness checking on math questions using a multi-stage LLM evaluation and returns binary results (0/1)."
+                "QuestionFilter performs correctness checking on math questions using a multi-stage LLM evaluation and returns binary results (0/1)."
             )
 
     
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            value_list = [        
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ]
-
-            dataset = Dataset.from_list(value_list)
-            return TextDataset(
-                dataset=dataset,
-                keys=value_list[0].keys(),
-                metadata=None 
-            )
-        else:
-            pass
+        pass
         
     def _write_output(self, labels, ids):
-        if hasattr(self, 'storage'):
-            output_rows = []
-            for _, label in zip(ids, labels):
-                output_rows.append({
-                    self.result_key: label,
-                    'id': _
-                })
-            self.storage.write_eval(output_rows, algo_name=self.filter_name, score_key=self.result_key, stage=self.stage+1,category='reasoning')
-        else:
-            pass
+        pass
 
 
 
     def build_prompt(self, question):
         """Constructs an evaluation prompt with four progressive checks"""
         prompt = f"""You are given a mathematical problem. Follow these four steps in order and stop at the first failure:
-0. Firstly check if it is only a math problem, if it has other instruction confused the model such as "rewrite" or has answer or other strange instruction, then judged as failure. If it is not a math problem, then the judgement_test is false.
-1. Check only for spelling, grammar, and LaTeX formatting correctness. Do not interpret semantic meaning.
-2. For each minimal condition stated in the problem (that cannot be further decomposed), check if it violates the mathematical domain or objective facts (for example, 'half a person' is incorrect). Note: Magical operations are acceptable if the necessary assumption is explicitly stated. Average values (e.g., 15.5 items per minute) are acceptable.
-3. Check whether the problem-solving process contains any contradictions. This includes any two minimal conditions contradicting each other or if the final solution would be unreasonable (including unsolvable).
-4. If the steps above pass, check if there are enough conditions provided in the problem to answer the target question. Redundant conditions that do not affect the problem - solving process are considered reasonable. Both analytical and numerical solutions are considered valid unless otherwise specified.
-    
-After performing these steps in sequence, output your final judgment in JSON format with exactly the following keys:
-{{
-    "judgement_test": true/false,
-    "error_type": "<error description or null>"
-}}
-You may include your chain-of-thought, but the final answer must be the JSON object above.
-    
-Here is the problem to evaluate:
--------------------------------
-{question}
--------------------------------
-"""
+        0. Firstly check if it is only a math problem, if it has other instruction confused the model such as "rewrite" or has answer or other strange instruction, then judged as failure. If it is not a math problem, then the judgement_test is false.
+        1. Check only for spelling, grammar, and LaTeX formatting correctness. Do not interpret semantic meaning.
+        2. For each minimal condition stated in the problem (that cannot be further decomposed), check if it violates the mathematical domain or objective facts (for example, 'half a person' is incorrect). Note: Magical operations are acceptable if the necessary assumption is explicitly stated. Average values (e.g., 15.5 items per minute) are acceptable.
+        3. Check whether the problem-solving process contains any contradictions. This includes any two minimal conditions contradicting each other or if the final solution would be unreasonable (including unsolvable).
+        4. If the steps above pass, check if there are enough conditions provided in the problem to answer the target question. Redundant conditions that do not affect the problem - solving process are considered reasonable. Both analytical and numerical solutions are considered valid unless otherwise specified.
+            
+        After performing these steps in sequence, output your final judgment in JSON format with exactly the following keys:
+        {{
+            "judgement_test": true/false,
+            "error_type": "<error description or null>"
+        }}
+        You may include your chain-of-thought, but the final answer must be the JSON object above.
+            
+        Here is the problem to evaluate:
+        -------------------------------
+        {question}
+        -------------------------------
+        """
         return prompt
 
     def process_problem(self, problem, id):
@@ -173,7 +155,7 @@ Here is the problem to evaluate:
                 self.logger.error(f"Response format error for problem: {problem}. Error: {e}")
                 return id,0
             
-    def filter_func(self, dataset):
+    def run(self, dataset):
         """Main filtering function that processes the entire dataset and returns a list of 0s and 1s"""
         max_workers = self.max_worker  # Adjust based on your needs
 

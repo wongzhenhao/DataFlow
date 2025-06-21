@@ -5,27 +5,22 @@ from xVerify_Custom.src.xVerify.custommodel import Model_custom
 from xVerify_Custom.src.xVerify.eval import Evaluator
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class AnswerJudger_xverify:
+class AnswerJudger_Xverify(Operator):
     '''
     An algorithm to judge if the two answers are the same based on xVerify
     '''
-    def __init__(self, configs: dict):
-        self.configs = configs
-        self.check_config()
-        if "db_name" in configs.keys():
-            self.storage = MyScaleStorage(configs['db_port'], configs['db_name'], configs['table_name'])
-            self.input_file = None
-            self.output_file= None
-        else:
-            self.input_file = self.configs['input_file']
-            self.output_file = self.configs['output_file']
+    def __init__(self, config: dict):
+        self.check_config(config)
+        self.config = config
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
         self.logger = get_logger()
 
-    def check_config(self):
+    def check_config(self, config: dict) -> None:
         """
         Check if all necessary keys are in the config dictionary
         """
@@ -40,17 +35,17 @@ class AnswerJudger_xverify:
             'process_num'
         ]
         for key in necessary_keys:
-            if key not in self.configs:
-                raise ValueError(f"The key {key} is not in the configs")
+            if key not in config:
+                raise ValueError(f"The key {key} is not in the config")
 
     def load_model(self):
         """
-        Load the model based on the inference_mode in configs
+        Load the model based on the inference_mode in config
         """
-        inference_mode = self.configs['inference_mode']
-        model_name = self.configs['model_name']
-        model_path_or_url = self.configs['model_path_or_url']
-        api_key = self.configs['api_key']
+        inference_mode = self.config['inference_mode']
+        model_name = self.config['model_name']
+        model_path_or_url = self.config['model_path_or_url']
+        api_key = self.config['api_key']
 
         if inference_mode == 'custom':
             # Initialize custom model
@@ -72,58 +67,45 @@ class AnswerJudger_xverify:
         return model
 
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], stage=0, syn='syn_qa', format='SFT_Single'
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, results):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            self.storage.write_data(output_rows, format="SFT_Single")
-        else:
-            dataframe[self.configs['output_key']] = results
-            dataframe.to_json(save_path, orient='records', lines=True)
+        dataframe[self.config['output_key']] = results
+        dataframe.to_json(save_path, orient='records', lines=True)
 
     def run(self):
         """
         Run the judging process on the input file, evaluating each row of data.
         """
         # Read the input data file
-        # raw_dataframe = pd.read_json(self.configs['input_file'], lines=True)
+        # raw_dataframe = pd.read_json(self.config['input_file'], lines=True)
         raw_dataframe = self._load_input()
         
         # Check if the necessary keys exist in the dataframe
         for key in ['question_key', 'answer_1_key', 'answer_2_key']:
-            if self.configs[key] not in raw_dataframe.columns:
-                raise ValueError(f"The key {self.configs[key]} is not in the dataframe")
+            if self.config[key] not in raw_dataframe.columns:
+                raise ValueError(f"The key {self.config[key]} is not in the dataframe")
 
         # Check if output_key exists in the dataframe to avoid overwriting
-        if self.configs['output_key'] in raw_dataframe.columns:
-            raise ValueError(f"The key {self.configs['output_key']} already exists in the dataframe. Please choose another key.")
+        if self.config['output_key'] in raw_dataframe.columns:
+            raise ValueError(f"The key {self.config['output_key']} already exists in the dataframe. Please choose another key.")
 
         # Load the model
         model = self.load_model()
 
         # Initialize the evaluator with the model and the number of processes
-        evaluator = Evaluator(model=model, process_num=self.configs['process_num'])
+        evaluator = Evaluator(model=model, process_num=self.config['process_num'])
 
         results = []
 
         # If inference_mode is not 'custom', use a serial approach
-        if self.configs['inference_mode'] != 'custom':
+        if self.config['inference_mode'] != 'custom':
             # Evaluate each row in the dataframe
             results = [
                 evaluator.evaluate(
-                    question=row[self.configs['question_key']],
-                    answer_1=row[self.configs['answer_1_key']],
-                    answer_2=row[self.configs['answer_2_key']]
+                    question=row[self.config['question_key']],
+                    answer_1=row[self.config['answer_1_key']],
+                    answer_2=row[self.config['answer_2_key']]
                 )
                 for _, row in raw_dataframe.iterrows()
             ]
@@ -131,13 +113,13 @@ class AnswerJudger_xverify:
             # For 'custom' mode, use ThreadPoolExecutor to process in parallel
             def process_row(row, index):
                 result = evaluator.evaluate(
-                    question=row[self.configs['question_key']],
-                    answer_1=row[self.configs['answer_1_key']],
-                    answer_2=row[self.configs['answer_2_key']]
+                    question=row[self.config['question_key']],
+                    answer_1=row[self.config['answer_1_key']],
+                    answer_2=row[self.config['answer_2_key']]
                 )
                 return result, index
             
-            with ThreadPoolExecutor(max_workers=self.configs['process_num']) as executor:
+            with ThreadPoolExecutor(max_workers=self.config['process_num']) as executor:
                 futures = [
                     executor.submit(process_row, row, idx)
                     for idx, row in raw_dataframe.iterrows()
@@ -153,8 +135,8 @@ class AnswerJudger_xverify:
                 results = [result[0] for result in results]
 
         # Assign results to the output column and save to the output file
-        self._write_output(self.configs['output_file'], raw_dataframe, results)
-        # raw_dataframe[self.configs['output_key']] = results
-        # raw_dataframe.to_json(self.configs['output_file'], orient='records', lines=True)
+        self._write_output(self.config['output_file'], raw_dataframe, results)
+        # raw_dataframe[self.config['output_key']] = results
+        # raw_dataframe.to_json(self.config['output_file'], orient='records', lines=True)
 
         return

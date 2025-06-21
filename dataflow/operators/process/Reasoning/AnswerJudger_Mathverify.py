@@ -4,33 +4,28 @@ from math_verify import parse, verify, LatexExtractionConfig
 import logging
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class AnswerJudger_mathverify:
+class AnswerJudger_MathVerify(Operator):
     def __init__(self, config: dict):
+        self.check_config(config)
         self.config = config
-        self._check_config()
-        if "db_name" in config.keys():
-            self.storage = MyScaleStorage(config['db_port'], config['db_name'], config['table_name'])
-            self.input_file = None
-            self.output_file= None
-        else:
-            self.input_file = self.config['input_file']
-            self.output_file = self.config['output_file']
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
         self.answer_key = self.config['answer_key']
         self.gt_key = self.config['gt_key']
         self.result_key = self.config['result_key']
         self.logger = get_logger()
 
-    def _check_config(self):
+    def check_config(self, config; dict) -> None:
         required_keys = [
             'input_file', 'output_file',
             'answer_key', 'gt_key', 'result_key',
         ]
         for key in required_keys:
-            if key not in self.config:
+            if key not in config:
                 raise ValueError(f"Key {key} is not in the config")
     
     @staticmethod
@@ -59,26 +54,13 @@ class AnswerJudger_mathverify:
                 "- result_key: Verification result field (True/False)"
             )
         else:
-            return "AnswerJudger_mathverify validates mathematical answer correctness."
+            return "AnswerJudger_MathVerify validates mathematical answer correctness."
         
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], stage=0, syn='syn_qa', format='SFT_Single'
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self,save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            self.storage.write_data(output_rows, format="SFT_Single", syn="syn_a")
-        else:
-            dataframe.to_json(save_path, orient="records", lines=True)
+        dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         # raw_dataframe = pd.read_json(self.input_file, lines=True)

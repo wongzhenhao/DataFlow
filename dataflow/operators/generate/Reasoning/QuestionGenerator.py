@@ -10,48 +10,39 @@ except ImportError:
 from dataflow.utils.registry import GENERATOR_REGISTRY
 import logging
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator 
 
 @GENERATOR_REGISTRY.register()
-class QuestionGenerator():
-    def __init__(self, args):
+class QuestionGenerator(Operator):
+    def __init__(self, config):
         """
         Initialize the QuestionGenerator with the provided configuration.
         """
-        self.config = args
+        self.check_config(config)
+        self.config = config
         self.prompts = QuestionSynthesisPrompt()
-
-        # Ensure the necessary configuration keys are provided
-        if "db_name" in args.keys():
-            self.storage = MyScaleStorage(args['db_port'], args['db_name'], args['table_name'])
-            self.output_file = None
-            self.stage = args.get("stage",0)
-            self.pipeline_id = args.get("pipeline_id","")
-            self.read_min_score = self.config.get('read_min_score', 0.9)
-            self.read_max_score = self.config.get('read_max_score', 2.0)
-            self.read_format = self.config.get('read_format', '')
-            self.read_syn = self.config.get('read_syn', '')
-            self.write_format = self.config.get('write_format', '')
-            self.write_syn = self.config.get('write_syn', '')
-            self.eval_stage = self.config.get('eval_stage',1)
-        else:
-            self.input_file = args.get("input_file")
-            self.output_file= args.get("output_file")
-        self.input_key = self.config.get("input_key", "data") 
-        self.read_key = self.config.get("read_key", "question")  # default key for question input
+        self.input_file = config.get("input_file")
+        self.output_file= config.get("output_file")
+        self.input_key = self.config.get("input_key", "question")  # default key for question input
         self.num_prompts = self.config.get("num_prompts", 1)  # default number of prompts to use for generation
         # check if num_prompts is a valid number
         if self.num_prompts not in [0,1,2,3,4,5]:
             raise ValueError("num_prompts must be 0, 1, 2, 3, 4, or 5")
 
         # Validate that input_file and output_file are provided
-        if "db_name" not in args.keys() and (not self.input_file or not self.output_file):
+        if "db_name" not in config.keys() and (not self.input_file or not self.output_file):
             raise ValueError("Both input_file and output_file must be specified in the config.")
 
         # Initialize the model
         self.model = self.__init_model__()
         self.logger = get_logger()
-        
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+
 
     @staticmethod
     def get_desc(self, lang):
@@ -96,10 +87,10 @@ class QuestionGenerator():
         """
         Reformat the prompts in the dataframe to generate questions based on num_prompts.
         """
-        # Check if read_key is in the dataframe
-        if self.read_key not in dataframe.columns:
+        # Check if input_key is in the dataframe
+        if self.input_key not in dataframe.columns:
             key_list = dataframe.columns.tolist()
-            raise ValueError(f"read_key: {self.read_key} not found in the dataframe. Available keys: {key_list}")
+            raise ValueError(f"input_key: {self.input_key} not found in the dataframe. Available keys: {key_list}")
 
         # Predefined transformation options for diversity
         diversity_mode = [
@@ -111,7 +102,7 @@ class QuestionGenerator():
         ]
 
         formatted_prompts = []
-        for question in dataframe[self.read_key]:
+        for question in dataframe[self.input_key]:
             if self.num_prompts == 0:
                 formatted_prompts.append("")  # Skip generating for this question
             else:
@@ -124,34 +115,12 @@ class QuestionGenerator():
         return formatted_prompts
 
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[{'min_score': self.read_min_score, 'max_score': self.read_max_score},], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            # print(value_list)
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-            # return pd.DataFrame([item['data'] for item in value_list])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            formatted_rows = [
-                {
-                    "id": row["id"],
-                    "data": {k: v for k, v in row.items() if k != "id"}
-                }
-                for row in output_rows
-            ]
-            self.storage.write_json(formatted_rows, format=self.write_format, syn=self.write_syn, stage=self.stage+1, pipeline_id=self.pipeline_id, category="reasoning")
-        else:
-            output_dir = os.path.dirname(self.output_file)
-            os.makedirs(output_dir, exist_ok=True)
-            dataframe.to_json(save_path, orient="records", lines=True)
+        output_dir = os.path.dirname(self.output_file)
+        os.makedirs(output_dir, exist_ok=True)
+        dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         """
@@ -162,8 +131,8 @@ class QuestionGenerator():
             # Read the input file (jsonl format only)
             # dataframe = pd.read_json(self.input_file, lines=True)
             dataframe = self._load_input()
-            if self.read_key not in dataframe.columns:
-                raise ValueError(f"read_key: {self.read_key} not found in the dataframe. Available keys: {dataframe.columns.tolist()}")
+            if self.input_key not in dataframe.columns:
+                raise ValueError(f"input_key: {self.input_key} not found in the dataframe. Available keys: {dataframe.columns.tolist()}")
             if "Synth_or_Input" in dataframe.columns:
                 raise ValueError(f"Synth_or_Input is a reserved column name to show if the question is generated or not, please rename it")
             
@@ -171,8 +140,6 @@ class QuestionGenerator():
                 raise ValueError(f"num_prompts should not be 0.")
                 # self.logger.info(f"num_prompts is 0, skip generation")
                 # # dataframe.to_json(self.output_file, orient="records", lines=True, force_ascii=False)
-                # if hasattr(self, 'storage'):
-                #     self._write_output(self.output_file, dataframe, None)
                 # self.logger.info(f"Generated questions saved to {self.output_file}")
                 # return
 
@@ -182,28 +149,18 @@ class QuestionGenerator():
             # Generate responses using the model
             responses = self.model.generate_text_from_input(formatted_prompts)
 
-            # 将新生成的问题作为新的行添加到dataframe中，仍然填写到read_key中,这些行的其他列全部为空
+            # 将新生成的问题作为新的行添加到dataframe中，仍然填写到input_key中,这些行的其他列全部为空
             # new_rows = pd.DataFrame(columns=dataframe.columns)
-            # new_rows[self.read_key] = responses
+            # new_rows[self.input_key] = responses
             repeat_count = self.num_prompts  # 每个seed生成几个
             expected_total = len(dataframe) * repeat_count
 
             if len(responses) != expected_total:
                 raise ValueError(f"Expected {expected_total} responses (len(dataframe)={len(dataframe)} * {repeat_count}), but got {len(responses)}")
 
-            has_id = hasattr(self, 'storage') and "id" in dataframe.columns
-
-            # 如果有 id，就展开 id
-            if has_id:
-                expanded_ids = [id_ for id_ in dataframe["id"].tolist() for _ in range(repeat_count)]
-                new_rows = pd.DataFrame({
-                    "id": expanded_ids,
-                    self.read_key: responses,
-                })
-            else:
-                new_rows = pd.DataFrame({
-                    self.read_key: responses,
-                })
+            new_rows = pd.DataFrame({
+                self.input_key: responses,
+            })
             
             new_rows["Synth_or_Input"] = "synth"
             dataframe["Synth_or_Input"] = "input"
@@ -215,9 +172,9 @@ class QuestionGenerator():
             # os.makedirs(output_dir, exist_ok=True)
 
             # Save DataFrame to JSON file
-            # 过滤self.read_key为空的数据
-            dataframe = dataframe[dataframe[self.read_key].notna()]
-            dataframe = dataframe[dataframe[self.read_key] != ""]
+            # 过滤self.input_key为空的数据
+            dataframe = dataframe[dataframe[self.input_key].notna()]
+            dataframe = dataframe[dataframe[self.input_key] != ""]
             # dataframe.to_json(self.output_file, orient="records", lines=True, force_ascii=False)
             self._write_output(self.output_file, dataframe, None)
 
