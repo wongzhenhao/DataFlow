@@ -1,0 +1,10 @@
+input_file: "demos/demos_result/math/pipeline_GT/difficultyclassified_step3.jsonl"
+output_file: "demos/demos_result/math/pipeline_GT/categoryclassified_step4.jsonl"
+input_key: "generated_question"
+output_key: "question_category"
+generator_type: "request"
+api_url: "your_api_url"
+db_path : "dataflow/generator/examples/db/text_db.json"
+max_workers: 100
+model_name: "gpt-4o"
+system_prompt: ""

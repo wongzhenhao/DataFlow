@@ -5,19 +5,26 @@ import re
 from datasets import Dataset
 from dataflow.data import TextDataset
 from dataflow.utils.utils import get_logger
+from dataflow.utils import Operator
 
 @PROCESSOR_REGISTRY.register()
-class AnswerFormatterFilter(ReasonerFilter):
-    def __init__(self, args_dict: dict):
-        super().__init__(args_dict)
+class AnswerFormatterFilter(Operator):
+    def __init__(self, config: dict):
+        self.check_config(config)
         self.filter_name = 'AnswerFormatterFilter'
         self.logger = get_logger()
-        self.eval_stage = args_dict.get('eval_stage', 4)
-        self.stage = args_dict.get("stage",0)
-        self.pipeline_id = args_dict.get("pipeline_id","")
-        if "db_name" in args_dict.keys():
+        self.eval_stage = config.get('eval_stage', 4)
+        self.stage = config.get("stage",0)
+        self.pipeline_id = config.get("pipeline_id","")
+        if "db_name" in config.keys():
             self.dataset = self._load_input()
-        
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+
     def is_valid_answer(answer: str) -> bool:
         # check final answer in \boxed{} or not 
         # if not re.search(r'\\boxed{.*}', answer):
@@ -26,35 +33,10 @@ class AnswerFormatterFilter(ReasonerFilter):
         return True 
     
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            value_list = [        
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ]
-            
-            dataset = Dataset.from_list(value_list)
-            return TextDataset(
-                dataset=dataset,
-                keys=value_list[0].keys(),
-                metadata=None 
-            )
-        else:
-            pass
+        pass
         
     def _write_output(self, labels, ids):
-        if hasattr(self, 'storage'):
-            output_rows = []
-            for _, label in zip(ids, labels):
-                output_rows.append({
-                    self.result_key: label,
-                    'id': _
-                })
-            self.storage.write_eval(output_rows, algo_name=self.filter_name, score_key=self.result_key, stage=self.stage+1)
-        else:
-            pass
+        pass
 
     @staticmethod
     def get_desc(self, lang):
@@ -82,7 +64,7 @@ class AnswerFormatterFilter(ReasonerFilter):
             return "AnswerFormatterFilter validates mathematical answer formatting"
     
     
-    def filter_func(self, dataset):
+    def run(self, dataset):
         indexes =  np.zeros(len(dataset)).astype(int)
 
         for i, item in enumerate(dataset):

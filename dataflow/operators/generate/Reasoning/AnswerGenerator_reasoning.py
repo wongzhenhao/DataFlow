@@ -1,40 +1,35 @@
 # A special algotithm for generating answers with a reasoning model
 import json
-from aiohttp import Payload
 import requests
-import threading
-import logging
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from tinydb import TinyDB
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class AnswerGenerator_reasoning:
+class AnswerGenerator_reasoning(Operator):
     '''
     For QwQ-32B and Deepseek-R1
     '''
     def __init__(self, config : dict):
+        self.check_config(config)
         self.config = config
-        self.check_config()
-        if "db_name" in config.keys():
-            self.storage = MyScaleStorage(config['db_port'], config['db_name'], config['table_name'])
-            self.input_file = None
-            self.output_file= None
-        else:
-            self.input_file = self.config['input_file']
-            self.output_file = self.config['output_file']
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
-        self.db = TinyDB(self.config['db_path'])
-        self.logger = get_logger()
-        self.logger.info(f"DB path: {self.config['db_path']}")
         self.max_workers = self.config.get('max_workers',4)
         self.output_content_key = self.config.get('output_content_key', 'content')
         self.output_reasoning_key = self.config.get('output_reasoning_key', 'reasoning_content')
         self.output_total_token_key = self.config.get('output_total_token_key', 'total_token')
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'input_key']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
 
     @staticmethod
     def get_desc(self, lang):
@@ -68,34 +63,6 @@ class AnswerGenerator_reasoning:
         else:
             return "AnswerGenerator_reasoning produces validated answers through multi-step reasoning."
 
-    def check_config(self):
-        """
-        Ensures the configuration contains necessary keys.
-        Must include either both 'input_file' and 'output_file', or 'db_path'.
-        """
-        config = self.config  # for brevity
-
-        # Keys that are always required
-        required_keys = [
-            'system_prompt',
-            'read_key',
-            'model_name',
-            'url',
-            'api_key',
-            'max_workers'
-        ]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Key '{key}' is missing in the config")
-
-        # Check data source condition
-        has_file_io = 'input_file' in config and 'output_file' in config
-        has_db = 'db_path' in config
-
-        if not (has_file_io or has_db):
-            raise ValueError("Config must include either both 'input_file' and 'output_file', or 'db_path'")
-
-
     def chat(self,system_prompt,message,model_name,url,api_key,id):
         try:
             payload = json.dumps({
@@ -122,7 +89,7 @@ class AnswerGenerator_reasoning:
             self.logger.error(f"Error: {e}")
             return None,id
 
-    def Analyze_response_json(self, response_json):
+    def analyze_response_json(self, response_json):
         '''
         Analyze the response json and return the answer
         '''
@@ -164,23 +131,10 @@ class AnswerGenerator_reasoning:
         raw_dataframe.to_json(self.output_file,orient='records',lines=True,force_ascii=False)
 
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], stage=0, syn='syn_qa', format='SFT_Single'
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            self.storage.write_data(output_rows, format="SFT_Single")
-        else:
-            dataframe.to_json(save_path, orient='records', lines=True)
+        dataframe.to_json(save_path, orient='records', lines=True)
     
     def run(self):
         '''
@@ -221,7 +175,7 @@ class AnswerGenerator_reasoning:
                 self.logger.info(f"Submitted task {index} of {len(dataframe)}")
             for future in as_completed(futures):
                 response_json,id = future.result()
-                reasoning_content, content, total_token = self.Analyze_response_json(response_json)
+                reasoning_content, content, total_token = self.analyze_response_json(response_json)
                 raw_input = dataframe.loc[id,self.config['read_key']]
                 self.db.insert({
                     'id':id,

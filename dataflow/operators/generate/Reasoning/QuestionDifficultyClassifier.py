@@ -6,42 +6,36 @@ from dataflow.generator.utils.Prompts import QuestionDifficultyPrompt
 import re
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class QuestionDifficultyClassifier():
-    def __init__(self, args):
+class QuestionDifficultyClassifier(Operator):
+    def __init__(self, config):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
-        self.config = args
+        self.check_config(config)
+        self.config = config
         self.prompts = QuestionDifficultyPrompt()
-        if "db_name" in args.keys():
-            self.storage = MyScaleStorage(args['db_port'], args['db_name'], args['table_name'])
-            self.input_file = None
-            self.output_file= None
-            self.stage = args.get("stage",0)
-            self.pipeline_id = args.get("pipeline_id","")
-            self.read_min_score = self.config.get('read_min_score', 0.9)
-            self.read_max_score = self.config.get('read_max_score', 2.0)
-            self.eval_stage = self.config.get('eval_stage',1)
-            self.read_format = self.config.get('read_format', '')
-            self.read_syn = self.config.get('read_syn', '')
-        else:
-            self.input_file = args.get("input_file")
-            self.output_file= args.get("output_file")
-        self.input_key = self.config.get("input_key", "data")
-        self.read_key = self.config.get("read_key", "question")  # default key for question input
+        self.input_file = config.get("input_file")
+        self.output_file= config.get("output_file")
+        self.input_key = self.config.get("input_key", "question")  # default key for question input
         self.output_key = self.config.get("output_key", "classification_result")  # default output key
         self.logger = get_logger()
         
         # Ensure input_file and output_file are provided
-        if not hasattr(self,'storage') and (not hasattr(self,'input_file') or not hasattr(self,'output_file')):
+        if not hasattr(self,'input_file') or not hasattr(self,'output_file'):
             raise ValueError("Both input_file and output_file must be specified in the config.")
 
         # Initialize the model
         self.model = self.__init_model__()
     
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+        
     def __init_model__(self):
         """
         Initialize the model generator based on the configuration.
@@ -59,13 +53,13 @@ class QuestionDifficultyClassifier():
         """
         Reformat the prompts in the dataframe to generate questions.
         """
-        # Check if read_key is in the dataframe
-        if self.read_key not in dataframe.columns:
+        # Check if input_key is in the dataframe
+        if self.input_key not in dataframe.columns:
             key_list = dataframe.columns.tolist()
-            raise ValueError(f"read_key: {self.read_key} not found in the dataframe. Available keys: {key_list}")
+            raise ValueError(f"input_key: {self.input_key} not found in the dataframe. Available keys: {key_list}")
 
         formatted_prompts = []
-        for i, text in enumerate(dataframe[self.read_key]):
+        for i, text in enumerate(dataframe[self.input_key]):
             if text is not None:
                 used_prompt = self.prompts.question_synthesis_prompt(text)
             else:
@@ -75,32 +69,12 @@ class QuestionDifficultyClassifier():
         return formatted_prompts
 
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[{'max_score': self.read_max_score, 'min_score': self.read_min_score}], stage=self.stage, pipeline_id = self.pipeline_id, category="reasoning"
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            output_rows = [
-                {
-                    "id": row.get("id"),
-                    "difficulty_score": row.get("question_difficulty")
-                }
-                for row in output_rows
-            ]
-            self.storage.write_eval(output_rows, algo_name="QuestionDifficultyClassifier", score_key="difficulty_score", stage=self.stage+1)
-        else:
-            output_dir = os.path.dirname(self.output_file)
-            os.makedirs(output_dir, exist_ok=True)
-            dataframe.to_json(save_path, orient="records", lines=True)
+        output_dir = os.path.dirname(self.output_file)
+        os.makedirs(output_dir, exist_ok=True)
+        dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         # read input file : accept jsonl file only

@@ -7,42 +7,36 @@ import re
 from dataflow.utils.registry import GENERATOR_REGISTRY
 import logging
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
 from dataflow.generator.utils.CategoryFuzzer import normalize_categories, category_hasher, category_hasher_reverse
+from dataflow.utils import Operator
 
 @GENERATOR_REGISTRY.register()
-class QuestionCategoryClassifier():
-    def __init__(self, args):
+class QuestionCategoryClassifier(Operator):
+    def __init__(self, config: dict):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
-        self.config = args
+        self.check_config(config)
+        self.config = config
         self.prompts = QuestionCategoryPrompt()
-        if "db_name" in args.keys():
-            self.storage = MyScaleStorage(args['db_port'], args['db_name'], args['table_name'])
-            self.input_file = None
-            self.output_file= None
-            self.stage = args.get("stage",0)
-            self.pipeline_id = args.get("pipeline_id","")
-            self.read_min_score = self.config.get('read_min_score', 0.9)
-            self.read_max_score = self.config.get('read_max_score', 2.0)
-            self.eval_stage = self.config.get('eval_stage', 2)
-            self.read_format = self.config.get('read_format', '')
-            self.read_syn = self.config.get('read_syn', '')
-        else:
-            self.input_file = args.get("input_file")
-            self.output_file= args.get("output_file")
-        self.read_key = self.config.get("read_key", "question")
-        self.input_key = self.config.get("input_key", "data")  # default key for question input
+        self.input_file = config.get("input_file")
+        self.output_file= config.get("output_file")
+        self.input_key = self.config.get("input_key", "question")
         self.output_key = self.config.get("output_key", "classification_result")  # default output key
         self.logger = get_logger()
 
         # Ensure input_file and output_file are provided
-        if not hasattr(self, "storage") and (not self.input_file or not self.output_file):
+        if not self.input_file or not self.output_file:
             raise ValueError("Both input_file and output_file must be specified in the config.")
 
         # Initialize the model
         self.model = self.__init_model__()
+
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
 
     def __init_model__(self):
         """
@@ -61,51 +55,25 @@ class QuestionCategoryClassifier():
         """
         Reformat the prompts in the dataframe to generate questions.
         """
-        # Check if read_key is in the dataframe
-        if self.read_key not in dataframe.columns:
+        # Check if input_key is in the dataframe
+        if self.input_key not in dataframe.columns:
             key_list = dataframe.columns.tolist()
-            raise ValueError(f"read_key: {self.read_key} not found in the dataframe. Available keys: {key_list}")
+            raise ValueError(f"input_key: {self.input_key} not found in the dataframe. Available keys: {key_list}")
 
         formatted_prompts = []
-        for text in dataframe[self.read_key]:
+        for text in dataframe[self.input_key]:
             used_prompt = self.prompts.question_synthesis_prompt(text)
             formatted_prompts.append(used_prompt.strip())
 
         return formatted_prompts
 
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn, maxmin_scores=[{'max_score': self.read_max_score, 'min_score': self.read_min_score}], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            output_1 = []
-            for row in output_rows:
-                try:
-                    primary = row.get("primary_category")
-                    secondary = row.get("secondary_category")
-                    hash = category_hasher(primary, secondary)
-                except:
-                    hash = 170
-
-                output_1.append({
-                    "id": row.get("id"),
-                    "category": hash,
-                })
-            self.storage.write_eval(output_1, algo_name="QuestionCategoryClassifier", score_key="category", stage=self.stage+1)
-        else:
-            output_dir = os.path.dirname(save_path)
-            os.makedirs(output_dir, exist_ok=True)
-            dataframe.to_json(self.output_file, orient="records", lines=True, force_ascii=False)
+        output_dir = os.path.dirname(save_path)
+        os.makedirs(output_dir, exist_ok=True)
+        dataframe.to_json(self.output_file, orient="records", lines=True, force_ascii=False)
 
     def run(self):
         """
@@ -170,7 +138,7 @@ class QuestionCategoryClassifier():
                 "输入参数：\n"
                 "- db_port/db_name/table_name：数据库连接参数（存储模式）\n"
                 "- input_file/output_file：文件路径（文件模式）\n"
-                "- read_key：输入数据中问题字段的键名\n"
+                "- input_key：输入数据中问题字段的键名\n"
                 "- generator_type：模型调用方式（aisuite/request）\n\n"
                 "输出参数：\n"
                 "- classification_result：包含主分类和子分类的编码结果"
@@ -182,7 +150,7 @@ class QuestionCategoryClassifier():
                 "Input Parameters:\n"
                 "- db_port/db_name/table_name: Database connection params (storage mode)\n"
                 "- input_file/output_file: File paths (file mode)\n"
-                "- read_key: Key for question field in input data\n"
+                "- input_key: Key for question field in input data\n"
                 "- generator_type: Model invocation method (aisuite/request)\n\n"
                 "Output Parameters:\n"
                 "- classification_result: Combined category code"

@@ -11,7 +11,7 @@ from word2number import w2n
 from dataflow.utils.utils import get_logger
 from datasets import Dataset
 from dataflow.data import TextDataset
-
+from dataflow.utils import Operator
 
 # Helper Class for String Processing
 class StringProcessor:
@@ -220,8 +220,8 @@ class AnswerExtractor:
 
 @PROCESSOR_REGISTRY.register()
 class AnswerGroundTruthFilter(ReasonerFilter):
-    def __init__(self, args_dict: dict):
-        super().__init__(args_dict)
+    def __init__(self, config: dict):
+        self.check_config(config)
         self.filter_name = 'AnswerGroundTruthFilter'
         unit_manager = UnitTextManager()
         string_cleaner = StringCleaner(unit_manager)
@@ -233,45 +233,26 @@ class AnswerGroundTruthFilter(ReasonerFilter):
         }
         self.logger = get_logger()
 
-        self.compare = name2compare[args_dict.get('compare_method', 'exact')]
-        if "db_name" in args_dict.keys():
-            self.read_min_score: list = args_dict['read_min_score']
-            self.read_max_score: list = args_dict['read_max_score']
-            self.eval_stage = args_dict['eval_stage']
-            self.stage = args_dict["stage"]
-            self.pipeline_id = args_dict["pipeline_id"]
+        self.compare = name2compare[config.get('compare_method', 'exact')]
+        if "db_name" in config.keys():
+            self.read_min_score: list = config['read_min_score']
+            self.read_max_score: list = config['read_max_score']
+            self.eval_stage = config['eval_stage']
+            self.stage = config["stage"]
+            self.pipeline_id = config["pipeline_id"]
             self.dataset = self._load_input()
 
+    def check_config(self, config: dict) -> None:
+        required_keys = ['input_file', 'output_file', 'generator_type']
+        missing_keys = [key for key in required_keys if key not in config]
+        if missing_keys:
+            raise ValueError(f"Missing required config keys: {missing_keys}")
+        
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], eval_stage=self.eval_stage, format=self.read_format, syn=self.read_syn,  maxmin_scores=[dict(zip(['min_score', 'max_score'], list(_))) for _ in list(zip(self.read_min_score, self.read_max_score))], stage=self.stage, pipeline_id=self.pipeline_id, category="reasoning"
-            )
-            value_list = [        
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ]
-            
-            dataset = Dataset.from_list(value_list)
-            return TextDataset(
-                dataset=dataset,
-                keys=value_list[0].keys(),
-                metadata=None 
-            )
-        else:
-            pass
+        pass
         
     def _write_output(self, labels, ids):
-        if hasattr(self, 'storage'):
-            output_rows = []
-            for _, label in zip(ids, labels):
-                output_rows.append({
-                    self.result_key: label,
-                    'id': _
-                })
-            self.storage.write_eval(output_rows, algo_name=self.filter_name, score_key=self.result_key, stage=self.stage+1)
-        else:
-            pass
+        pass
 
 
     def exact_compare(self, answer, ground_truth):
@@ -286,7 +267,7 @@ class AnswerGroundTruthFilter(ReasonerFilter):
             except:
                 return False
 
-    def filter_func(self, dataset):
+    def run(self, dataset):
         indexes = np.zeros(len(dataset)).astype(int)
         for i in range(len(dataset)):
             final_answer =  self.answer_extractor.extract_answer(dataset[i][self.test_answer_key], dataset[i].get('data_name', None))

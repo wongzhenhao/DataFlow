@@ -5,7 +5,7 @@ import re
 from word2number import w2n
 from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
-from dataflow.data import MyScaleStorage
+from dataflow.utils import Operator
 
 class StringProcessor:
     """
@@ -216,24 +216,19 @@ class AnswerExtractor:
 
 # The main class to manage the entire extraction process
 @GENERATOR_REGISTRY.register()
-class AnswerExtraction_qwenmatheval:
+class AnswerExtraction_QwenMathEval(Operator):
     """
     A class to handle the process of extracting answers from a dataset.
     """
 
     def __init__(self, config: dict):
         """
-        Initializes the AnswerExtraction_qwenmatheval class.
+        Initializes the AnswerExtraction_QwenMathEval class.
         """
+        self.check_config(config)
         self.config = config
-        self._check_config()
-        if "db_name" in config.keys():
-            self.storage = MyScaleStorage(config['db_port'], config['db_name'], config['table_name'])
-            self.input_file = None
-            self.output_file= None
-        else:
-            self.input_file = self.config['input_file']
-            self.output_file = self.config['output_file']
+        self.input_file = self.config['input_file']
+        self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
         self.response_key = self.config['response_key']
         self.extraction_key = self.config['extraction_key']
@@ -245,7 +240,7 @@ class AnswerExtraction_qwenmatheval:
         string_cleaner = StringCleaner(unit_manager)
         self.answer_extractor = AnswerExtractor(string_cleaner)
 
-    def _check_config(self):
+    def check_config(self):
         """
         Ensures that the configuration contains all necessary keys.
         Must have either (input_file and output_file) or db_name.
@@ -290,26 +285,13 @@ class AnswerExtraction_qwenmatheval:
                 "- output_key: Standardized mathematical expression field"
             )
         else:
-            return "AnswerExtraction_qwenmatheval performs mathematical answer normalization and standardization."
+            return "AnswerExtraction_QwenMathEval performs mathematical answer normalization and standardization."
         
     def _load_input(self):
-        if hasattr(self, 'storage'):
-            value_list = self.storage.read_json(
-                [self.input_key], stage=0, syn='syn_a', format='SFT_Single'
-            )
-            return pd.DataFrame([
-                {**item['data'], 'id': str(item['id'])}
-                for item in value_list
-            ])
-        else:
-            return pd.read_json(self.input_file, lines=True)
+        return pd.read_json(self.input_file, lines=True)
 
     def _write_output(self, save_path, dataframe, extractions):
-        if hasattr(self, 'storage'):
-            output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
-            self.storage.write_data(output_rows, format="SFT_Single")
-        else:
-            dataframe.to_json(save_path, orient='records', lines=True)
+        dataframe.to_json(save_path, orient='records', lines=True)
 
     def run(self):
         """
