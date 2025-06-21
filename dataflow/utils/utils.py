@@ -65,3 +65,19 @@ def merge_yaml(config):
             vllm_args = vllm_args_list[0]
             config.update(vllm_args)  # 合并进顶层
         return config
+    
+
+def init_model(config):
+    if "generator_type" not in config.keys():
+        raise ValueError("generator_type is not found in config")
+    if config["generator_type"] == "local":
+        from dataflow.utils.LocalModelGenerator import LocalModelGenerator
+        return LocalModelGenerator(config)
+    elif config["generator_type"] == "aisuite":
+        from dataflow.utils.APIGenerator_aisuite import APIGenerator_aisuite
+        return APIGenerator_aisuite(config)
+    elif config["generator_type"] == "request":
+        from dataflow.utils.APIGenerator_request import APIGenerator_request
+        return APIGenerator_request(config)
+    else:
+        raise ValueError(f"Invalid generator type: {config['generator_type']}, must be one of: local, aisuite, request")

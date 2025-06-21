@@ -1,7 +1,7 @@
-from dataflow.generator.utils.Prompts import AnswerGeneratorPrompt
-# from dataflow.generator.utils.LocalModelGenerator import LocalModelGenerator
-from dataflow.generator.utils.APIGenerator_aisuite import APIGenerator_aisuite
-from dataflow.generator.utils.APIGenerator_request import APIGenerator_request
+from dataflow.utils.reasoning_utils.Prompts import AnswerGeneratorPrompt
+from dataflow.utils.LocalModelGenerator import LocalModelGenerator
+from dataflow.utils.APIGenerator_aisuite import APIGenerator_aisuite
+from dataflow.utils.APIGenerator_request import APIGenerator_request
 import yaml
 import logging
 import pandas as pd
@@ -9,6 +9,9 @@ from dataflow.utils.registry import GENERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
 from dataflow.utils import Operator
 
+from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Operator import Operator
+from dataflow.utils.utils import init_model
 @GENERATOR_REGISTRY.register()
 class AnswerGenerator(Operator):
     '''
@@ -18,12 +21,16 @@ class AnswerGenerator(Operator):
         self.check_config(config)
         self.config = config
         self.prompt = AnswerGeneratorPrompt()
-        self.model_generator = self.__init_model__()
         self.input_file = self.config['input_file']
         self.output_file = self.config['output_file']
         self.input_key = self.config['input_key']
         self.output_text_key = self.config.get("output_key", "response")
+        self.input_key = self.config.get("input_key")
+        self.output_key = self.config.get("output_key")
         self.logger = get_logger()
+
+        self.generator = init_model(config)
+        self.datastorage = FileStorage(config)
 
     def check_config(self, config: dict) -> None:
         required_keys = ['input_file', 'output_file', 'input_key']
@@ -31,17 +38,7 @@ class AnswerGenerator(Operator):
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
 
-    def __init_model__(self):
-        '''
-        Initialize the model generator based on the configuration.
-        '''
-        generator_type = self.config.get("generator_type", "local").lower()
-        if generator_type == "aisuite":
-            return APIGenerator_aisuite(self.config)
-        elif generator_type == "request":
-            return APIGenerator_request(self.config)
-        else:
-            raise ValueError(f"Invalid generator type: {generator_type}")
+    
     
     @staticmethod
     def get_desc(self, lang):
@@ -72,24 +69,18 @@ class AnswerGenerator(Operator):
             )
         else:
             return "AnswerGenerator produces standardized answers for mathematical questions."
-        
-    def _load_input(self):
-        return pd.read_json(self.input_file, lines=True)
-
-    def _write_output(self,save_path, dataframe, extractions):
-            dataframe.to_json(save_path, orient="records", lines=True)
 
     def run(self):
         '''
         Runs the answer generation process, reading from the input file and saving results to output.
         '''
-        dataframe = self._load_input()
+        dataframe = self.datastorage.read(self.input_file, "dataframe")
         self._validate_dataframe(dataframe)
         user_prompts = dataframe[self.input_key].tolist()
-        answers = self.model_generator.generate_text_from_input(user_prompts)
+        answers = self.generator.generate_text_from_input(user_prompts)
 
         dataframe[self.output_text_key] = answers
-        self._write_output(self.output_file, dataframe, None)
+        self.datastorage.write(self.output_file, dataframe)
 
     def _validate_dataframe(self, dataframe: pd.DataFrame):
         '''
