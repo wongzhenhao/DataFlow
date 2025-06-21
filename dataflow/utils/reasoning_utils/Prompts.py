@@ -314,3 +314,33 @@ class QuestionDifficultyPrompt:
             -------------------------------
             """
             return prompt
+
+class QuestionFilterPrompt:
+    '''
+    The prompt for the question filter.
+    '''
+    def __init__(self):
+        pass
+    
+    def build_prompt(self, question):
+        """Constructs an evaluation prompt with four progressive checks"""
+        prompt = f"""You are given a mathematical problem. Follow these four steps in order and stop at the first failure:
+        0. Firstly check if it is only a math problem, if it has other instruction confused the model such as "rewrite" or has answer or other strange instruction, then judged as failure. If it is not a math problem, then the judgement_test is false.
+        1. Check only for spelling, grammar, and LaTeX formatting correctness. Do not interpret semantic meaning.
+        2. For each minimal condition stated in the problem (that cannot be further decomposed), check if it violates the mathematical domain or objective facts (for example, 'half a person' is incorrect). Note: Magical operations are acceptable if the necessary assumption is explicitly stated. Average values (e.g., 15.5 items per minute) are acceptable.
+        3. Check whether the problem-solving process contains any contradictions. This includes any two minimal conditions contradicting each other or if the final solution would be unreasonable (including unsolvable).
+        4. If the steps above pass, check if there are enough conditions provided in the problem to answer the target question. Redundant conditions that do not affect the problem - solving process are considered reasonable. Both analytical and numerical solutions are considered valid unless otherwise specified.
+            
+        After performing these steps in sequence, output your final judgment in JSON format with exactly the following keys:
+        {{
+            "judgement_test": true/false,
+            "error_type": "<error description or null>"
+        }}
+        You may include your chain-of-thought, but the final answer must be the JSON object above.
+            
+        Here is the problem to evaluate:
+        -------------------------------
+        {question}
+        -------------------------------
+        """
+        return prompt
