@@ -17,21 +17,16 @@
 
 </div>
 
-
 ## 1 News
-- [2025-07-25] 🎉 We release the dataflow-agent.
-- [2025-06-30] 🎉 We release the documentation of dataflow.
-<!-- - [2025-05-30] 🎉 We added two data processing pipelines, i.e. knowledge base cleaning, and agentic rag data construction pipeline. -->
-<!-- - [2025-04-30] 🎉 We added four data processing pipelines, i.e. text, code, nl2sql, and reasoning data pipeline. -->
-<!-- - [2024-12-26] 🎉 Our first data evaluation and processing system is now open source. -->
-- [2024-10-14] 🎉 We summarize data evaluation papers and codes in [👋 Awesome Data Evaluation](./Awesome_Data_Evaluation.md)
-- [2024-10-14] 🎉 Our first data-centric evaluation system is now open source.
+- [2025-06-15] 🎉 We release the dataflow-agentbot.
+- [2025-06-10] 🎉 We release the documentation of dataflow.
+- [2025-06-01] 🎉 Our new data-centric process, generate and evaluate system is now open source, the code is coming soon.
 
 ## 2 Overview
 
   <img src="./static/images/dataflow_framework.jpg">
 
-DataFlow is a data evaluation and processing system designed to **clean, augment and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuing, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLM's performance in fields such as healthcare, finance, and law.**
+DataFlow is a data preparation system designed to **process, generate and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuing, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLM's performance in fields such as healthcare, finance, and law.**
 
 Specifically, we constructing diverse `operators` leveraging rule-based methods, deep learning models, LLMs, and LLM APIs. These operators are systematically integrated into distinct `pipelines`, collectively forming the comprehensive `Dataflow system`. Additionally, we develop an intelligent `Dataflow-agent` capable of dynamically assembling new `pipelines` by recombining existing `operators` on demand.
 
@@ -111,17 +106,6 @@ We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning
 ### 3. Text2SQL PipeLine
 We fine-tuned the Qwen2.5-Coder-7B model on the Bird dataset using both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), with data constructed via the DataFlow-Text2SQL Pipeline. Results are:
 ![alt text](./static/images/text2sql.png)
-
-### 
-## Citation
-```
-@article{wang2025rare,
-  title={Rare: Retrieval-augmented reasoning modeling},
-  author={Wang, Zhengren and Yu, Jiayang and Ma, Dongsheng and Chen, Zhe and Wang, Yu and Li, Zhiyu and Xiong, Feiyu and Wang, Yanfeng and Tang, Linpeng and Zhang, Wentao and others},
-  journal={arXiv preprint arXiv:2503.23513},
-  year={2025}
-}
-```
 
 <!-- ## Statistics
 <a href="https://star-history.com/#Open-DataFlow/DataFlow&Date">
