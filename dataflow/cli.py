@@ -4,8 +4,8 @@ import requests
 
 from colorama import init, Fore, Style
 
-# from IMDLBenCo.utils.paths import BencoPath
-# from dataflow.cli_funcs import cli_init, cli_env
+# from dataflow.utils.paths import BencoPath
+from dataflow.cli_funcs import cli_env, cli_init
 import importlib.metadata 
 
 PYPI_API_URL = 'https://pypi.org/pypi/open-dataflow/json'
@@ -56,7 +56,7 @@ def main():
     # env command
     parser_env = subparsers.add_parser('env', help='Show environment information')
     
-    parser.add_argument('--config', type=str, help='Path to the configuration file')
+    # parser.add_argument('--config', type=str, help='Path to the configuration file')
     
     args = parser.parse_args()
     if args.version:
@@ -65,11 +65,14 @@ def main():
     if args.command == 'init':
         if args.subcommand is None:
             args.subcommand = 'base'
-        # cli_init(args.config, subcommand=args.subcommand)
-        print("TODO Calling cli_init with config:", args.config, "and subcommand:", args.subcommand)
+        cli_init(subcommand=args.subcommand)
+        # print("TODO Calling cli_init with subcommand:", args.subcommand)
+        from dataflow.cli_funcs.paths import DataFlowPath
+        # print(DataFlowPath.get_dataflow_dir())
+        # print(DataFlowPath.get_dataflow_scripts_dir())
     elif args.command == 'env':
-        # cli_env(args.config)
-        print("TODO Calling cli_env with config:", args.config)
+        cli_env()
+        # print("TODO Calling cli_env with config:", args.config)
 
 # def train(config):
 #     print(f'Training with config: {config}')
