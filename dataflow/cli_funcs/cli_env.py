@@ -4,8 +4,6 @@ from colorama import init, Fore, Style
 from dataflow import __version__
 
 import torch
-import timm
-import albumentations
 
 def is_torch_cuda_available():
     """
@@ -20,8 +18,6 @@ def get_env_info():
         "Python version": platform.python_version(),
         "PyTorch version": torch.__version__,
         "Torchvision version": torch.__version__,
-        "TIMM version": timm.__version__,
-        "Albumentations version": albumentations.__version__,
     }
     if is_torch_cuda_available():
         info["PyTorch version"] += " (GPU)"
