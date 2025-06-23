@@ -1,6 +1,6 @@
 import sys
 from dataflow.utils.Registry import LazyLoader
-
+from .Reasoning import *
 cur_path = "dataflow/operators/process/"
 _import_structure = {
     "AnswerFormatterFilter": (cur_path + "Reasoning/AnswerFormatterFilter.py", "AnswerFormatterFilter"),

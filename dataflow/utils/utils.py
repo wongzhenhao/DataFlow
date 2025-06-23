@@ -67,16 +67,16 @@ def merge_yaml(config):
         return config
     
 
-def init_model(config):
-    if "generator_type" not in config.keys():
+def init_model(generator_type:str =None):
+    if generator_type is None:
         raise ValueError("generator_type is not found in config")
-    if config["generator_type"] == "local":
+    if generator_type == "local":
         from dataflow.utils.LocalModelGenerator import LocalModelGenerator
         return LocalModelGenerator(config)
-    elif config["generator_type"] == "aisuite":
+    elif generator_type == "aisuite":
         from dataflow.utils.APIGenerator_aisuite import APIGenerator_aisuite
         return APIGenerator_aisuite(config)
-    elif config["generator_type"] == "request":
+    elif generator_type == "request":
         from dataflow.utils.APIGenerator_request import APIGenerator_request
         return APIGenerator_request(config)
     else:
