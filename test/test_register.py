@@ -1,4 +1,4 @@
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from inspect import signature
 from pprint import pprint
 

@@ -1,10 +1,10 @@
 from dataflow.prompts.reasoning import QuestionSynthesisPrompt
 import pandas as pd
 import random
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 
-from dataflow.utils.Storage import DataFlowStorage
+from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
 from dataflow.core import LLMServingABC
 

@@ -5,7 +5,7 @@ from dataflow.operators.generate.Reasoning import (
     AnswerGenerator,
 )
 from dataflow.operators.process.Reasoning import *
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 
 # 这里或许未来可以有个pipeline基类

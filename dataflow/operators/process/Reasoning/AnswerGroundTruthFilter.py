@@ -1,6 +1,6 @@
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
-from dataflow.utils.Storage import DataFlowStorage
+from dataflow.utils.storage import DataFlowStorage
 from dataflow import get_logger
 from dataflow.core import OperatorABC
 from typing import Literal
