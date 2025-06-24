@@ -3,7 +3,7 @@ from dataflow import get_logger
 from dataflow.core import OperatorABC
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.prompts.reasoning import QuestionFilterPrompt
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 
 import re
 
@@ -11,13 +11,13 @@ import re
 class QuestionFilter(OperatorABC):
     def __init__(self,
                  system_prompt: str = "You are a helpful assistant.",
-                 generator: GeneratorABC = None,
+                 llm_serving: LLMServingABC = None,
                  ):
 
         # self.check_config(config)
         self.logger = get_logger()
         self.system_prompt = system_prompt
-        self.generator = generator
+        self.llm_serving = llm_serving
 
 
     @staticmethod
@@ -76,7 +76,7 @@ class QuestionFilter(OperatorABC):
         dataframe = storage.read("dataframe")
         questions = dataframe[input_key]
         inputs = [QuestionFilterPrompt().build_prompt(question) for question in questions]
-        responses = self.generator.generate_from_input(input=inputs, system_prompt=self.system_prompt)
+        responses = self.llm_serving.generate_from_input(input=inputs, system_prompt=self.system_prompt)
         results = [self.ResloveResponse(response) for response in responses]
         
         # 保留results为True的行

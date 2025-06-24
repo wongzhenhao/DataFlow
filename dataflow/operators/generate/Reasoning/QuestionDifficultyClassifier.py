@@ -6,17 +6,17 @@ from dataflow import get_logger
 
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 
 @OPERATOR_REGISTRY.register()
 class QuestionDifficultyClassifier(OperatorABC):
-    def __init__(self, generator: GeneratorABC = None):
+    def __init__(self, llm_serving: LLMServingABC = None):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
         self.logger = get_logger()
         self.prompts = QuestionDifficultyPrompt()
-        self.generator = generator
+        self.llm_serving = llm_serving
 
     
     @staticmethod
@@ -83,7 +83,7 @@ class QuestionDifficultyClassifier(OperatorABC):
             output_key=self.output_key
         )
         formatted_prompts = self._reformat_prompt(dataframe, input_key=self.input_key)
-        responses = self.generator.generate_from_input(input=formatted_prompts)
+        responses = self.llm_serving.generate_from_input(input=formatted_prompts)
 
         rating_scores = []
         for response in responses:

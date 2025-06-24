@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 
 
-class GeneratorABC(ABC):
+class LLMServingABC(ABC):
     """Abstract base class for data generators. Which may be used to generate data from a model or API. Called by operators
     """
     @abstractmethod
