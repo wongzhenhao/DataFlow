@@ -101,3 +101,5 @@ class QuestionDifficultyClassifier(OperatorABC):
 
         output_file = storage.write(dataframe)
         self.logger.info(f"Classification results saved to {output_file}")
+        
+        return [output_key]

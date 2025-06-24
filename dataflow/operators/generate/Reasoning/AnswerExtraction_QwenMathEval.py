@@ -74,3 +74,5 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
 
         output_file = storage.write(raw_dataframe)
         self.logger.info(f"Extracted answers saved to {output_file}")
+        
+        return [extraction_key]

@@ -136,3 +136,5 @@ class PseudoAnswerGenerator(OperatorABC):
         
         output_file = storage.write(dataframe)
         self.logger.info(f"PsedoAnswerGenerator's results saved to {output_file}")
+
+        return [output_key_answer, output_key_answer_value, output_key_solutions, output_key_correct_solution_example]
