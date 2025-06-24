@@ -3,46 +3,8 @@ import subprocess
 import torch
 import logging
 import colorlog
-
-def get_operator(operator_name, args):
-    from dataflow.utils import OPERATOR_REGISTRY
-    print(operator_name, args)
-    operator = OPERATOR_REGISTRY.get(operator_name)(args)
-    logger = get_logger()
-    if operator is not None:
-        logger.info(f"Successfully get operator {operator_name}, args {args}")
-    else:
-        logger.error(f"operator {operator_name} is not found")
-    assert operator is not None
-    print(operator)
-    return operator
-
-def get_logger(level=logging.INFO):
-    # 创建logger对象
-    logger = logging.getLogger()
-    logger.setLevel(level)
-    # 创建控制台日志处理器
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(level)
-    # 定义颜色输出格式
-    color_formatter = colorlog.ColoredFormatter(
-        '%(log_color)s %(asctime)s | %(filename)-20s- %(module)-20s- %(funcName)-20s- %(lineno)5d - %(name)-10s | %(levelname)8s | Processno %(process)5d - Threadno %(thread)-15d : %(message)s', 
-        log_colors={
-            'DEBUG': 'cyan',
-            'INFO': 'green',
-            'WARNING': 'yellow',
-            'ERROR': 'red',
-            'CRITICAL': 'red,bg_white',
-        }
-    )
-    # 将颜色输出格式添加到控制台日志处理器
-    console_handler.setFormatter(color_formatter)
-    # 移除默认的handler
-    for handler in logger.handlers:
-        logger.removeHandler(handler)
-    # 将控制台日志处理器添加到logger对象
-    logger.addHandler(console_handler)
-    return logger
+from dataflow.logger import get_logger
+from dataflow.core import get_operator
 
 def pipeline_step(yaml_path, step_name):
     import yaml
@@ -67,16 +29,16 @@ def merge_yaml(config):
         return config
     
 
-def init_model(config):
-    if "generator_type" not in config.keys():
+def init_model(generator_type:str =None):
+    if generator_type is None:
         raise ValueError("generator_type is not found in config")
-    if config["generator_type"] == "local":
+    if generator_type == "local":
         from dataflow.utils.LocalModelGenerator import LocalModelGenerator
         return LocalModelGenerator(config)
-    elif config["generator_type"] == "aisuite":
+    elif generator_type == "aisuite":
         from dataflow.utils.APIGenerator_aisuite import APIGenerator_aisuite
         return APIGenerator_aisuite(config)
-    elif config["generator_type"] == "request":
+    elif generator_type == "request":
         from dataflow.utils.APIGenerator_request import APIGenerator_request
         return APIGenerator_request(config)
     else:

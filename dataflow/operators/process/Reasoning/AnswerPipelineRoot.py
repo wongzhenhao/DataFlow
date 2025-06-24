@@ -1,14 +1,14 @@
 # 根节点，用来将数据拆入不同的分支
 import pandas as pd
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.reasoning_utils.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
-from dataflow.utils.Operator import Operator
+from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
+from dataflow.core import OperatorABC
 from dataflow.utils.Storage import FileStorage
 
 
 @OPERATOR_REGISTRY.register()
-class AnswerPipelineRoot(Operator):
+class AnswerPipelineRoot(OperatorABC):
     def __init__(self, config: dict):
         self.check_config(config)
         self.config = config

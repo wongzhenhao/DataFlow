@@ -1,5 +1,6 @@
 import sys
 from dataflow.utils.Registry import LazyLoader
+from .Reasoning import *
 
 cur_path = "dataflow/operators/generate/"
 _import_structure = {

@@ -1,40 +1,25 @@
-from dataflow.utils.reasoning_utils.Prompts import QuestionCategoryPrompt
+from dataflow.prompts.reasoning import QuestionCategoryPrompt
 import pandas as pd
 import json
-import os
 import re
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
-from dataflow.utils.utils import init_model
+from dataflow.utils.Storage import DataFlowStorage
+from dataflow.core import OperatorABC
 
-from dataflow.utils.reasoning_utils.CategoryFuzz import CategoryUtils
+from dataflow.utils.reasoning.CategoryFuzz import CategoryUtils
+from dataflow.core import GeneratorABC
 
 @OPERATOR_REGISTRY.register()
-class QuestionCategoryClassifier(Operator):
-    def __init__(self, config: dict):
+class QuestionCategoryClassifier(OperatorABC):
+    def __init__(self, generator: GeneratorABC = None):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
-        self.check_config(config)
-        self.config = config
-        self.prompts = QuestionCategoryPrompt()
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.output_key = self.config.get("output_key", "classification_result")
         self.logger = get_logger()
-
-        self.generator = init_model(config)
-        self.datastorage = FileStorage(config)
-
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
+        self.prompts = QuestionCategoryPrompt()
+        self.generator = generator
 
     @staticmethod
     def get_desc(self, lang):
@@ -87,11 +72,12 @@ class QuestionCategoryClassifier(Operator):
 
         return formatted_prompts
 
-    def run(self):
+    def run(self, storage: DataFlowStorage, input_key:str = "instruction", output_key:str="question_category") -> None:
         """
         Run the question category classification process.
         """
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.input_key, self.output_key = input_key, output_key
+        dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
         responses = self.generator.generate_from_input(formatted_prompts)
@@ -128,5 +114,5 @@ class QuestionCategoryClassifier(Operator):
             key_list = dataframe.columns.tolist()
             raise ValueError(f"Found {self.output_key} in the dataframe, which leads to overwriting the existing column, please check the output_text_key: {key_list}")
         
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Classification results saved to {self.output_file}")
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Classification results saved to {output_file}")

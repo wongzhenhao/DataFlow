@@ -1,15 +1,15 @@
 import sys
 from collections import defaultdict, Counter
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
-from dataflow.utils.reasoning_utils.Prompts import AnswerGeneratorPrompt
+from dataflow.core import OperatorABC
+from dataflow.prompts.reasoning import AnswerGeneratorPrompt
 from dataflow.utils.utils import init_model
-from dataflow.utils.reasoning_utils.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
+from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 
 @OPERATOR_REGISTRY.register()
-class PseudoAnswerGenerator(Operator):
+class PseudoAnswerGenerator(OperatorABC):
     '''
     Pseudo Answer Generator is a class that generates answers for given questions, then choose the most frequent answer.
     '''

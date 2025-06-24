@@ -3,12 +3,12 @@ import pandas as pd
 import numpy as np
 import re
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
+from dataflow.core import OperatorABC
 @OPERATOR_REGISTRY.register()
-class AnswerNgramFilter(Operator):
+class AnswerNgramFilter(OperatorABC):
     def __init__(self, config: dict):
         self.check_config(config)
         self.config = config

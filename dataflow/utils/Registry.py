@@ -2,7 +2,7 @@ import importlib
 import importlib.util
 import types
 import os
-from .utils import get_logger
+from dataflow.logger import get_logger
 from pathlib import Path
 class Registry():
     """

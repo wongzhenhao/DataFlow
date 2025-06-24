@@ -2,32 +2,37 @@ import json
 import requests
 import os
 import logging
-import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Generator import Generator
+from dataflow.core  import GeneratorABC
 import re
 
-class APIGenerator_request(Generator):
-    def __init__(self, config: dict):
-        self.config = config
-        
+class APIGenerator_request(GeneratorABC):
+    """Use OpenAI API to generate responses based on input messages.
+    """
+    def __init__(self, 
+                 api_url: str = "https://api.openai.com/v1/chat/completions",
+                 model_name: str = "gpt-4o",
+                 max_workers: int = 10
+                 ):
         # Get API key from environment variable or config
-        self.api_url = self.config.get("api_url", "https://api.openai.com/v1/chat/completions")
+        self.api_url = api_url
+        self.model_name = model_name
+        self.max_workers = max_workers
+
+        # config api_key in os.environ global, since safty issue.
         self.api_key = os.environ.get("API_KEY")
         if self.api_key is None:
             raise ValueError("Lack of API_KEY")
 
-        self.datastorage = FileStorage(self.config)
-    
+    """corden due to I don't confindent about implementation——Sunnyhaze
     def check_config(self):
         # Ensure all necessary keys are in the config
         necessary_keys = ['input_file', 'output_file', 'input_key', 'output_key', 'max_workers']
         for key in necessary_keys:
             if key not in self.config:
                 raise ValueError(f"Key {key} is missing in the config")
-            
+    """    
     def format_response(self, response: dict) -> str:    
         # check if content is formatted like <think>...</think>...<answer>...</answer>
         content = response['choices'][0]['message']['content']
@@ -75,6 +80,9 @@ class APIGenerator_request(Generator):
             return None
 
     def generate(self):
+        pass # for develop, TODO
+    """ Corden due to I don't confindent about implementation——Sunnyhaze
+    def generate(self):
         self.check_config()
         # Read input file
         raw_dataframe = self.datastorage.read(self.config['input_file'], "dataframe")
@@ -105,8 +113,8 @@ class APIGenerator_request(Generator):
         raw_dataframe[self.config['output_key']] = responses
         self.datastorage.write(self.config['output_file'], raw_dataframe)
         return
-
-    def generate_from_input(self, input: list[str]) -> list[str]:
+    """
+    def generate_from_input(self, input: list[str], system_prompt: str = "") -> list[str]:
         def api_chat_with_id(system_info: str, messages: str, model: str, id):
             try:
                 payload = json.dumps({
@@ -136,17 +144,18 @@ class APIGenerator_request(Generator):
                 logging.error(f"API request error: {e}")
                 return id,None
         responses = [None] * len(input)
-        
+        # -- end of subfunction api_chat_with_id --
+
         # 使用 ThreadPoolExecutor 并行处理多个问题
         # logging.info(f"Generating {len(questions)} responses")
-        with ThreadPoolExecutor(max_workers=self.config['max_workers']) as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = [
                 executor.submit(
                     api_chat_with_id,
-                    self.config['system_prompt'],
-                    question,
-                    self.config['model_name'],
-                    idx
+                    system_info = system_prompt,
+                    messages = question,
+                    model = self.model_name,
+                    id = idx
                 ) for idx, question in enumerate(input)
             ]
             for future in tqdm(as_completed(futures), total=len(futures), desc="Generating......"):

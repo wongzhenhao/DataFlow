@@ -3,9 +3,9 @@ from vllm import LLM,SamplingParams
 from huggingface_hub import snapshot_download
 import pandas as pd
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Generator import Generator
+from dataflow.core import GeneratorABC
 
-class LocalModelGenerator(Generator):
+class LocalModelGenerator(GeneratorABC):
     '''
     A class for generating text using vllm, with model from huggingface or local directory
     '''

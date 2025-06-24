@@ -1,38 +1,23 @@
-from dataflow.utils.reasoning_utils.Prompts import QuestionDifficultyPrompt
+from dataflow.prompts.reasoning import QuestionDifficultyPrompt
 import pandas as pd
-import json
-import os
 import re
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
-from dataflow.utils.utils import init_model
+from dataflow.utils.Storage import DataFlowStorage
+from dataflow.core import OperatorABC
+from dataflow.core import GeneratorABC
 
 @OPERATOR_REGISTRY.register()
-class QuestionDifficultyClassifier(Operator):
-    def __init__(self, config):
+class QuestionDifficultyClassifier(OperatorABC):
+    def __init__(self, generator: GeneratorABC = None):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
-        self.check_config(config)
-        self.config = config
-        self.prompts = QuestionDifficultyPrompt()
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.output_key = self.config.get("output_key", "difficulty_score")
         self.logger = get_logger()
-        
-        self.generator = init_model(config)
-        self.datastorage = FileStorage(config)
-    
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
+        self.prompts = QuestionDifficultyPrompt()
+        self.generator = generator
+
     
     @staticmethod
     def get_desc(self, lang):
@@ -59,7 +44,7 @@ class QuestionDifficultyClassifier(Operator):
                 "- difficulty_score: Numerical difficulty rating (1-10)"
             )
         
-    def _validate_dataframe(self, dataframe: pd.DataFrame):
+    def _validate_dataframe(self, dataframe: pd.DataFrame, input_key: str = "instruction", output_key: str = "difficulty_score"):
         required_keys = [self.input_key]
         forbidden_keys = [self.output_key]
 
@@ -72,12 +57,12 @@ class QuestionDifficultyClassifier(Operator):
             raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
 
         
-    def _reformat_prompt(self, dataframe):
+    def _reformat_prompt(self, dataframe, input_key: str = "instruction") -> list:
         """
         Reformat the prompts in the dataframe to generate questions.
         """
         formatted_prompts = []
-        for i, text in enumerate(dataframe[self.input_key]):
+        for i, text in enumerate(dataframe[input_key]):
             if text is not None:
                 used_prompt = self.prompts.question_synthesis_prompt(text)
             else:
@@ -86,14 +71,19 @@ class QuestionDifficultyClassifier(Operator):
 
         return formatted_prompts
 
-    def run(self):
+    def run(self, storage:DataFlowStorage, input_key: str, output_key:str="difficulty_score") -> None:
         """
         Run the question difficulty classification process.
         """
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
-        self._validate_dataframe(dataframe)
-        formatted_prompts = self._reformat_prompt(dataframe)
-        responses = self.generator.generate_from_input(formatted_prompts)
+        self.input_key, self.output_key = input_key, output_key
+        dataframe = storage.read("dataframe")
+        self._validate_dataframe(
+            dataframe,
+            input_key=self.input_key,
+            output_key=self.output_key
+        )
+        formatted_prompts = self._reformat_prompt(dataframe, input_key=self.input_key)
+        responses = self.generator.generate_from_input(input=formatted_prompts)
 
         rating_scores = []
         for response in responses:
@@ -107,7 +97,7 @@ class QuestionDifficultyClassifier(Operator):
             else:
                 score = -1
             rating_scores.append(score)
-        dataframe[self.output_key] = rating_scores
-        
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Classification results saved to {self.output_file}")
+        dataframe[output_key] = rating_scores
+
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Classification results saved to {output_file}")

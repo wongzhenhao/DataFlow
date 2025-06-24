@@ -1,27 +1,24 @@
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
-from dataflow.utils.Operator import Operator
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.reasoning_utils.Prompts import QuestionFilterPrompt
-from dataflow.utils.utils import init_model
+from dataflow import get_logger
+from dataflow.core import OperatorABC
+from dataflow.utils.Storage import DataFlowStorage
+from dataflow.prompts.reasoning import QuestionFilterPrompt
+from dataflow.core import GeneratorABC
+
 import re
 
 @OPERATOR_REGISTRY.register()
-class QuestionFilter(Operator):
-    def __init__(self, config: dict):
-        self.check_config(config)
-        self.system_prompt = config.get("system_prompt", "")
+class QuestionFilter(OperatorABC):
+    def __init__(self,
+                 system_prompt: str = "You are a helpful assistant.",
+                 generator: GeneratorABC = None,
+                 ):
+
+        # self.check_config(config)
         self.logger = get_logger()
-        self.datastorage = FileStorage(config)
-        self.generator = init_model(config)
-        self.input_file = config.get("input_file", "")
-        self.output_file = config.get("output_file", "")
-        self.input_key = config.get("input_key", "")
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'generator_type']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
+        self.system_prompt = system_prompt
+        self.generator = generator
+
 
     @staticmethod
     def get_desc(self, lang):
@@ -33,7 +30,6 @@ class QuestionFilter(Operator):
                 "- input_question_key：输入问题字段名\n"
                 "- api_key：调用大模型所需的API密钥\n"
                 "- model_name：使用的大模型名称\n"
-                "- eval_stage：评估阶段标识\n"
                 "- max_worker：并发线程数，用于加速处理\n\n"
                 "输出参数：\n"
                 "- result_key：判断结果字段名，值为0或1"
@@ -46,7 +42,6 @@ class QuestionFilter(Operator):
                 "- input_question_key: Field name for the input question\n"
                 "- api_key: API key for calling the LLM\n"
                 "- model_name: Name of the model used\n"
-                "- eval_stage: Indicator of the evaluation stage\n"
                 "- max_worker: Number of threads for parallel processing\n\n"
                 "Output Parameters:\n"
                 "- result_key: Field name for the binary result, value is 0 or 1"
@@ -55,7 +50,6 @@ class QuestionFilter(Operator):
             return (
                 "QuestionFilter performs correctness checking on math questions using a multi-stage LLM evaluation and returns binary results (0/1)."
             )
-
     
     def ResloveResponse(self,response):
         try:
@@ -77,13 +71,14 @@ class QuestionFilter(Operator):
             self.logger.error(f"Response format error for problem: {response}. Error: {e}")
             return False
             
-    def run(self):
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
-        questions = dataframe[self.input_key]
+    def run(self, storage:DataFlowStorage, input_key: str )-> None:
+        self.input_key = input_key
+        dataframe = storage.read("dataframe")
+        questions = dataframe[input_key]
         inputs = [QuestionFilterPrompt().build_prompt(question) for question in questions]
-        responses = self.generator.generate_from_input(inputs)
+        responses = self.generator.generate_from_input(input=inputs, system_prompt=self.system_prompt)
         results = [self.ResloveResponse(response) for response in responses]
         
         # 保留results为True的行
         dataframe = dataframe[results]
-        self.datastorage.write(self.output_file, dataframe)
+        storage.write(dataframe)

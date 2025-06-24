@@ -1,32 +1,29 @@
-from dataflow.utils.reasoning_utils.Prompts import QuestionSynthesisPrompt
+from dataflow.prompts.reasoning import QuestionSynthesisPrompt
 import pandas as pd
 import random
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
-from dataflow.utils.utils import init_model
+from dataflow.utils.Storage import DataFlowStorage
+from dataflow.core import OperatorABC
+from dataflow.core import GeneratorABC
 
 @OPERATOR_REGISTRY.register()
-class QuestionGenerator(Operator):
-    def __init__(self, config):
+class QuestionGenerator(OperatorABC):
+    def __init__(self, 
+                 num_prompts: int = 1,
+                 generator: GeneratorABC = None
+                ):
         """
         Initialize the QuestionGenerator with the provided configuration.
         """
-        self.check_config(config)
-        self.config = config
+        self.logger = get_logger()
         self.prompts = QuestionSynthesisPrompt()
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.num_prompts = self.config.get("num_prompts", 1)
+        self.num_prompts = num_prompts
+        self.generator = generator
+
         if self.num_prompts not in range(1,6):
             raise ValueError("num_prompts must be an integer between 1 and 5 (inclusive)")
-        self.logger = get_logger()
-
-        self.generator = init_model(config)
-        self.datastorage = FileStorage(config)
 
     def check_config(self, config: dict) -> None:
         required_keys = ['input_file', 'output_file', 'generator_type']
@@ -96,24 +93,25 @@ class QuestionGenerator(Operator):
 
         return formatted_prompts
 
-    def run(self):
+    def run(self, storage: DataFlowStorage, input_key: str):
         """
         Run the question generation process.
         """
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.input_key = input_key
+        dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
         responses = self.generator.generate_from_input(formatted_prompts)
 
         new_rows = pd.DataFrame({
-            self.input_key: responses,
+            input_key: responses,
         })
         new_rows["Synth_or_Input"] = "synth"
         dataframe["Synth_or_Input"] = "input"
         
         dataframe = pd.concat([dataframe, new_rows], ignore_index=True)
-        dataframe = dataframe[dataframe[self.input_key].notna()]
-        dataframe = dataframe[dataframe[self.input_key] != ""]
+        dataframe = dataframe[dataframe[input_key].notna()]
+        dataframe = dataframe[dataframe[input_key] != ""]
 
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Generated questions saved to {self.output_file}")
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Generated questions saved to {output_file}")

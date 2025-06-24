@@ -2,14 +2,14 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
+from dataflow.core import OperatorABC
 from transformers import AutoTokenizer
 
 
 @OPERATOR_REGISTRY.register()
-class AnswerTokenLengthFilter(Operator):
+class AnswerTokenLengthFilter(OperatorABC):
     def __init__(self, config: dict):
         self.check_config(config)
         self.config = config
