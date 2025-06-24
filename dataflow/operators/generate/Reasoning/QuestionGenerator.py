@@ -6,13 +6,13 @@ from dataflow import get_logger
 
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 
 @OPERATOR_REGISTRY.register()
 class QuestionGenerator(OperatorABC):
     def __init__(self, 
                  num_prompts: int = 1,
-                 generator: GeneratorABC = None
+                 llm_serving: LLMServingABC = None
                 ):
         """
         Initialize the QuestionGenerator with the provided configuration.
@@ -20,7 +20,7 @@ class QuestionGenerator(OperatorABC):
         self.logger = get_logger()
         self.prompts = QuestionSynthesisPrompt()
         self.num_prompts = num_prompts
-        self.generator = generator
+        self.llm_serving = llm_serving
 
         if self.num_prompts not in range(1,6):
             raise ValueError("num_prompts must be an integer between 1 and 5 (inclusive)")
@@ -101,7 +101,7 @@ class QuestionGenerator(OperatorABC):
         dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
-        responses = self.generator.generate_from_input(formatted_prompts)
+        responses = self.llm_serving.generate_from_input(formatted_prompts)
 
         new_rows = pd.DataFrame({
             input_key: responses,

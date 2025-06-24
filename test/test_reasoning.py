@@ -5,7 +5,7 @@ from dataflow.operators.generate.Reasoning import (
 )
 from dataflow.operators.process.Reasoning import *
 from dataflow.utils.Storage import FileStorage
-from dataflow.generators import APIGenerator_request
+from dataflow.llmserving import APILLMServing_request
 
 # 这里或许未来可以有个pipeline基类
 class ReasoningPipeline():
@@ -18,7 +18,7 @@ class ReasoningPipeline():
             cache_type="jsonl",
         )
 
-        api_generator = APIGenerator_request(
+        api_llm_serving = APILLMServing_request(
                 api_url="http://123.129.219.111:3000/v1/chat/completions",
                 model_name="gpt-4o",
                 max_workers=100
@@ -26,21 +26,21 @@ class ReasoningPipeline():
 
         self.question_filter_step1 = QuestionFilter(
             system_prompt="You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format.",
-            generator=api_generator
+            llm_serving=api_llm_serving
         )
         self.question_gen_step2 =  QuestionGenerator(
             num_prompts=3,
-            generator=api_generator
+            llm_serving=api_llm_serving
         )
         self.question_filter_step3 = QuestionFilter(
             system_prompt="You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format.",
-            generator=api_generator
+            llm_serving=api_llm_serving
         )
         self.question_difficulty_classifier_step4 = QuestionDifficultyClassifier(
-            generator=api_generator
+            llm_serving=api_llm_serving
         )
         self.question_category_classifier_step5 = QuestionCategoryClassifier(
-            generator=api_generator
+            llm_serving=api_llm_serving
         )
 
         # 未来或许可以维护一个类似nn.sequential的容器，方便添加并实例化多个算子

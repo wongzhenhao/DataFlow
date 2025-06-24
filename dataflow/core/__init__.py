@@ -1,7 +1,7 @@
 from .Operator import OperatorABC, get_operator
-from .Generator import GeneratorABC
+from .LLMServing import LLMServingABC
 __all__ = [
     'OperatorABC',
     'get_operator',
-    'GeneratorABC',    
+    'LLMServingABC',    
 ]

@@ -2,11 +2,11 @@ import logging
 import aisuite as ai
 import pandas as pd
 from tqdm import tqdm
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 from dataflow.utils.Storage import FileStorage
 from typing import List
 
-class APIGenerator_aisuite(GeneratorABC):
+class APILLMServing_aisuite(LLMServingABC):
     def __init__(self, config: dict):
         configs = config  # Assuming config.configs is a list of configurations
 

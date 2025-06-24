@@ -4,10 +4,10 @@ import os
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from dataflow.core  import GeneratorABC
+from dataflow.core  import LLMServingABC
 import re
 
-class APIGenerator_request(GeneratorABC):
+class APILLMServing_request(LLMServingABC):
     """Use OpenAI API to generate responses based on input messages.
     """
     def __init__(self, 

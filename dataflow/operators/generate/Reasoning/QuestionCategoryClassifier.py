@@ -9,17 +9,17 @@ from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
 
 from dataflow.utils.reasoning.CategoryFuzz import CategoryUtils
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 
 @OPERATOR_REGISTRY.register()
 class QuestionCategoryClassifier(OperatorABC):
-    def __init__(self, generator: GeneratorABC = None):
+    def __init__(self, llm_serving: LLMServingABC = None):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """
         self.logger = get_logger()
         self.prompts = QuestionCategoryPrompt()
-        self.generator = generator
+        self.llm_serving = llm_serving
 
     @staticmethod
     def get_desc(self, lang):
@@ -80,7 +80,7 @@ class QuestionCategoryClassifier(OperatorABC):
         dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
-        responses = self.generator.generate_from_input(formatted_prompts)
+        responses = self.llm_serving.generate_from_input(formatted_prompts)
 
         for (idx, row), classification_str in zip(dataframe.iterrows(), responses):
             try:
