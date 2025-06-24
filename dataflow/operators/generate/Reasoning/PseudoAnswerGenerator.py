@@ -1,8 +1,8 @@
 from collections import defaultdict, Counter
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 import pandas as pd
-from dataflow.utils.Storage import DataFlowStorage
+from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
 
 from dataflow.prompts.reasoning import AnswerGeneratorPrompt

@@ -2,7 +2,7 @@ import logging
 from vllm import LLM,SamplingParams
 from huggingface_hub import snapshot_download
 import pandas as pd
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.storage import FileStorage
 from dataflow.core import LLMServingABC
 
 class LocalModelLLMServing(LLMServingABC):

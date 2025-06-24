@@ -1,7 +1,7 @@
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 from dataflow.core import OperatorABC
-from dataflow.utils.Storage import DBStorage
+from dataflow.utils.storage import DBStorage
 
 @OPERATOR_REGISTRY.register()
 class DBOperator(OperatorABC):

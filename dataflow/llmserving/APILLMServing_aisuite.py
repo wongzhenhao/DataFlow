@@ -3,7 +3,7 @@ import aisuite as ai
 import pandas as pd
 from tqdm import tqdm
 from dataflow.core import LLMServingABC
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.storage import FileStorage
 from typing import List
 
 class APILLMServing_aisuite(LLMServingABC):

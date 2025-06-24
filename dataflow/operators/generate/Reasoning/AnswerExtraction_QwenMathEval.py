@@ -3,10 +3,10 @@ from tqdm import tqdm
 import logging
 import re
 from word2number import w2n
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 from dataflow.core import OperatorABC
-from dataflow.utils.Storage import DataFlowStorage
+from dataflow.utils.storage import DataFlowStorage
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 
 # The main class to manage the entire extraction process
