@@ -117,3 +117,21 @@ class FileStorage(DataFlowStorage):
             raise ValueError(f"Unsupported file type: {self.cache_type}, output file should end with json, jsonl, csv, parquet, pickle")
         
         return file_path
+    
+
+class DBStorage(DataFlowStorage):
+    """
+    Storage for database.
+    This is a placeholder class, you can implement your own database storage.
+    """
+    def __init__(self, db_config: dict):
+        self.db_config = db_config
+
+    def read(self, output_type: Literal["dataframe", "dict"]) -> Any:
+        raise NotImplementedError("DBStorage.read() is not implemented yet.")
+    
+    def excute_read(self, expr:str, output_type: Literal["dataframe", "dict"]) -> Any:
+        pass
+
+    def write(self, data: Any) -> Any:
+        raise NotImplementedError("DBStorage.write() is not implemented yet.")
