@@ -4,6 +4,10 @@ import types
 import os
 from dataflow.logger import get_logger
 from pathlib import Path
+
+from rich.console import Console
+from rich.table import Table
+
 class Registry():
     """
     The registry that provides name -> object mapping, to support third-party
@@ -96,6 +100,25 @@ class Registry():
     def keys(self):
         return self._obj_map.keys()
 
+    def __repr__(self):
+        table = Table(title=f'Registry of {self._name}')
+        table.add_column('Names', justify='left', style='cyan')
+        table.add_column('Objects', justify='left', style='green')
+
+        for name, obj in sorted(self._obj_map.items()):
+            table.add_row(name, str(obj))
+
+        console = Console()
+        with console.capture() as capture:
+            console.print(table, end='')
+
+        return capture.get()
+
+    def get_obj_map(self):
+        """
+        Get the object map of the registry.
+        """
+        return self._obj_map
 
 OPERATOR_REGISTRY = Registry('operator')
 class LazyLoader(types.ModuleType):
