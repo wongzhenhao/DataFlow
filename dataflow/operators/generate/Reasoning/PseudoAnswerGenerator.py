@@ -1,11 +1,12 @@
-import sys
 from collections import defaultdict, Counter
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow import get_logger
-from dataflow.utils.Storage import FileStorage
+import pandas as pd
+from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
+
 from dataflow.prompts.reasoning import AnswerGeneratorPrompt
-from dataflow.utils.utils import init_model
+from dataflow.core import GeneratorABC
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 
 @OPERATOR_REGISTRY.register()
@@ -13,21 +14,12 @@ class PseudoAnswerGenerator(OperatorABC):
     '''
     Pseudo Answer Generator is a class that generates answers for given questions, then choose the most frequent answer.
     '''
-    def __init__(self,config: dict):
-        self.config = config
-        self.prompt = AnswerGeneratorPrompt()
-        self.datastorage = FileStorage(config)
-        self.input_file = self.config["input_file"]
-        self.output_file = self.config["output_file"]
-        self.input_key = self.config["input_key"]
-        self.output_key_answer = self.config["output_key_answer"]
-        self.output_key_answer_value = self.config["output_key_answer_value"]
-        self.output_key_solutions = self.config["output_key_solutions"]
-        self.output_key_correct_solution_example = self.config["output_key_correct_solution_example"]
-        self.max_times = self.config["max_times"]
+    def __init__(self, generator: GeneratorABC = None, max_times: int = 3):
         self.logger = get_logger()
-        self.model = init_model(self.config)
-        self.extractor = self.get_extractor()
+        self.prompts = AnswerGeneratorPrompt()
+        self.generator = generator
+        self.max_times = max_times
+        
     def check_config(self):
         required_keys = ["input_file", "output_file", "input_key", "output_key_answer", "output_key_answer_value", "output_key_solutions", "output_key_correct_solution_example", "max_times"]
         missing_keys = [key for key in required_keys if key not in self.config]
@@ -70,30 +62,48 @@ class PseudoAnswerGenerator(OperatorABC):
         else:
             return "PseudoAnswerGenerator produces pseudo-answers through multi-round generation and selection."
 
-    def run(self):
-        # read input file : accept jsonl file only
-        self.logger.info(f"Reading input file: {self.input_file}")
-        # dataframe = pd.read_json(self.input_file,lines=True)
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+    def _validate_dataframe(self, dataframe: pd.DataFrame):
+        required_keys = [self.input_key]
+        forbidden_keys = [
+            self.output_key_answer,
+            self.output_key_answer_value,
+            self.output_key_solutions,
+            self.output_key_correct_solution_example,
+        ]
+
+        missing = [k for k in required_keys if k not in dataframe.columns]
+        conflict = [k for k in forbidden_keys if k in dataframe.columns]
+
+        if missing:
+            key_list = dataframe.columns.tolist()
+            raise ValueError(
+                f"read_key: {missing[0]} not found in the dataframe, "
+                f"please check the read_key: {key_list}"
+            )
+        if conflict:
+            key_list = dataframe.columns.tolist()
+            raise ValueError(
+                f"Found {conflict} in the dataframe, which leads to overwriting the existing column(s), "
+                f"please check the output_key: {key_list}"
+            )
+
+    def run(
+        self,
+        storage: DataFlowStorage,
+        input_key: str = "instruction",
+        output_key_answer: str = "pseudo_answers",
+        output_key_answer_value: str = "pseudo_answer_value",
+        output_key_solutions: str = "pseudo_solutions",
+        output_key_correct_solution_example: str = "pseudo_correct_solution_example",
+        ):
+
+        self.input_key, self.output_key_answer, self.output_key_answer_value = input_key, output_key_answer, output_key_answer_value
+        self.output_key_solutions, self.output_key_correct_solution_example = output_key_solutions, output_key_correct_solution_example
+        self.extractor = self.get_extractor()
+        dataframe = storage.read("dataframe")
+        self._validate_dataframe(dataframe)
+
         input_data_number = dataframe.shape[0]
-        # check if input_prompt_key are in the dataframe
-        if self.input_key not in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"read_key: {self.input_key} not found in the dataframe, please check the read_key: {key_list}")
-        # check if output_text_key are in the dataframe
-        if self.output_key_answer in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key_answer} in the dataframe, which leads to overwriting the existing column, please check the output_key: {key_list}")
-        if self.output_key_solutions in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key_solutions} in the dataframe, which leads to overwriting the existing column, please check the output_key: {key_list}")
-        if self.output_key_correct_solution_example in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key_correct_solution_example} in the dataframe, which leads to overwriting the existing column, please check the output_key: {key_list}")
-        if self.output_key_answer_value in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key_answer_value} in the dataframe, which leads to overwriting the existing column, please check the output_key: {key_list}")
-        # generate text
         user_prompts = dataframe[self.input_key].tolist()
         answer_dict = defaultdict(list)
         solution_dict = defaultdict(list)
@@ -123,4 +133,8 @@ class PseudoAnswerGenerator(OperatorABC):
         dataframe = dataframe[dataframe[self.output_key_answer_value].notna()]
         dataframe = dataframe[dataframe[self.output_key_correct_solution_example].notna()]
         self.logger.info(f"Data number {input_data_number} -> {dataframe.shape[0]}")
-        self.datastorage.write(self.output_file, dataframe)
+        
+        output_file = storage.write(dataframe)
+        self.logger.info(f"PsedoAnswerGenerator's results saved to {output_file}")
+
+        return [output_key_answer, output_key_answer_value, output_key_solutions, output_key_correct_solution_example]

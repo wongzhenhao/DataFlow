@@ -3,32 +3,19 @@ import pandas as pd
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
-from dataflow.utils.utils import init_model
+from dataflow.core import GeneratorABC
+
 @OPERATOR_REGISTRY.register()
 class AnswerGenerator(OperatorABC):
     '''
     Answer Generator is a class that generates answers for given questions.
     '''
-    def __init__(self, config: dict):
-        self.check_config(config)
-        self.config = config
-        self.prompt = AnswerGeneratorPrompt()
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.output_key = self.config.get("output_key", "response")
+    def __init__(self, generator: GeneratorABC):
         self.logger = get_logger()
-
-        self.generator = init_model(config)
-        self.datastorage = FileStorage(config)
-
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'input_key']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
+        self.prompts = AnswerGeneratorPrompt()    
+        self.generator = generator
     
     @staticmethod
     def get_desc(self, lang):
@@ -77,19 +64,27 @@ class AnswerGenerator(OperatorABC):
         Reformat the prompts in the dataframe to generate questions.
         """
         questions = dataframe[self.input_key].tolist()
-        inputs = [self.prompt.Classic_COT_Prompt(question) for question in questions]
+        inputs = [self.prompts.Classic_COT_Prompt(question) for question in questions]
 
         return inputs
 
-    def run(self):
+    def run(
+        self, 
+        storage: DataFlowStorage, 
+        input_key:str = "instruction", 
+        output_key:str = "generated_cot"
+        ):
         '''
         Runs the answer generation process, reading from the input file and saving results to output.
         '''
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.input_key, self.output_key = input_key, output_key
+        dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
         answers = self.generator.generate_from_input(formatted_prompts)
 
         dataframe[self.output_key] = answers
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Results saved to {self.output_file}")
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Results saved to {output_file}")
+
+        return [output_key]

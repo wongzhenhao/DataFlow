@@ -2,6 +2,7 @@ from dataflow.operators.generate.Reasoning import (
     QuestionCategoryClassifier,
     QuestionDifficultyClassifier,
     QuestionGenerator,
+    AnswerGenerator
 )
 from dataflow.operators.process.Reasoning import *
 from dataflow.utils.Storage import FileStorage
@@ -43,6 +44,10 @@ class ReasoningPipeline():
             llm_serving=api_llm_serving
         )
 
+        self.answer_generator_step6 = AnswerGenerator(
+            generator=api_generator
+        )
+
         # 未来或许可以维护一个类似nn.sequential的容器，方便添加并实例化多个算子
     def forward(self):
 
@@ -71,6 +76,10 @@ class ReasoningPipeline():
             storage=self.storage.step(),
             input_key = "instruction",
             output_key= "question_category"
+        )
+        
+        self.answer_generator_step6.run(
+            storage=self.storage.step(),
         )
         
 

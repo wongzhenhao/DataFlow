@@ -6,9 +6,9 @@ from word2number import w2n
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 from dataflow.core import OperatorABC
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Storage import DataFlowStorage
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
-
+from dataflow.core import GeneratorABC
 # The main class to manage the entire extraction process
 @OPERATOR_REGISTRY.register()
 class AnswerExtraction_QwenMathEval(OperatorABC):
@@ -16,43 +16,16 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
     A class to handle the process of extracting answers from a dataset.
     """
 
-    def __init__(self, config: dict):
+    def __init__(self, generator: GeneratorABC= None, dataset_name:str = None):
         """
         Initializes the AnswerExtraction_QwenMathEval class.
         """
-        self.check_config(config)
-        self.config = config
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.response_key = self.config['response_key']
-        self.extraction_key = self.config['extraction_key']
-        self.data_name = self.config.get('dataset_name', None)
         self.logger = get_logger()
-        self.datastorage = FileStorage(config)
-
+        self.data_name = dataset_name
         # Initialize helpers
         unit_manager = UnitTextManager()
         string_cleaner = StringCleaner(unit_manager)
         self.answer_extractor = AnswerExtractor(string_cleaner)
-
-    def check_config(self):
-        """
-        Ensures that the configuration contains all necessary keys.
-        Must have either (input_file and output_file) or db_name.
-        """
-        config = self.config  # for brevity
-
-        # Check general required keys
-        required_keys = ['response_key', 'extraction_key']
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Key {key} is missing in the config")
-
-        # Check data source requirement
-        has_file_io = 'input_file' in config and 'output_file' in config
-        if not has_file_io:
-            raise ValueError("Config must contain both 'input_file' and 'output_file'")
 
     @staticmethod
     def get_desc(self, lang):
@@ -82,11 +55,12 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
         else:
             return "AnswerExtraction_QwenMathEval performs mathematical answer normalization and standardization."
 
-    def run(self):
+    def run(self, storage: DataFlowStorage, response_key:str = "pseudo_correct_solution_example", extraction_key:str = "extraction"):
         """
         Executes the answer extraction process.
         """
-        raw_dataframe = self.datastorage.read(self.input_file, "dataframe")
+        self.response_key, self.extraction_key = response_key, extraction_key
+        raw_dataframe = storage.read("dataframe")
         key_list = raw_dataframe.columns.to_list()
         if self.response_key not in key_list:
             raise ValueError(f"response_key: {self.response_key} not found in dataframe columns.")
@@ -97,4 +71,8 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
             for resp in tqdm(raw_dataframe[self.response_key], desc='Processing')
         ]
         raw_dataframe[self.extraction_key] = extractions
-        self.datastorage.write(self.output_file, raw_dataframe)
+
+        output_file = storage.write(raw_dataframe)
+        self.logger.info(f"Extracted answers saved to {output_file}")
+        
+        return [extraction_key]
