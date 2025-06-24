@@ -1,17 +1,17 @@
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
-from dataflow.utils.Operator import Operator
+from dataflow import get_logger
+from dataflow.core import OperatorABC
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.prompts.reasoning import QuestionFilterPrompt
-from dataflow.utils.Generator import Generator
+from dataflow.core import GeneratorABC
 
 import re
 
 @OPERATOR_REGISTRY.register()
-class QuestionFilter(Operator):
+class QuestionFilter(OperatorABC):
     def __init__(self,
                  system_prompt: str = "You are a helpful assistant.",
-                 generator: Generator = None,
+                 generator: GeneratorABC = None,
                  ):
 
         # self.check_config(config)

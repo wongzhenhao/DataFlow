@@ -2,14 +2,14 @@ import json
 import requests
 import os
 import logging
-import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Generator import Generator
+from dataflow.core  import GeneratorABC
 import re
 
-class APIGenerator_request(Generator):
+class APIGenerator_request(GeneratorABC):
+    """Use OpenAI API to generate responses based on input messages.
+    """
     def __init__(self, 
                  api_url: str = "https://api.openai.com/v1/chat/completions",
                  model_name: str = "gpt-4o",

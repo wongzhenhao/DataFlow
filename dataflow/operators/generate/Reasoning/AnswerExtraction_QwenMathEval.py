@@ -4,14 +4,14 @@ import logging
 import re
 from word2number import w2n
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
-from dataflow.utils import Operator
+from dataflow import get_logger
+from dataflow.core import OperatorABC
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.reasoning_utils.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
+from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 
 # The main class to manage the entire extraction process
 @OPERATOR_REGISTRY.register()
-class AnswerExtraction_QwenMathEval(Operator):
+class AnswerExtraction_QwenMathEval(OperatorABC):
     """
     A class to handle the process of extracting answers from a dataset.
     """

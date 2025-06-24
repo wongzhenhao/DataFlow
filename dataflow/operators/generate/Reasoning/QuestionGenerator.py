@@ -2,17 +2,17 @@ from dataflow.prompts.reasoning import QuestionSynthesisPrompt
 import pandas as pd
 import random
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
 from dataflow.utils.Storage import DataFlowStorage
-from dataflow.utils.Operator import Operator
-from dataflow.utils.Generator import Generator
+from dataflow.core import OperatorABC
+from dataflow.core import GeneratorABC
 
 @OPERATOR_REGISTRY.register()
-class QuestionGenerator(Operator):
+class QuestionGenerator(OperatorABC):
     def __init__(self, 
                  num_prompts: int = 1,
-                 generator: Generator = None
+                 generator: GeneratorABC = None
                 ):
         """
         Initialize the QuestionGenerator with the provided configuration.

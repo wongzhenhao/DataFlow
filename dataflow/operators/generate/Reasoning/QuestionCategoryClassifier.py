@@ -3,17 +3,17 @@ import pandas as pd
 import json
 import re
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
 from dataflow.utils.Storage import DataFlowStorage
-from dataflow.utils.Operator import Operator
+from dataflow.core import OperatorABC
 
 from dataflow.utils.reasoning.CategoryFuzz import CategoryUtils
-from dataflow.utils.Generator import Generator
+from dataflow.core import GeneratorABC
 
 @OPERATOR_REGISTRY.register()
-class QuestionCategoryClassifier(Operator):
-    def __init__(self, generator: Generator = None):
+class QuestionCategoryClassifier(OperatorABC):
+    def __init__(self, generator: GeneratorABC = None):
         """
         Initialize the QuestionCategoryClassifier with the provided configuration.
         """

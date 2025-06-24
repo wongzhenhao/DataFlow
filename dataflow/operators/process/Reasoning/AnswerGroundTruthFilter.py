@@ -2,13 +2,13 @@ from math_verify import parse, verify
 import numpy as np
 import pandas as pd
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.reasoning_utils.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
+from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.utils import get_logger
-from dataflow.utils.Operator import Operator
+from dataflow import get_logger
+from dataflow.core import OperatorABC
 
 @OPERATOR_REGISTRY.register()
-class AnswerGroundTruthFilter(Operator):
+class AnswerGroundTruthFilter(OperatorABC):
     def __init__(self, config: dict):
         self.check_config(config)
         self.filter_name = 'AnswerGroundTruthFilter'

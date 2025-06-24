@@ -1,13 +1,13 @@
-from dataflow.utils.reasoning_utils.Prompts import AnswerGeneratorPrompt
+from dataflow.prompts.reasoning import AnswerGeneratorPrompt
 import pandas as pd
 from dataflow.utils.Registry import OPERATOR_REGISTRY
-from dataflow.utils.utils import get_logger
+from dataflow import get_logger
 
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.Operator import Operator
+from dataflow.core import OperatorABC
 from dataflow.utils.utils import init_model
 @OPERATOR_REGISTRY.register()
-class AnswerGenerator(Operator):
+class AnswerGenerator(OperatorABC):
     '''
     Answer Generator is a class that generates answers for given questions.
     '''

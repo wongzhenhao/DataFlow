@@ -1,17 +1,11 @@
-from dataflow.operators.process.Reasoning.QuestionFilter import (
-    QuestionFilter
+from dataflow.operators.generate.Reasoning import (
+    QuestionCategoryClassifier,
+    QuestionDifficultyClassifier,
+    QuestionGenerator,
 )
-from dataflow.operators.generate.Reasoning.QuestionGenerator import (
-    QuestionGenerator
-)
-from dataflow.operators.generate.Reasoning.QuestionDifficultyClassifier import (
-    QuestionDifficultyClassifier
-)
-from dataflow.operators.generate.Reasoning.QuestionCategoryClassifier import (
-    QuestionCategoryClassifier
-)
+from dataflow.operators.process.Reasoning import *
 from dataflow.utils.Storage import FileStorage
-from dataflow.utils.APIGenerator_request import APIGenerator_request
+from dataflow.generators import APIGenerator_request
 
 # 这里或许未来可以有个pipeline基类
 class ReasoningPipeline():
@@ -27,7 +21,6 @@ class ReasoningPipeline():
         api_generator = APIGenerator_request(
                 api_url="http://123.129.219.111:3000/v1/chat/completions",
                 model_name="gpt-4o",
-                
                 max_workers=100
         )
 
@@ -52,23 +45,28 @@ class ReasoningPipeline():
 
         # 未来或许可以维护一个类似nn.sequential的容器，方便添加并实例化多个算子
     def forward(self):
+
         self.question_filter_step1.run(
             storage=self.storage.step(),
             input_key = "instruction",
         )
+
         self.question_gen_step2.run(
             storage=self.storage.step(),
             input_key = "instruction",
         )
+
         self.question_filter_step3.run(
             storage=self.storage.step(),
             input_key = "instruction",
         )
+
         self.question_difficulty_classifier_step4.run(
             storage=self.storage.step(),
             input_key = "instruction",
             output_key= "question_difficulty"
         )
+
         self.question_category_classifier_step5.run(
             storage=self.storage.step(),
             input_key = "instruction",
