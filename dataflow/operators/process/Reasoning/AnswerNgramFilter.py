@@ -1,32 +1,18 @@
-from tqdm import tqdm
-import pandas as pd
-import numpy as np
-import re
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow import get_logger
-
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
+
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+import re
+
 @OPERATOR_REGISTRY.register()
 class AnswerNgramFilter(OperatorABC):
-    def __init__(self, config: dict):
-        self.check_config(config)
-        self.config = config
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.question_key = self.config['question_key']
-        self.answer_key = self.config['answer_key']
-        self.min_score = self.config['min_score']
-        self.max_score = self.config['max_score']
-        self.logger = get_logger()
-        self.datastorage = FileStorage(config)
-        self.ngrams = self.config['ngrams']
+    def __init__(self):
 
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'question_key', 'answer_key', 'min_score', 'max_score']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
+        self.logger = get_logger()
         
     @staticmethod
     def get_desc(self, lang):
@@ -61,19 +47,30 @@ class AnswerNgramFilter(OperatorABC):
         conflict = [k for k in forbidden_keys if k in dataframe.columns]
 
         if missing:
-            raise ValueError(f"Missing required column(s): {missing}")
+            self.logger.error(f"Missing required column(s): {missing}")
         if conflict:
-            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+            self.logger.error(f"The following column(s) already exist and would be overwritten: {conflict}")
         missing_keys = [key for key in required_keys if key not in dataframe.columns]
 
         if missing_keys:
-            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
+            self.logger.error(f"The following required columns are missing from the dataframe: {missing_keys}")
         
-    def run(self):
-        '''
+    def run(
+            self,
+            storage: DataFlowStorage,
+            question_key: str = "instruction",
+            answer_key: str = "generated_cot",
+            min_score: float = 0.1,
+            max_score: float = 1.0,
+            ngrams: int = 5
+            ) -> list:
+        self.question_key = question_key
+        self.answer_key = answer_key
+        self.min_score = min_score
+        self.max_score = max_score
+        self.ngrams = ngrams
         
-        '''
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+        dataframe = storage.read("dataframe")
         self.logger.info(f"Found {len(dataframe)} rows in the dataframe")
 
         scores = []
@@ -100,5 +97,7 @@ class AnswerNgramFilter(OperatorABC):
         dataframe = dataframe[indexes]
 
         self.logger.info(f"Filtered down to {len(dataframe)} rows with repetition score in [{self.min_score}, {self.max_score}]")
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Results saved to {self.output_file}")
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Results saved to {output_file}")
+        
+        return [question_key, answer_key]

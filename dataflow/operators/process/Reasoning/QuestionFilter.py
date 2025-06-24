@@ -71,7 +71,7 @@ class QuestionFilter(OperatorABC):
             self.logger.error(f"Response format error for problem: {response}. Error: {e}")
             return False
             
-    def run(self, storage:DataFlowStorage, input_key: str )-> None:
+    def run(self, storage:DataFlowStorage, input_key: str ) -> list:
         self.input_key = input_key
         dataframe = storage.read("dataframe")
         questions = dataframe[input_key]
@@ -81,4 +81,7 @@ class QuestionFilter(OperatorABC):
         
         # 保留results为True的行
         dataframe = dataframe[results]
-        storage.write(dataframe)
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Filtered questions saved to {output_file}")
+        
+        return [input_key,]

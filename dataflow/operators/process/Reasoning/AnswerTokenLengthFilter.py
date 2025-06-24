@@ -1,34 +1,18 @@
-from tqdm import tqdm
-import pandas as pd
-import numpy as np
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow import get_logger
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
 from transformers import AutoTokenizer
 
+from tqdm import tqdm
+import pandas as pd
 
 @OPERATOR_REGISTRY.register()
 class AnswerTokenLengthFilter(OperatorABC):
-    def __init__(self, config: dict):
-        self.check_config(config)
-        self.config = config
-        self.input_file = self.config['input_file']
-        self.output_file = self.config['output_file']
-        self.input_key = self.config['input_key']
-        self.max_answer_token_length = self.config['max_answer_token_length']
-        self.tokenizer_dir = self.config['tokenizer_dir']
+    def __init__(self):
 
         self.logger = get_logger()
-        self.datastorage = FileStorage(config)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_dir)
-
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file', 'input_key', 'max_answer_token_length', 'tokenizer_dir']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
-
+       
     @staticmethod
     def get_desc(self, lang):
         if lang == "zh":
@@ -63,23 +47,28 @@ class AnswerTokenLengthFilter(OperatorABC):
         conflict = [k for k in forbidden_keys if k in dataframe.columns]
 
         if missing:
-            raise ValueError(f"Missing required column(s): {missing}")
+            self.logger.error(f"Missing required column(s): {missing}")
         if conflict:
-            raise ValueError(f"The following column(s) already exist and would be overwritten: {conflict}")
+            self.logger.error(f"The following column(s) already exist and would be overwritten: {conflict}")
         missing_keys = [key for key in required_keys if key not in dataframe.columns]
 
         if missing_keys:
-            raise ValueError(f"The following required columns are missing from the dataframe: {missing_keys}")
+            self.logger.error(f"The following required columns are missing from the dataframe: {missing_keys}")
 
-    # def run(self, dataset):
-    #     def get_token_count(input_string):
-    #         tokens = self.tokenizer.encode(input_string, add_special_tokens=False)
-    #         return len(tokens)
-
-    #     return np.array([get_token_count(item[self.keys]) <= self.max_answer_token_length for item in dataset]).astype(int)
-
-    def run(self):
-        dataframe = self.datastorage.read(self.input_file, "dataframe")
+    def run(
+            self,
+            storage:DataFlowStorage,
+            input_key: str = "generated_cot",
+            max_answer_token_length: int = 8192,
+            tokenizer_dir: str = "Qwen/Qwen2.5-0.5B-Instruct"
+            ) -> list:
+        
+        dataframe = storage.read("dataframe")
+        
+        self.input_key = input_key
+        self.max_answer_token_length = max_answer_token_length
+        self.tokenizer_dir = tokenizer_dir
+        self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_dir)
         self.logger.info(f"Found {len(dataframe)} rows in the dataframe")
         self._validate_dataframe(dataframe)
 
@@ -95,5 +84,5 @@ class AnswerTokenLengthFilter(OperatorABC):
         
         dataframe = pd.DataFrame(output)
 
-        self.datastorage.write(self.output_file, dataframe)
-        self.logger.info(f"Saved {len(dataframe)} filtered rows to {self.output_file}")
+        output_file = storage.write(dataframe)
+        self.logger.info(f"Saved {len(dataframe)} filtered rows to {output_file}")

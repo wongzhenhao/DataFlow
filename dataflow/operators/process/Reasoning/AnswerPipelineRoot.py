@@ -1,31 +1,17 @@
-# 根节点，用来将数据拆入不同的分支
-import pandas as pd
 from dataflow import get_logger
 from dataflow.utils.Registry import OPERATOR_REGISTRY
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 from dataflow.core import OperatorABC
-from dataflow.utils.Storage import FileStorage
+from dataflow.utils.Storage import DataFlowStorage
 
+import pandas as pd
 
 @OPERATOR_REGISTRY.register()
 class AnswerPipelineRoot(OperatorABC):
-    def __init__(self, config: dict):
-        self.check_config(config)
-        self.config = config
-        self.input_file = config.get("input_file")
-        self.output_file_with_gt = config.get("output_file_with_gt")
-        self.output_file_without_gt = config.get("output_file_without_gt")
-        self.input_answer_key = config.get("input_answer_key")
-        self.input_gt_key = config.get("input_gt_key", "")
+    def __init__(self):
+
         self.logger = get_logger()
-        self.datastorage = FileStorage(config)
-
-    def check_config(self, config: dict) -> None:
-        required_keys = ['input_file', 'output_file_with_gt', 'output_file_without_gt']
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            raise ValueError(f"Missing required config keys: {missing_keys}")
-
+        
     @staticmethod
     def get_desc(self, lang):
         if lang == "zh":
@@ -53,9 +39,12 @@ class AnswerPipelineRoot(OperatorABC):
         else:
             return "AnswerPipelineRoot routes data to different processing branches."
 
-    def run(self):
-        df = self.datastorage.read(self.input_file, "dataframe")
+    def run(self, storage: DataFlowStorage, input_answer_key: str = "output", input_gt_key: str = "golden_answer"):
+        self.input_answer_key = input_answer_key
+        self.input_gt_key = input_gt_key
         
+        df = storage.read("dataframe")
+
         if not self.input_gt_key or self.input_gt_key not in df.columns:
             self.logger.warning("No valid gt key in input file, copy input file to output file without gt")
             return
@@ -89,14 +78,14 @@ class AnswerPipelineRoot(OperatorABC):
         df_without_gt = df[(df[self.input_gt_key].isna()) | (df[self.input_gt_key] == "")].copy()
         df_without_gt[self.input_gt_key] = None
 
-        
         # 输出结果
         if len(df_with_gt) > 0:
-            self.datastorage.write(self.output_file_with_gt, df_with_gt)
+            output_file_gt = storage.write(df_with_gt)
+            self.logger.info(f"output {df_with_gt.shape[0]} rows with gt to {output_file_gt}")
+
         if len(df_without_gt) > 0:
-            self.datastorage.write(self.output_file_without_gt, df_without_gt)
-        self.logger.info(f"output {df_with_gt.shape[0]} rows with gt to {self.output_file_with_gt}")
-        self.logger.info(f"output {df_without_gt.shape[0]} rows without gt to {self.output_file_without_gt}")
+            output_file_without_gt = storage.write(df_without_gt)
+            self.logger.info(f"output {df_without_gt.shape[0]} rows without gt to {output_file_without_gt}")
                     
             
 
