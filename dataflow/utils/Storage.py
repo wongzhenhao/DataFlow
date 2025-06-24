@@ -10,16 +10,15 @@ class DataFlowStorage(ABC):
     Abstract base class for data storage.
     """
     @abstractmethod
-    def read(self, file_path: Any, type) -> Any:
+    def read(self, output_type) -> Any:
         """
         Read data from file.
-        file_path: str, the path of the file to read
         type: type that you want to read to, such as "datatrame", List[dict], etc.
         """
         pass
     
     @abstractmethod
-    def write(self, file_path: Any, data: Any) -> Any:
+    def write(self, data: Any) -> Any:
         pass
 
 class FileStorage(DataFlowStorage):
@@ -53,14 +52,13 @@ class FileStorage(DataFlowStorage):
         self.operator_step = -1
         return self
 
-    def read(self, type: Literal["dataframe", "dict"]) -> Any:
+    def read(self, output_type: Literal["dataframe", "dict"]) -> Any:
         """
-        Read data from file.
-        file_path: str, the path of the file to read, it should end with json, jsonl, csv, parquet, pickle
-        type: type that you want to read to, such as "dataframe", List[dict], etc.
+        Read data from current file managed by storage.
+        output_type: type that you want to read to, such as "dataframe", List[dict], etc.
         """
         file_path = self._get_cache_file_path(self.operator_step)
-        print(f"Reading data from {file_path} with type {type}")
+        print(f"Reading data from {file_path} with type {output_type}")
 
         if self.operator_step == 0:
             local_cache = file_path.split(".")[-1]
@@ -81,16 +79,15 @@ class FileStorage(DataFlowStorage):
         else:
             raise ValueError(f"Unsupported file type: {self.cache_type}, input file should end with json, jsonl, csv, parquet, pickle")
         
-        if type == "dataframe":
+        if output_type == "dataframe":
             return dataframe
-        elif type == "dict":
+        elif output_type == "dict":
             return dataframe.to_dict(orient="records")
-        raise ValueError(f"Unsupported type: {type}, type should be dataframe or dict")
+        raise ValueError(f"Unsupported type: {output_type}, type should be dataframe or dict")
         
     def write(self, data: Any) -> Any:
         """
-        Write data to file.
-        file_path: str, the path of the file to write, it should end with json, jsonl, csv, parquet, pickle
+        Write data to current file managed by storage.
         data: Any, the data to write, it should be a dataframe, List[dict], etc.
         """
         if type(data) == list:
