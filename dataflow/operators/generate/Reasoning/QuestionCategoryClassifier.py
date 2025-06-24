@@ -109,12 +109,7 @@ class QuestionCategoryClassifier(OperatorABC):
                 self.logger.error(f"[错误] 解析分类结果失败: {e}")
                 self.logger.debug(f"[DEBUG] 原始字符串：{repr(classification_str)}")
 
-
-        if self.output_key in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key} in the dataframe, which leads to overwriting the existing column, please check the output_text_key: {key_list}")
-        
         output_file = storage.write(dataframe)
         self.logger.info(f"Classification results saved to {output_file}")
 
-        return [output_key]
+        return ["primary_category", "secondary_category"]
