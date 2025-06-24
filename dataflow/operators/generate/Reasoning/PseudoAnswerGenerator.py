@@ -6,7 +6,7 @@ from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
 
 from dataflow.prompts.reasoning import AnswerGeneratorPrompt
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
 
 @OPERATOR_REGISTRY.register()
@@ -14,10 +14,10 @@ class PseudoAnswerGenerator(OperatorABC):
     '''
     Pseudo Answer Generator is a class that generates answers for given questions, then choose the most frequent answer.
     '''
-    def __init__(self, generator: GeneratorABC = None, max_times: int = 3):
+    def __init__(self, llm_serving: LLMServingABC = None, max_times: int = 3):
         self.logger = get_logger()
         self.prompts = AnswerGeneratorPrompt()
-        self.generator = generator
+        self.llm_serving = llm_serving
         self.max_times = max_times
         
     def check_config(self):
@@ -110,7 +110,7 @@ class PseudoAnswerGenerator(OperatorABC):
         self.logger.info(f"Generating answers for {len(user_prompts)} questions")
         for i in range(self.max_times):
             self.logger.info(f"Generating: {i+1} times")
-            solutions = self.model.generate_from_input(user_prompts)
+            solutions = self.llm_serving.generate_from_input(user_prompts)
             answers = [self.extractor.extract_answer(solution, None) for solution in solutions]
             for idx, answer in enumerate(answers):
                 answer_dict[idx].append(answer)

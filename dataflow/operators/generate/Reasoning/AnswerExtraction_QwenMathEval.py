@@ -8,7 +8,7 @@ from dataflow import get_logger
 from dataflow.core import OperatorABC
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.utils.reasoning.AnswerExtraction import StringCleaner, UnitTextManager, AnswerExtractor
-from dataflow.core import GeneratorABC
+
 # The main class to manage the entire extraction process
 @OPERATOR_REGISTRY.register()
 class AnswerExtraction_QwenMathEval(OperatorABC):
@@ -16,7 +16,7 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
     A class to handle the process of extracting answers from a dataset.
     """
 
-    def __init__(self, generator: GeneratorABC= None, dataset_name:str = None):
+    def __init__(self, dataset_name:str = None):
         """
         Initializes the AnswerExtraction_QwenMathEval class.
         """

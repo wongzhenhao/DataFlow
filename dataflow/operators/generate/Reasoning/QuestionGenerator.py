@@ -116,4 +116,4 @@ class QuestionGenerator(OperatorABC):
         output_file = storage.write(dataframe)
         self.logger.info(f"Generated questions saved to {output_file}")
 
-        return [input_key]
+        return [input_key, "Synth_or_Input"]

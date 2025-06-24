@@ -5,17 +5,17 @@ from dataflow import get_logger
 
 from dataflow.utils.Storage import DataFlowStorage
 from dataflow.core import OperatorABC
-from dataflow.core import GeneratorABC
+from dataflow.core import LLMServingABC
 
 @OPERATOR_REGISTRY.register()
 class AnswerGenerator(OperatorABC):
     '''
     Answer Generator is a class that generates answers for given questions.
     '''
-    def __init__(self, generator: GeneratorABC):
+    def __init__(self, llm_serving: LLMServingABC):
         self.logger = get_logger()
         self.prompts = AnswerGeneratorPrompt()    
-        self.generator = generator
+        self.llm_serving = llm_serving
     
     @staticmethod
     def get_desc(self, lang):
@@ -81,7 +81,7 @@ class AnswerGenerator(OperatorABC):
         dataframe = storage.read("dataframe")
         self._validate_dataframe(dataframe)
         formatted_prompts = self._reformat_prompt(dataframe)
-        answers = self.generator.generate_from_input(formatted_prompts)
+        answers = self.llm_serving.generate_from_input(formatted_prompts)
 
         dataframe[self.output_key] = answers
         output_file = storage.write(dataframe)
