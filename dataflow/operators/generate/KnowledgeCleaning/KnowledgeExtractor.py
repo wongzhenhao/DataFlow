@@ -1,7 +1,7 @@
 import pandas as pd
-from dataflow.utils.Registry import OPERATOR_REGISTRY
+from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
-from dataflow.utils.Storage import DataFlowStorage
+from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
 
 import os
@@ -11,7 +11,7 @@ from mineru.backend.pipeline.pipeline_analyze import doc_analyze as pipeline_doc
 from mineru.backend.pipeline.pipeline_middle_json_mkcontent import union_make as pipeline_union_make
 from mineru.backend.pipeline.model_json_to_middle_json import result_to_middle_json as pipeline_result_to_middle_json
 from mineru.utils.enum_class import MakeMode
-from magic_doc.docconv import DocConverter
+# from magic_doc.docconv import DocConverter
 import chonkie
 
 @OPERATOR_REGISTRY.register()
@@ -94,7 +94,8 @@ class KnowledgeExtractor(OperatorABC):
             f.write(markdown_content)
         return output_file
 
-    def run(self, storage:DataFlowStorage ,raw_file):
+    def run(self, storage:DataFlowStorage ,raw_file, lang="ch"):
+        self.logger.info("starting to extract...")
         raw_file_name=os.path.splitext(os.path.basename(raw_file))[0]
         raw_file_suffix=os.path.splitext(raw_file)[1]
         if(raw_file_suffix==".pdf"):
@@ -103,14 +104,12 @@ class KnowledgeExtractor(OperatorABC):
             output_file=self._parse_pdf_to_md(
                 raw_file,
                 self.intermediate_dir,
-                "ch",
+                lang,
                 "txt"
             )
-            pass
         elif(raw_file_suffix in [".doc", ".docx", ".pptx", ".ppt"]):
             output_file=os.path.join(self.intermediate_dir,f"{raw_file_name}.md")
             output_file=self._parse_doc_to_md(raw_file, output_file)
-            pass
         elif(raw_file_suffix == ".html"):
             # TODO: Implement the logic to extract knowledge from HTML files
             # ...

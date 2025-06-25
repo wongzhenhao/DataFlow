@@ -8,7 +8,8 @@
 
 
 dataflow/example/KBCleaningPipeline/raw
-
+requirement_added.txt
+mineru.json
 
 test/example
 
