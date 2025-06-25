@@ -1,10 +1,7 @@
 import logging
 from vllm import LLM,SamplingParams
 from huggingface_hub import snapshot_download
-import pandas as pd
-from dataflow.utils.storage import FileStorage
 from dataflow.core import LLMServingABC
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class LocalModelLLMServing(LLMServingABC):
     '''
@@ -55,7 +52,6 @@ class LocalModelLLMServing(LLMServingABC):
             max_model_len=max_model_len,
         )
         self.system_prompt = system_prompt
-        # self.datastorage = FileStorage()
 
     def generate(self):
         # # read input file : accept jsonl file only
