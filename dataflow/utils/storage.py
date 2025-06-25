@@ -109,7 +109,7 @@ class FileStorage(DataFlowStorage):
                     else load_dataset(dataset_name, split=split)
                 )
                 dataframe = dataset.to_pandas()
-                return self._convert_output(dataframe.head(100), output_type)
+                return self._convert_output(dataframe, output_type)
         
             elif source.startswith("ms:"):
                 from modelscope import MsDataset
@@ -118,7 +118,7 @@ class FileStorage(DataFlowStorage):
 
                 dataset = MsDataset.load(dataset_name, split=split)
                 dataframe = pd.DataFrame(dataset)
-                return self._convert_output(dataframe.head(100), output_type)
+                return self._convert_output(dataframe, output_type)
                             
             else:
                 local_cache = file_path.split(".")[-1]
