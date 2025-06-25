@@ -28,7 +28,7 @@ class KBCleaningPipeline():
         # )
 
         local_llm_serving = LocalModelLLMServing(
-            model_name_or_path="/mnt/public/model/Qwen/Qwen2.5-7B-Instruct",
+            model_name_or_path="/data0/models/Qwen2.5-7B-Instruct",
             max_tokens=1024,
             model_source="local"
         )
@@ -40,7 +40,7 @@ class KBCleaningPipeline():
         self.knowledge_cleaning_step2 = CorpusTextSplitter(
             split_method="token",
             chunk_size=512,
-            tokenizer_name="/mnt/h_public/lh/hzy/models/Qwen2-0.5B-Instruct/",
+            tokenizer_name="/data0/hzy/RARE/model_base/Qwen2.5-3B-Instruct",
         )
 
         self.knowledge_cleaning_step3 = KnowledgeCleaner(
@@ -66,5 +66,5 @@ class KBCleaningPipeline():
         )
 
 model = KBCleaningPipeline()
-model.forward("/mnt/h_public/lh/hzy/DataFlow/test_minerdoc/ch09.pptx")
+model.forward("/data0/hzy/test_mineru/muban.pdf")
 
