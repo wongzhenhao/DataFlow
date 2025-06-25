@@ -22,4 +22,5 @@ tree-sitter-languages==1.10.2
 semgrep==1.124.0
 colorlog
 appdirs
+datasketch
 modelscope
