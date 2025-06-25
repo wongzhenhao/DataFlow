@@ -81,10 +81,20 @@ class FileStorage(DataFlowStorage):
     def read(self, output_type: Literal["dataframe", "dict"]) -> Any:
         """
         Read data from current file managed by storage.
-        output_type: type that you want to read to, such as "dataframe", List[dict], etc.
-        Also supports remote datasets with prefix:
-            - "hf:{dataset_name}"         => HuggingFace
-            - "ms:{dataset_name}"         => ModelScope
+        
+        Args:
+            output_type: Type that you want to read to, either "dataframe" or "dict".
+            Also supports remote datasets with prefix:
+                - "hf:{dataset_name}{:config}{:split}"  => HuggingFace dataset eg. "hf:openai/gsm8k:main:train"
+                - "ms:{dataset_name}{}:split}"          => ModelScope dataset eg. "ms:modelscope/gsm8k:train"
+        
+        Returns:
+            Depending on output_type:
+            - "dataframe": pandas DataFrame
+            - "dict": List of dictionaries
+        
+        Raises:
+            ValueError: For unsupported file types or output types
         """
         file_path = self._get_cache_file_path(self.operator_step)
         print(f"Reading data from {file_path} with type {output_type}")
