@@ -1,14 +1,12 @@
-from dataflow.operators.eval.GeneralText import NgramScorer
 from dataflow.operators.process.GeneralText import NgramFilter, MinHashDeduplicator
-from dataflow.operators.generate.GeneralText import HtmlUrlRemoverRefiner
+from dataflow.operators.refine.GeneralText import HtmlUrlRemoverRefiner
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request
 
 class TextPipeline():
     def __init__(self):
         
         self.storage = FileStorage(
-            first_entry_file_name="/mnt/public/data/mzm/DataFlow-Preview/pt_input.jsonl",
+            first_entry_file_name="./dataflow/example/GeneralTextPipeline/pt_input.jsonl",
             cache_path="./cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
@@ -28,13 +26,12 @@ class TextPipeline():
         
         self.html_remover_step_2.run(
             storage = self.storage.step(),
-            input_keys=['raw_content'],
-            output_key='html_removed_content',
+            input_key='raw_content',
         )
         
         self.minhash_deduplicator_step_3.run(
             storage = self.storage.step(),
-            input_keys=['raw_content'],
+            input_key='raw_content',
             output_key='minhash_deduplicated_label',
         )
 

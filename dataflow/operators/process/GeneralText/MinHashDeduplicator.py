@@ -30,19 +30,26 @@ class MinHashDeduplicator(OperatorABC):
                 minhash.update(d.encode('utf8'))
         return minhash
 
-    def run(self, storage: DataFlowStorage, input_keys: list, output_key: str):
+    def run(self, storage: DataFlowStorage, input_keys: list = None, input_key: str = None, output_key: str = None):
+        if input_keys is None and input_key is None:
+            self.logger.error(f"Need to specify either input_keys or input_key!")
+            raise ValueError(f"Need to specify either input_keys or input_key!")
+        if input_keys is not None and input_key is not None:
+            self.logger.error(f"{self.__class__.__name__} only need one input args!")
+            raise ValueError(f"{self.__class__.__name__} only need one input args!")
         self.logger.info(f"Start running {self.__class__.__name__}...")
         lsh = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
+        self.input_key = input_key
         self.input_keys = input_keys
         self.output_key = output_key
         dataframe = storage.read("dataframe")
         labels = [0] * len(dataframe)
         with lsh.insertion_session() as session:  
-            for idx, sample in tqdm(enumerate(dataframe[self.input_keys].to_dict(orient='records')), desc=f"Implementing {self.__class__.__name__}", total=len(dataframe)):
-                if isinstance(input_keys, list) and len(input_keys) > 1:
-                    text = '\n'.join([f"{k}:\n{v}" for k, v in sample.items()])
+            for idx, sample in tqdm(enumerate(dataframe.to_dict(orient='records')), desc=f"Implementing {self.__class__.__name__}", total=len(dataframe)):
+                if input_keys is not None and len(input_keys) > 1:
+                    text = '\n'.join([f"{k}:\n{sample[k]}" for k in input_keys])
                 else:
-                    text = sample[input_keys[0]]
+                    text = sample[self.input_key]
                 minhash = self.create_minhash(text)
                 result = lsh.query(minhash)
                 
@@ -54,7 +61,7 @@ class MinHashDeduplicator(OperatorABC):
         filtered_dataframe = dataframe[(dataframe[self.output_key] > 0)]
         output_file = storage.write(filtered_dataframe)
         self.logger.info(f"Deduplication completed. Total unique items: {sum(labels)}")
-        return labels
+        return [self.output_key,]
         
         
 
