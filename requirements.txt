@@ -23,3 +23,4 @@ semgrep==1.124.0
 colorlog
 appdirs
 datasketch
+modelscope
