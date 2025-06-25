@@ -1,5 +1,5 @@
 name: "🐞 Bug reports"
-description: Report Bug to help us improve IMDLdataflow
+description: Report Bug to help us improve Dataflow. 请报告错误以帮助我们改进Dataflow。
 labels: bug
 
 body:
