@@ -15,7 +15,7 @@ class KBCleaningPipeline():
     def __init__(self):
 
         self.storage = FileStorage(
-            first_entry_file_name="dataflow/example/KBCleaningPipeline/pdf_test.json",
+            first_entry_file_name="../dataflow/example/KBCleaningPipeline/pdf_test.json",
             cache_path="./.cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
