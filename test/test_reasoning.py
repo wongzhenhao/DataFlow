@@ -13,7 +13,7 @@ class ReasoningPipeline():
     def __init__(self):
 
         self.storage = FileStorage(
-            first_entry_file_name="/mnt/public/data/scy/DataFlow-Preview/cache/dataflow_cache_step_2.jsonl",
+            first_entry_file_name="/mnt/public/data/ml/DataFlow-Preview/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
             cache_path="./cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
