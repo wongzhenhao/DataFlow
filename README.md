@@ -1,7 +1,7 @@
 # DataFlow
 
 <div align="center">
-  <img src="./static/images/Face.png">
+  <img src="./static/images/Face.jpg">
 
 
 [![](https://img.shields.io/github/license/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/blob/main/LICENSE)
@@ -19,8 +19,8 @@
 
 ## 1 News
 - [2025-06-15] 🎉 We release the dataflow-agentbot.
-- [2025-06-10] 🎉 We release the documentation of dataflow.
-- [2025-06-01] 🎉 Our new data-centric process, generate and evaluate system is now open source, the code is coming soon.
+- [2025-06-10] 🎉 We release the documentation of dataflow!
+- [2025-06-01] 🎉 Our new data-centric generation and evaluation system is now open-sourced — stay tuned for future updates!
 
 ## 2 Overview
 
