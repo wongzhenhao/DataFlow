@@ -34,10 +34,11 @@ class PretrainFormatConverter(OperatorABC):
                     "id": row.get("id"),
                     "text": cur_q + "\n" + cur_a,
                 })
-                
+
         output_file = storage.write(dataframe)
-        self.logger.info(f"SFT to PT convertion results saved to {self.output_file}")
-        return
+        self.logger.info(f"SFT to PT convertion results saved to {output_file}")
+        
+        return [read_key_question, read_key_answer, output_key]
 
     @staticmethod
     def get_desc(self, lang):
