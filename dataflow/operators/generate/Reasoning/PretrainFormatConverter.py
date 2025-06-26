@@ -1,7 +1,6 @@
-from dataflow.prompts.reasoning import QuestionSynthesisPrompt
 from dataflow.utils.registry import OPERATOR_REGISTRY
+from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
-from dataflow.core import LLMServingABC
 from dataflow import get_logger
 
 import pandas as pd
@@ -15,8 +14,8 @@ class PretrainFormatConverter(OperatorABC):
             storage: DataFlowStorage,
             read_key_question: str = "question",
             read_key_answer: str = "answer",
-            output_key: str = "text",
-            )
+            output_key: str = "text"
+            ):
         self.read_key_question = read_key_question
         self.read_key_answer = read_key_answer
         self.output_key = output_key

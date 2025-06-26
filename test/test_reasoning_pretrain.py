@@ -1,9 +1,4 @@
-from dataflow.operators.generate.Reasoning import (
-    QuestionCategoryClassifier,
-    QuestionDifficultyClassifier,
-    QuestionGenerator,
-    AnswerGenerator,
-)
+from dataflow.operators.generate.Reasoning import *
 from dataflow.operators.process.Reasoning import *
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing
@@ -26,6 +21,15 @@ class ReasoningPipeline_Pretrain():
                 max_workers=100
         )
 
+        ## use local model as LLM serving
+        # llm_serving = LocalModelLLMServing(
+        #     # model_name_or_path="/data0/models/Qwen2.5-7B-Instruct", # set to your own model path
+        #     model_name_or_path="/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
+        #     tensor_parallel_size=4,
+        #     max_tokens=1024,
+        #     model_source="local"
+        # )
+        
         self.question_filter_step1 = QuestionFilter(
             system_prompt="You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format.",
             llm_serving=llm_serving
@@ -48,42 +52,42 @@ class ReasoningPipeline_Pretrain():
             ngrams = 5
         )
         
-        self.answer_format_filter_step6 = AnswerFormatterFilter()
+        self.sft_to_pretrain_step6 = PretrainFormatConverter()
                 
         # 未来或许可以维护一个类似nn.sequential的容器，方便添加并实例化多个算子
     def forward(self):
 
-        # self.question_filter_step1.run(
-        #     storage = self.storage.step(),
-        #     input_key = "instruction",
-        # )
-
-        # self.question_gen_step2.run(
-        #     storage = self.storage.step(),
-        #     input_key = "instruction",
-        # )
-
-        # ############# branch #############
-        # self.answer_pipeline_root_step3.run(
-        #     storage = self.storage.step(),
-        #     input_answer_key = "output",
-        #     input_gt_key = "golden_answer"
-        # )
-        # ############## answer #############
-        # self.answer_generator_step4.run(
-        #     storage = self.storage.step(),
-        #     input_key = "instruction", 
-        #     output_key = "generated_cot"
-        # )
-        # self.answer_ngram_filter_step5.run(
-        #     storage = self.storage.step(),
-        #     question_key = "instruction",
-        #     answer_key = "generated_cot"
-        # )
-        self.answer_format_filter_step6.run(
+        self.question_filter_step1.run(
             storage = self.storage.step(),
-            read_key_question="question",
-            read_key_answer="answer",
+            input_key = "instruction",
+        )
+
+        self.question_gen_step2.run(
+            storage = self.storage.step(),
+            input_key = "instruction",
+        )
+
+        ############# branch #############
+        self.answer_pipeline_root_step3.run(
+            storage = self.storage.step(),
+            input_answer_key = "output",
+            input_gt_key = "golden_answer"
+        )
+        ############## answer #############
+        self.answer_generator_step4.run(
+            storage = self.storage.step(),
+            input_key = "instruction", 
+            output_key = "generated_cot"
+        )
+        self.answer_ngram_filter_step5.run(
+            storage = self.storage.step(),
+            question_key = "instruction",
+            answer_key = "generated_cot"
+        )
+        self.sft_to_pretrain_step6.run(
+            storage = self.storage.step(),
+            read_key_question="instruction",
+            read_key_answer="generated_cot",
             output_key="text",
             )
         
