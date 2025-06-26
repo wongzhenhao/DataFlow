@@ -137,6 +137,7 @@ class ReasoningPipeline():
             question_key = "instruction",
             answer_key = "generated_cot"
         )
+        
 # @pytest.mark.gpu
 # def test_reasoning_pipeline_runs_without_errors():
 #     try:
@@ -147,5 +148,3 @@ class ReasoningPipeline():
 if __name__ == "__main__":
     model = ReasoningPipeline()
     model.forward()
-
-
