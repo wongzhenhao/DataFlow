@@ -9,31 +9,33 @@ import random
 import os
 
 @OPERATOR_REGISTRY.register()
-class PretrainFormatConverter():
+class PretrainFormatConverter(OperatorABC):
     def __init__(self):
-        """
-        Initialize the Pretrain_FormatConvert_sft2pt with the provided configuration.
-        """
-        self.input_key = self.config.get("input_key", "data")
-        self.read_key_question = self.config.get("read_key_question", "question")  # default key for question input
-        self.read_key_answer = self.config.get("read_key_answer", "answer")  # default key for question input
-        self.output_key = self.config.get("output_key", "text")  # default output key
         self.logger = get_logger()
 
-    def run(self):
-        """
-        Run the pretrain data format convertion.
-        """
-        # Read the input
-        dataframe = self._load_input()
+    def run(self,
+            storage: DataFlowStorage,
+            read_key_question: str = "question",
+            read_key_answer: str = "answer",
+            output_key: str = "text",
+            )
+        self.read_key_question = read_key_question
+        self.read_key_answer = read_key_answer
+        self.output_key = output_key
 
-        if self.output_key in dataframe.columns:
-            key_list = dataframe.columns.tolist()
-            raise ValueError(f"Found {self.output_key} in the dataframe, which leads to overwriting the existing column, please check the output_text_key: {key_list}")
+        dataframe = storage.read("dataframe")
         
-        # Save DataFrame to the output
-        self._write_output(self.output_file, dataframe, None)
-
+        output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
+        output_1 = []
+        for row in output_rows:
+                cur_q = row.get(self.read_key_question) if row.get(self.read_key_question) is not None else ""
+                cur_a = row.get(self.read_key_answer) if row.get(self.read_key_answer) is not None else ""
+                output_1.append({
+                    "id": row.get("id"),
+                    "text": cur_q + "\n" + cur_a,
+                })
+                
+        output_file = storage.write(dataframe)
         self.logger.info(f"SFT to PT convertion results saved to {self.output_file}")
         return
 
