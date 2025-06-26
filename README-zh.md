@@ -1,7 +1,5 @@
 # DataFlow
 
-# DataFlow
-
 <div align="center">
   <img src="./static/images/Face.jpg">
 
