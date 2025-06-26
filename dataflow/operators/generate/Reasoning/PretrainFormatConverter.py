@@ -44,25 +44,23 @@ class PretrainFormatConverter(OperatorABC):
             return (
                 "该算子用于将SFT格式数据转换为预训练格式。\n\n"
                 "输入参数：\n"
-                "- input_file：输入文件路径\n"
-                "- db_port/db_name：数据库连接配置\n"
-                "- table_name：存储表名\n"
-                "- eval_stage：数据处理阶段标识\n\n"
+                "- read_key_question：问题字段名\n"
+                "- read_key_answer：答案字段名\n"
+                "- output_key：输出文本字段名\n\n"
                 "输出参数：\n"
-                "- output_file：输出文件路径\n"
-                "- 数据库存储：转换后的预训练格式数据"
+                "- output_key：输出文本字段名，包含问题和答案的拼接结果\n"
+                "- 输出文件：转换后的预训练格式数据文件路径"
             )
         elif lang == "en":
             return (
                 "Converts SFT format data to pretraining format.\n\n"
                 "Input Parameters:\n"
-                "- input_file: Input file path\n"
-                "- db_port/db_name: Database connection config\n"
-                "- table_name: Storage table name\n"
-                "- eval_stage: Data processing stage\n\n"
+                "- read_key_question: Question field name\n"
+                "- read_key_answer: Answer field name\n"
+                "- output_key: Output text field name\n\n"
                 "Output Parameters:\n"
-                "- output_file: Output file path\n"
-                "- Database storage: Converted pretraining data"
+                "- output_key: Output text field name containing concatenated question and answer\n"
+                "- Output file: Path to pretraining format data file"
             )
         else:
             return "FormatConvert_SFT_to_Pretrain: SFT to Pretraining format converter"
