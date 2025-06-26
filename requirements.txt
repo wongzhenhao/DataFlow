@@ -17,3 +17,4 @@ modelscope
 addict
 pytest
 rich
+docstring_parser
