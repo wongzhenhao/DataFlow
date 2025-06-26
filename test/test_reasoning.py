@@ -62,11 +62,18 @@ class ReasoningPipeline():
         
         self.answer_format_filter_step8 = AnswerFormatterFilter()
         
-        self.answer_token_length_filter_step9 = AnswerTokenLengthFilter()
+        self.answer_token_length_filter_step9 = AnswerTokenLengthFilter(
+            max_answer_token_length = 8192,
+            tokenizer_dir = "Qwen/Qwen2.5-0.5B-Instruct"
+        )
         
         self.answer_groundtruth_filter_step10 = AnswerGroundTruthFilter()
         
-        self.answer_ngram_filter_step11 = AnswerNgramFilter()
+        self.answer_ngram_filter_step11 = AnswerNgramFilter(
+            min_score = 0.1,
+            max_score = 1.0,
+            ngrams = 5
+        )
         
         # 未来或许可以维护一个类似nn.sequential的容器，方便添加并实例化多个算子
     def forward(self):
@@ -115,9 +122,7 @@ class ReasoningPipeline():
         )
         self.answer_token_length_filter_step9.run(
             storage = self.storage.step(),
-            input_key =  "generated_cot",
-            max_answer_token_length = 8192,
-            tokenizer_dir = "Qwen/Qwen2.5-0.5B-Instruct"
+            input_key =  "generated_cot"
         )
         self.answer_groundtruth_filter_step10.run(
             storage = self.storage.step(),
@@ -127,10 +132,7 @@ class ReasoningPipeline():
         self.answer_ngram_filter_step11.run(
             storage = self.storage.step(),
             question_key = "instruction",
-            answer_key = "generated_cot",
-            min_score = 0.1,
-            max_score = 1.0,
-            ngrams = 5
+            answer_key = "generated_cot"
         )
         
         
