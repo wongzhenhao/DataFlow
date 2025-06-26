@@ -60,8 +60,8 @@ class AnswerJudger_MathVerify(OperatorABC):
             self,
             storage:DataFlowStorage,
             input_key: str,
-            answer_key: str,
-            gt_key: str,
+            answer_key: str = "student_answer",
+            gt_key: str = "correct_answer",
             result_key: str,
             ) -> list:
         
