@@ -1,7 +1,8 @@
 import pytest
 from test_reasoning import ReasoningPipeline
+from test_reasoning_pretrain import ReasoningPipeline_Pretrain
 from test_general_text import TextPipeline
-
+from test_agentic_rag import AgenticRAGPipeline
 @pytest.fixture(scope="session")
 def llm_serving():
     from dataflow.llmserving import LocalModelLLMServing
@@ -23,3 +24,13 @@ def test_reasoning_pipeline(llm_serving):
 def test_text_pipeline(llm_serving):
     text_pipe = TextPipeline(llm_serving=llm_serving)
     text_pipe.forward()
+
+@pytest.mark.gpu
+def test_agentic_rag_pipeline(llm_serving):
+    rag_pipe = AgenticRAGPipeline(llm_serving=llm_serving)
+    rag_pipe.forward()
+
+@pytest.mark.gpu
+def test_reasoning_pipeline_pretrain(llm_serving):
+    reasoning_pipe_pretrain = ReasoningPipeline_Pretrain(llm_serving=llm_serving)
+    reasoning_pipe_pretrain.forward()
