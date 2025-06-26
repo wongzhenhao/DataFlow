@@ -6,7 +6,7 @@ from dataflow.operators.generate.Reasoning import (
 )
 from dataflow.operators.process.Reasoning import *
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request
+from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing
 
 # 这里或许未来可以有个pipeline基类
 class ReasoningPipeline():
@@ -14,40 +14,50 @@ class ReasoningPipeline():
 
         self.storage = FileStorage(
             first_entry_file_name="../dataflow/example/ReasoningPipeline/pipeline_math_short.json",
-            cache_path="./cache",
+            cache_path="./cache_local",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
         )
 
-        api_llm_serving = APILLMServing_request(
-                api_url="http://123.129.219.111:3000/v1/chat/completions",
-                model_name="gpt-4o",
-                max_workers=100
+        # use API server as LLM serving
+        # llm_serving = APILLMServing_request(
+        #         api_url="http://123.129.219.111:3000/v1/chat/completions",
+        #         model_name="gpt-4o",
+        #         max_workers=100
+        # )
+
+        # use local model as LLM serving
+        llm_serving = LocalModelLLMServing(
+            # model_name_or_path="/data0/models/Qwen2.5-7B-Instruct", # set to your own model path
+            model_name_or_path="/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
+            tensor_parallel_size=4,
+            max_tokens=1024,
+            model_source="local"
         )
 
         self.question_filter_step1 = QuestionFilter(
             system_prompt="You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format.",
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         self.question_gen_step2 =  QuestionGenerator(
             num_prompts=3,
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         self.question_filter_step3 = QuestionFilter(
             system_prompt="You are an expert in evaluating mathematical problems. Follow the user's instructions strictly and output your final judgment in the required JSON format.",
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         self.question_difficulty_classifier_step4 = QuestionDifficultyClassifier(
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         self.question_category_classifier_step5 = QuestionCategoryClassifier(
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         ########################## branch ############################
         self.answer_pipeline_root_step6 = AnswerPipelineRoot()
         ########################## answer ############################
         self.answer_generator_step7 = AnswerGenerator(
-            llm_serving=api_llm_serving
+            llm_serving=llm_serving
         )
         
         self.answer_format_filter_step8 = AnswerFormatterFilter()
