@@ -5,8 +5,6 @@ from dataflow.core import LLMServingABC
 from dataflow import get_logger
 
 import pandas as pd
-import random
-import os
 
 @OPERATOR_REGISTRY.register()
 class PretrainFormatConverter(OperatorABC):
@@ -27,15 +25,15 @@ class PretrainFormatConverter(OperatorABC):
         
         output_rows = dataframe.where(pd.notnull(dataframe), None).to_dict(orient="records")
         output_1 = []
+        
         for row in output_rows:
                 cur_q = row.get(self.read_key_question) if row.get(self.read_key_question) is not None else ""
                 cur_a = row.get(self.read_key_answer) if row.get(self.read_key_answer) is not None else ""
                 output_1.append({
-                    "id": row.get("id"),
                     "text": cur_q + "\n" + cur_a,
                 })
 
-        output_file = storage.write(dataframe)
+        output_file = storage.write(output_1)
         self.logger.info(f"SFT to PT convertion results saved to {output_file}")
         
         return [read_key_question, read_key_answer, output_key]
