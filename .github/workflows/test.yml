@@ -7,7 +7,6 @@ on:
       - "**/*.py"
       - "requirements.txt" 
   pull_request:
-  pull_request:
     branches: [ "main" ]
     paths:
       - "**/*.py"
