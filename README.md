@@ -18,17 +18,16 @@
 </div>
 
 ## 1 News
-- [2025-06-15] 🎉 We release the dataflow-agentbot.
-- [2025-06-10] 🎉 We release the documentation of dataflow.
-- [2025-06-01] 🎉 Our new data-centric process, generate and evaluate system is now open source, the code is coming soon.
+- [2025-06-28] 🎉 We release the documentation of DataFlow.
+- [2025-06-28] 🎉 Our DCAI system DataFlow is released!
 
 ## 2 Overview
 
   <img src="./static/images/dataflow_framework.jpg">
 
-DataFlow is a data preparation system designed to **process, generate and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuing, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLM's performance in fields such as healthcare, finance, and law.**
+DataFlow is a data preparation and training system designed to **parse, generate, process and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuing, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLM's performance in fields such as healthcare, finance, and law.**
 
-Specifically, we constructing diverse `operators` leveraging rule-based methods, deep learning models, LLMs, and LLM APIs. These operators are systematically integrated into distinct `pipelines`, collectively forming the comprehensive `Dataflow system`. Additionally, we develop an intelligent `Dataflow-agent` capable of dynamically assembling new `pipelines` by recombining existing `operators` on demand.
+Specifically, we constructing diverse `operators` leveraging rule-based methods, deep learning models, LLMs, and LLM APIs. These operators are systematically integrated into distinct `pipelines`, collectively forming the comprehensive `DataFlow system`. Additionally, we develop an intelligent `DataFlow-agent` capable of dynamically assembling new `pipelines` by recombining existing `operators` on demand.
 
 
 
