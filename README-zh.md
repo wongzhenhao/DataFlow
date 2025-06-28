@@ -1,27 +1,23 @@
 # DataFlow
 
-# DataFlow
-
 <div align="center">
-  <img src="./static/images/Face.png">
+  <img src="./static/images/Face.jpg">
 
-[![](https://img.shields.io/github/license/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/blob/main/LICENSE)
-[![](https://img.shields.io/github/stars/Open-DataFlow/DataFlow?style=social)](https://github.com/Open-DataFlow/DataFlow)
-[![](https://img.shields.io/github/issues-raw/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/issues)
-[![](https://img.shields.io/github/last-commit/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/commits/main/)
-[![](https://img.shields.io/github/contributors/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/graphs/contributors)
+[![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
+[![](https://img.shields.io/github/stars/OpenDCAI/DataFlow?style=social)](https://github.com/OpenDCAI/DataFlow)
+[![](https://img.shields.io/github/issues-raw/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/issues)
+[![](https://img.shields.io/github/last-commit/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/commits/main/)
+[![](https://img.shields.io/github/contributors/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/graphs/contributors)
 
-[简体中文](./README.zh-CN.md) | English
+简体中文 | [English](./README.md)
 
-**[功能介绍](#功能介绍) • [快速开始](#快速开始) • [文档](https://open-dataflow.github.io/DataFlow-Doc/) • [实验结果](#实验结果)**
+**[功能介绍](#功能介绍) • [快速开始](#快速开始) • [文档](https://OpenDCAI.github.io/DataFlow-Doc/) • [实验结果](#实验结果)**
 
 </div>
 
 ## 1 最新动态
 
-- [2025-06-15] 🎉 我们发布了 dataflow-agentbot。
-- [2025-06-10] 🎉 我们发布了 DataFlow 的官方文档。
-- [2025-06-01] 🎉 我们开源了全新数据中心化的数据生成与评估系统，代码即将上线。
+- [2025-06-2025-06-28] 🎉 我们全新发布的数据中心化生成与评估系统**DataFlow**已开源 —— 敬请关注后续更新！
 
 ## 2 项目概述
 
@@ -62,13 +58,13 @@ DataFlow 是一个数据准备系统，旨在从噪声数据源（PDF、纯文�
 conda create -n dataflow python=3.10
 conda activate dataflow
 
-git clone https://github.com/Open-DataFlow/DataFlow
+git clone https://github.com/OpenDCAI/DataFlow
 cd DataFlow
 pip install -e .
 ```
 ## 4 快速开始
 
-更多使用说明和入门指南，请参考我们的 [项目文档](https://open-dataflow.github.io/DataFlow-Doc/)。
+更多使用说明和入门指南，请参考我们的 [项目文档](https://OpenDCAI.github.io/DataFlow-Doc/)。
 
 ## 5 实验结果
 
@@ -103,10 +99,10 @@ pip install -e .
 
 <!-- 
 ## 统计信息
-<a href="https://star-history.com/#Open-DataFlow/DataFlow&Date">
+<a href="https://star-history.com/#OpenDCAI/DataFlow&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Open-DataFlow/DataFlow&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Open-DataFlow/DataFlow&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Open-DataFlow/DataFlow&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
  </picture>
 </a> -->
