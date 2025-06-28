@@ -99,9 +99,9 @@ We filted 3k record from `alpaca` dataset and compare it with radom selected 3k 
 ### 2. Reasoning Pipeline
 
 We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning Pipeline synsthized data. We generated 1k and 5k SFT data pairs. Results are: 
-
-- ![](./static/images/reasoning_performance.png)
-
+<p align="center">
+  <img src="./static/images/reasoning_performance.png" alt="text-sft" width="80%" />
+</p>
 
 
 ### 3. Text2SQL PipeLine
