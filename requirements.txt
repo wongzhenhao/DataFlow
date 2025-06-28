@@ -1,0 +1,25 @@
+datasets<=3.2
+numpy<2.0.0
+scipy
+torch
+tqdm
+transformers
+aisuite
+math_verify
+word2number
+accelerate
+rapidfuzz
+colorlog
+appdirs
+datasketch
+modelscope
+addict
+pytest
+rich
+docstring_parser
+pydantic
+# text2sql
+nltk
+func_timeout
+
+
