@@ -1,7 +1,7 @@
 # DataFlow
 
 <div align="center">
-  <img src="./static/images/Face.png">
+  <img src="./static/images/Face.jpg">
 
 
 [![](https://img.shields.io/github/license/Open-DataFlow/DataFlow)](https://github.com/Open-DataFlow/DataFlow/blob/main/LICENSE)
