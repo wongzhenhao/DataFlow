@@ -89,11 +89,12 @@ The `pre-training data processing pipeline` was applied to randomly sampled data
 
 ![alt text](./static/images/text-pretrain.png)
 
+
 #### 5.1.2 SFT data filter pipeline
 We filted 3k record from `alpaca` dataset and compare it with radom selected 3k data from `alpaca` dataset by training it on Qwen2.5-7B. Results are:
 
 
-![](./static/images/text-sft.png)
+<img src="./static/images/text-sft.png" alt="text-sft" width="80%" />
 ### 2. Reasoning Pipeline
 
 We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning Pipeline synsthized data. We generated 1k and 5k SFT data pairs. Results are: 
