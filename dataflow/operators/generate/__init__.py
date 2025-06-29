@@ -2,6 +2,8 @@ import sys
 from dataflow.utils.registry import LazyLoader
 
 from .Reasoning import *
+from .GeneralText import *
+#from .KnowledgeCleaning import *
 from .Text2SQL import *
 
 from .KnowledgeCleaning import *
