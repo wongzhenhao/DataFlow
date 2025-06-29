@@ -94,4 +94,5 @@ def copy_files_recursively(source_path: Path, destination_path: Path):
                         continue
 
             shutil.copy2(item, dest_item)
-            print(f'{Fore.GREEN}Copied {item} -> {dest_item}{Style.RESET_ALL}')
+            # give a clear output with multi line
+            print(f'{Fore.GREEN}[Copied]\nFrom: {item}\nTo: {dest_item}{Style.RESET_ALL}\n')

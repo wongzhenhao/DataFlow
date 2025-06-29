@@ -5,9 +5,7 @@ from .paths import DataFlowPath
 from .copy_funcs import copy_files_without_recursion, copy_file, copy_files_recursively
 
 def _copy_scripts():
-    current_dir = os.getcwd()
-    # Copy train scripts
-    target_dir = os.path.join(current_dir)
+    target_dir = os.getcwd()
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
@@ -15,13 +13,26 @@ def _copy_scripts():
 
     copy_files_recursively(DataFlowPath.get_dataflow_scripts_dir(), target_dir)
 
+def _copy_pipelines():
+    target_dir = os.getcwd()
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+    copy_files_recursively(DataFlowPath.get_dataflow_pipelines_dir(), target_dir)
+    # Copy pipelines
+
+def _copy_examples():
+    target_dir = os.path.join(os.getcwd(), "example_data")
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+    copy_files_recursively(DataFlowPath.get_dataflow_example_dir(), target_dir) 
     
 def cli_init(subcommand):
     print(f'{Fore.GREEN}Initializing in current working directory...{Style.RESET_ALL}')
     
     # base initialize that only contain default scripts
     if subcommand == "base":
-        _copy_scripts()
+        _copy_pipelines()
+        _copy_examples()
         
     # if subcommand == "model_zoo":
     #     _copy_train_scripts()

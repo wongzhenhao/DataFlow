@@ -25,7 +25,7 @@ __all__ = [
     'DeitaComplexityScorer',
     'FineWebEduScorer',
     'PairQualScorer',
-    'PresidioScorer',
+    # 'PresidioScorer',
     # 'RMScorer',
     'TextbookScorer',
     'SuperfilteringScorer',

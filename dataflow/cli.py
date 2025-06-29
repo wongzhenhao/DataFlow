@@ -12,6 +12,8 @@ PYPI_API_URL = 'https://pypi.org/pypi/open-dataflow/json'
 from dataflow.version import __version__
 
 def version_and_check_for_updates():
+    # print a bar by the length of the shell width
+    print(Fore.BLUE + "=" * os.get_terminal_size().columns + Style.RESET_ALL)
     print(f'open-dataflow codebase version: {__version__}')
     try:
         response = requests.get(PYPI_API_URL, timeout=5)
@@ -33,7 +35,7 @@ def version_and_check_for_updates():
     except requests.exceptions.RequestException as e:
         print(Fore.RED + "Failed to check for updates from PyPI. Please check your internet connection." + Style.RESET_ALL)
         print(f"Error: {e}")
-
+    print(Fore.BLUE + "=" * os.get_terminal_size().columns + Style.RESET_ALL)
 def main():
     parser = argparse.ArgumentParser(description='Command line interface for DataFlow, with codebase version: ' + __version__)
 
