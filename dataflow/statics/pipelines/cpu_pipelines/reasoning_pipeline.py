@@ -1,4 +1,4 @@
-from dataflow.operators.process.Reasoning import AnswerFormatterFilter, 
+from dataflow.operators.process.Reasoning import AnswerFormatterFilter
 from dataflow.utils.storage import FileStorage
 
 class ReasoningPipeline():
@@ -10,7 +10,7 @@ class ReasoningPipeline():
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
         )
-        
+    
         self.answer_format_filter_step1 = AnswerFormatterFilter()
         
     def forward(self):
