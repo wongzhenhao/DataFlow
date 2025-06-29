@@ -5,6 +5,7 @@ from nltk.tokenize import word_tokenize, WordPunctTokenizer
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow.utils.utils import get_logger
 from dataflow.utils.storage import DataFlowStorage
+from dataflow.cli_funcs.paths import DataFlowPath
 from tqdm import tqdm
 import re
 
@@ -1041,7 +1042,8 @@ class BlocklistFilter(OperatorABC):
         return "使用预定义的阻止词列表过滤文本" if lang == "zh" else "Filter text using a predefined blocklist of words."
 
     def load_blocklist(self):
-        file_path = f"./dataflow/operators/process/GeneralText/filters/blocklist/{self.language}.txt"
+        dataflow_dir = DataFlowPath.get_dataflow_dir()
+        file_path = f"{dataflow_dir}/operators/process/GeneralText/filters/blocklist/{self.language}.txt"
         self.logger.info(f"Loading blocklist for language '{self.language}' from {file_path}...")
         with open(file_path, 'r', encoding='utf-8') as file:
             blocklist = set(line.strip().lower() for line in file if line.strip())
