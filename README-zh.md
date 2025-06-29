@@ -15,7 +15,7 @@
 
 </div>
 
-https://github.com/user-attachments/assets/248359b6-fec1-4800-a2bc-f4a83cb5764b
+https://github.com/user-attachments/assets/3dadeeb0-7007-4cdf-b412-593af000020c
 
 ## 1 最新动态
 
