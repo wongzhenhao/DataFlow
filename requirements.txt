@@ -21,7 +21,7 @@ rich
 docstring_parser
 pydantic
 nltk
-
+colorama
 # text2sql
 func_timeout
 # general text
