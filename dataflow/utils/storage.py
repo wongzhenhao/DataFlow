@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataflow import get_logger
 import pandas as pd
 import json
 from typing import Any, Literal
@@ -36,6 +37,7 @@ class FileStorage(DataFlowStorage):
         self.file_name_prefix = file_name_prefix
         self.cache_type = cache_type
         self.operator_step = -1
+        self.logger = get_logger()
 
     def _get_cache_file_path(self, step) -> str:
         if step == 0:
@@ -97,11 +99,11 @@ class FileStorage(DataFlowStorage):
             ValueError: For unsupported file types or output types
         """
         file_path = self._get_cache_file_path(self.operator_step)
-        print(f"Reading data from {file_path} with type {output_type}")
+        self.logger.info(f"Reading data from {file_path} with type {output_type}")
 
         if self.operator_step == 0:
             source = self.first_entry_file_name
-            print(f"Reading remote dataset from {source} with type {output_type}")
+            self.logger.info(f"Reading remote dataset from {source} with type {output_type}")
             if source.startswith("hf:"):
                 from datasets import load_dataset
                 _, dataset_name, *parts = source.split(":")
@@ -155,7 +157,7 @@ class FileStorage(DataFlowStorage):
 
         file_path = self._get_cache_file_path(self.operator_step + 1)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        print(f"Writing data to {file_path} with type {self.cache_type}")
+        self.logger.success(f"Writing data to {file_path} with type {self.cache_type}")
         if self.cache_type == "json":
             dataframe.to_json(file_path, orient="records", force_ascii=False, indent=2)
         elif self.cache_type == "jsonl":
