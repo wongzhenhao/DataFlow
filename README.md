@@ -17,7 +17,7 @@
 
 </div>
 
-https://github.com/user-attachments/assets/2d8be644-aa1a-48ae-a433-4aa32de08b0b
+https://github.com/user-attachments/assets/3dadeeb0-7007-4cdf-b412-593af000020c
 
 ## 1 News
 🎉 [2025-06-28] We’re excited to announce that DataFlow, our new data-centric AI generation and evaluation system, is now released! Stay tuned for future updates.
