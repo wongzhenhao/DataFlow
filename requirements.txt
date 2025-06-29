@@ -2,8 +2,10 @@ datasets<=3.2
 numpy<2.0.0
 scipy
 torch
+torchvision
+torchaudio
 tqdm
-transformers
+transformers<=4.51.3
 aisuite
 math_verify
 word2number
@@ -18,9 +20,17 @@ pytest
 rich
 docstring_parser
 pydantic
-# text2sql
 nltk
+
+# text2sql
 func_timeout
+# general text
+fasttext-wheel
+kenlm
+langkit
+openai
+sentencepiece
+datasketch
 
 # knowledge base cleaning
 chonkie

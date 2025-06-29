@@ -1,57 +1,69 @@
-import pytest
-from dataflow.operators.process.GeneralText import NgramFilter, MinHashDeduplicator
-from dataflow.operators.refine.GeneralText import HtmlUrlRemoverRefiner
+ 
+from dataflow.operators.process.GeneralText import (
+    MinHashDeduplicator,
+    ColonEndFilter,
+    WordNumberFilter,
+    BlocklistFilter,
+    SentenceNumberFilter
+)
+from dataflow.operators.refine.GeneralText import (
+    HtmlUrlRemoverRefiner,
+    RemoveEmojiRefiner,
+    RemoveExtraSpacesRefiner
+)
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing
 
 class TextPipeline():
-    def __init__(self, llm_serving=None):
-        
+    def __init__(self):
         self.storage = FileStorage(
-            first_entry_file_name="../dataflow/example/GeneralTextPipeline/pt_input.jsonl",
+            first_entry_file_name="./dataflow/example/GeneralTextPipeline/pt_input.jsonl",
             cache_path="./cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
         )
-        
-        self.ngram_scorer_step_1 = NgramFilter(min_score=0.99, max_score=1.0, ngrams=5)
-        self.html_remover_step_2 = HtmlUrlRemoverRefiner()
-        self.minhash_deduplicator_step_3 = MinHashDeduplicator(num_perm=128, threshold=0.9, use_n_gram=True, ngram=5)
-        
-        if llm_serving is None:
-            llm_serving = LocalModelLLMServing(
-                # model_name_or_path="/data0/models/Qwen2.5-7B-Instruct", # set to your own model path
-                model_name_or_path="/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
-                tensor_parallel_size=4,
-                max_tokens=8192,
-                model_source="local"
-            )
-    def forward(self):
-        
-        self.ngram_scorer_step_1.run(
-            storage = self.storage.step(),
-            input_key = "raw_content",
-            output_key = "ngram_score",
-        )
-        
-        self.html_remover_step_2.run(
-            storage = self.storage.step(),
-            input_key='raw_content',
-        )
-        
-        self.minhash_deduplicator_step_3.run(
-            storage = self.storage.step(),
-            input_key='raw_content',
-            output_key='minhash_deduplicated_label',
-        )
-# @pytest.mark.gpu
-# def test_text_pipeline_runs_without_errors():
-#     try:
-#         pipeline = TextPipeline()
-#         pipeline.forward()
-#     except Exception as e:
-#         pytest.fail(f"TextPipeline execution failed with error: {e}")
-if __name__ == "__main__":
-    model = TextPipeline()
-    model.forward()
+        self.model_cache_dir = './dataflow_cache'
+        self.remove_extra_spaces_refiner = RemoveExtraSpacesRefiner()
+        self.remove_emoji_refiner = RemoveEmojiRefiner()
+        self.html_remove_refiner = HtmlUrlRemoverRefiner()
+        self.minhash_deduplicator = MinHashDeduplicator(num_perm=128, threshold=0.9, use_n_gram=True, ngram=5)
+        self.blocklist_filter = BlocklistFilter()
+        self.word_number_filter = WordNumberFilter(min_words=20, max_words=100000)
+        self.colon_end_filter = ColonEndFilter()
+        self.sentence_number_filter = SentenceNumberFilter(min_sentences=3, max_sentences=7500)
 
+    def forward(self):
+        self.remove_extra_spaces_refiner.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.remove_emoji_refiner.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.html_remove_refiner.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.minhash_deduplicator.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.blocklist_filter.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.word_number_filter.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.colon_end_filter.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+        self.sentence_number_filter.run(
+            storage=self.storage.step(),
+            input_key="raw_content"
+        )
+
+model = TextPipeline()
+model.forward()

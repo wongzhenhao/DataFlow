@@ -16,7 +16,6 @@ test/example
 cache
 cache_local
 .cache
+dataflow_cache/
 
 test_mineru
-
-requirements-kbc.txt
