@@ -83,7 +83,7 @@ For **Quick-Start** and **Guide**, please visit or [Documentation](https://OpenD
 
 
 ## 5 Experimental Results
-For Detailed Experiments setting, please visit 
+For Detailed Experiments setting, please visit our documentation.
 
 
 ### 5.1 Text PipeLine
