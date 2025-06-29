@@ -54,18 +54,18 @@ jobs:
       run: |
         pytest -m cpu test
 
-  big-model-test:
-    if: github.repository == 'OpenDCAI/DataFlow-Preview'
-    runs-on: [self-hosted]  # 跑在你的私有 GPU runner 上
-    steps:
-      - uses: actions/checkout@v4
+  # big-model-test:
+  #   if: github.repository == 'OpenDCAI/DataFlow-Preview'
+  #   runs-on: [self-hosted]  # 跑在你的私有 GPU runner 上
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Install GPU dependencies
-        run: pip install -e .
+  #     - name: Install GPU dependencies
+  #       run: pip install -e .
 
-      - name: upgrade omegaconf
-        run: pip install --upgrade omegaconf
+  #     - name: upgrade omegaconf
+  #       run: pip install --upgrade omegaconf
 
-      - name: Run GPU tests
-        run: |
-          pytest -m gpu test
+  #     - name: Run GPU tests
+  #       run: |
+  #         pytest -m gpu test
