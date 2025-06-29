@@ -4,11 +4,14 @@
   <img src="./static/images/Face.jpg">
 
 
+[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
 [![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
 [![](https://img.shields.io/github/stars/OpenDCAI/DataFlow?style=social)](https://github.com/OpenDCAI/DataFlow)
 [![](https://img.shields.io/github/issues-raw/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/issues)
-[![](https://img.shields.io/github/last-commit/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/commits/main/)
 [![](https://img.shields.io/github/contributors/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/graphs/contributors)
+[![](https://img.shields.io/github/repo-size/OpenDCAI/DataFlow?color=green)](https://github.com/OpenDCAI/DataFlow)
+
+<!-- [![](https://img.shields.io/github/last-commit/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/commits/main/) -->
 
 [简体中文](./README-zh.md) | English
 
@@ -71,15 +74,28 @@ In this framework, operators are categorized into Fundamental Operators, Generic
 For environment setup and installation, please using the following commands👇
 
 ```shell
-conda create -n dataflow python=3.10
+conda create -n dataflow python=3.10 
 conda activate dataflow
 
-git clone https://github.com/OpenDCAI/DataFlow
-cd DataFlow
-pip install -e .
+pip install open-dataflow
+```
+> Dataflow supports Python>=3.10
+
+You can use follwing command to check if installed correctly:
+```shell
+dataflow -v
 ```
 
-For **Quick-Start** and **Guide**, please visit or [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/).
+You are expected to see following outputs:
+```log
+open-dataflow codebase version: 0.0.2
+        Checking for updates...
+        Local version:  0.0.2
+        PyPI newest version:  0.0.2
+You are using the latest version: 0.0.2.
+```
+
+For **Quick-Start** and **Guide**, please visit our [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/). [![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
 
 
 ## 5 Experimental Results
