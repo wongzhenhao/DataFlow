@@ -17,6 +17,8 @@
 
 </div>
 
+https://github.com/user-attachments/assets/3dadeeb0-7007-4cdf-b412-593af000020c
+
 ## 1 News
 🎉 [2025-06-28] We’re excited to announce that DataFlow, our new data-centric AI generation and evaluation system, is now released! Stay tuned for future updates.
 
@@ -81,7 +83,7 @@ For **Quick-Start** and **Guide**, please visit or [Documentation](https://OpenD
 
 
 ## 5 Experimental Results
-For Detailed Experiments setting, please visit 
+For Detailed Experiments setting, please visit our documentation.
 
 
 ### 5.1 Text PipeLine
