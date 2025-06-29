@@ -19,3 +19,4 @@ cache_local
 dataflow_cache/
 
 test_mineru
+test/test_cli

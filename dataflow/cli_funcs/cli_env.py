@@ -58,9 +58,10 @@ def get_env_info():
         info["Git commit"] = commit_hash
     except Exception:
         pass
-
+    
+    print(Fore.BLUE + "=" * os.get_terminal_size().columns + Style.RESET_ALL)
     print("\n" + "\n".join([f"- {key}: {value}" for key, value in info.items()]) + "\n")
-
+    print(Fore.BLUE + "=" * os.get_terminal_size().columns + Style.RESET_ALL)
 
 def cli_env():
     get_env_info()
