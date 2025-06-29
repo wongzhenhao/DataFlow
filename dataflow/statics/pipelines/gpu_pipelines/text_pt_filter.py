@@ -34,7 +34,7 @@ from dataflow.utils.storage import FileStorage
 class PTTextPipeline():
     def __init__(self):
         self.storage = FileStorage(
-            first_entry_file_name="./dataflow/example/GeneralTextPipeline/pt_input.jsonl",
+            first_entry_file_name="../example_data/GeneralTextPipeline/pt_input.jsonl",
             cache_path="./cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
