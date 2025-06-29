@@ -1,9 +1,4 @@
-from dataflow.operators.process.GeneralText import (
-    WordNumberFilter,
-    SuperfilteringFilter,
-    DeitaQualityFilter,
-    InstagFilter
-)
+from dataflow.operators.process.GeneralText import WordNumberFilter
 from dataflow.utils.storage import FileStorage
 
 
@@ -12,7 +7,7 @@ class SFTTextPipeline():
     def __init__(self):
         
         self.storage = FileStorage(
-            first_entry_file_name="./dataflow/example/GeneralTextPipeline/sft_input.jsonl",
+            first_entry_file_name="../example_data/GeneralTextPipeline/sft_input.jsonl",
             cache_path="./cache",
             file_name_prefix="dataflow_cache_step",
             cache_type="jsonl",
@@ -30,7 +25,7 @@ class SFTTextPipeline():
             storage=self.storage.step(),
             input_key="output",
         )
-        
+
 if __name__ == "__main__":
     # This is the entry point for the pipeline
     pipeline = SFTTextPipeline()
