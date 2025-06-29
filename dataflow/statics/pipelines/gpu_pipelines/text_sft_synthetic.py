@@ -45,7 +45,7 @@ class SFTTextSynPipeline():
         )
         self.model_cache_dir = './dataflow_cache'
         self.llm_serving = LocalModelLLMServing(
-            model_name_or_path='./dataflow_cache/Qwen/Qwen2.5-7B-Instruct',
+            model_name_or_path='Qwen/Qwen2.5-7B-Instruct',
             tensor_parallel_size=1,
             max_tokens=8192,
             model_source="local"
