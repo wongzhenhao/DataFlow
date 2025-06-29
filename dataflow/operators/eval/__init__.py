@@ -1,5 +1,6 @@
 import sys
 from dataflow.utils.registry import LazyLoader
+from .GeneralText import *
 
 cur_path = "dataflow/operators/eval/"
 _import_structure = {  
