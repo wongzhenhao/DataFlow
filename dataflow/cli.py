@@ -22,15 +22,16 @@ def version_and_check_for_updates():
         print("\tChecking for updates...")
         print("\tLocal version: ", __version__)
         print("\tPyPI newest version: ", cloud_version)
+
         local_version = __version__  # 通过 importlib.metadata 获取当前安装版本
 
         if cloud_version != local_version:
-            print(Fore.YELLOW + f"New version available: {cloud_version}. Your version: {local_version}.")
+            print(Fore.YELLOW + f"New version available: {cloud_version}. Your version: {local_version}." + Style.RESET_ALL)
             print("Run 'pip install --upgrade open-dataflow' to upgrade.")           
         else:
-            print(Fore.GREEN + f"You are using the latest version: {local_version}.")
+            print(Fore.GREEN + f"You are using the latest version: {local_version}." + Style.RESET_ALL)
     except requests.exceptions.RequestException as e:
-        print(Fore.RED + "Failed to check for updates from PyPI. Please check your internet connection.")
+        print(Fore.RED + "Failed to check for updates from PyPI. Please check your internet connection." + Style.RESET_ALL)
         print(f"Error: {e}")
 
 def main():
