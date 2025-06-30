@@ -111,7 +111,7 @@ You are using the latest version: 0.0.2.
 
 ### 5.3 Text2SQL 流程
 
-我们在 Bird 数据集上使用 DataFlow-Text2SQL 流程构建数据，并分别通过监督微调（SFT）与强化学习（RL）对 Qwen2.5-Coder-7B 模型进行了训练。实验结果如下：
+我们在 Bird 数据集上使用 DataFlow-Text2SQL 流程构建数据，并分别通过监督微调（SFT）与强化学习（RL）对 Qwen2.5-Coder-14B 模型进行了训练。实验结果如下：
 
 ![Text2SQL结果图](./static/images/text2sql.png)
 
