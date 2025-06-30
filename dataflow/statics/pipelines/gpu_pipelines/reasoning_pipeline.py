@@ -27,8 +27,8 @@ class ReasoningPipeline():
         )
 
         llm_serving = LocalModelLLMServing(
-            model_name_or_path="Qwen2.5-7B-Instruct", # set to your own model path
-            tensor_parallel_size=4,
+            model_name_or_path="Qwen/Qwen2.5-7B-Instruct", # set to your own model path
+            tensor_parallel_size=1,
             max_tokens=8192,
             model_source="local"
         )
@@ -52,7 +52,7 @@ class ReasoningPipeline():
             llm_serving=llm_serving
         )
         ########################## branch ############################
-        self.answer_pipeline_root_step6 = AnswerPipelineRoot()
+        # self.answer_pipeline_root_step6 = AnswerPipelineRoot()
         ########################## answer ############################
         self.answer_generator_step7 = AnswerGenerator(
             llm_serving=llm_serving
@@ -102,11 +102,11 @@ class ReasoningPipeline():
             output_key = "question_category"
         )
         ############# branch #############
-        self.answer_pipeline_root_step6.run(
-            storage = self.storage.step(),
-            input_answer_key = "output",
-            input_gt_key = "golden_answer"
-        )
+        # self.answer_pipeline_root_step6.run(
+        #     storage = self.storage.step(),
+        #     input_answer_key = "output",
+        #     input_gt_key = "golden_answer"
+        # )
         ############## answer #############
         self.answer_generator_step7.run(
             storage = self.storage.step(),
