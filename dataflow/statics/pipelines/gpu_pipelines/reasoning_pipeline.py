@@ -28,7 +28,7 @@ class ReasoningPipeline():
 
         llm_serving = LocalModelLLMServing(
             model_name_or_path="Qwen/Qwen2.5-7B-Instruct", # set to your own model path
-            tensor_parallel_size=4,
+            tensor_parallel_size=1,
             max_tokens=8192,
             model_source="local"
         )
