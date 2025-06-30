@@ -43,7 +43,7 @@ class LocalModelLLMServing(LLMServingABC):
         try:
             from vllm import LLM,SamplingParams
         except:
-            raise ImportError("please install vllm first like 'pip install -e .[vllm]'")
+            raise ImportError("please install vllm first like 'pip install open-dataflow[vllm]'")
         
         self.sampling_params = SamplingParams(
             temperature=temperature,
