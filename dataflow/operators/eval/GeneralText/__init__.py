@@ -15,6 +15,8 @@ from .models.superfiltering_scorer import SuperfilteringScorer
 from .models.qurating_scorer import QuratingScorer
 # from .models.perplexity_scorer import PerplexityScorer
 
+from .APIcaller.alpagasus_scorer import AlpagasusScorer
+
 __all__ = [
     'NgramScorer',
     'LexicalDiversityScorer',
@@ -31,4 +33,5 @@ __all__ = [
     'SuperfilteringScorer',
     'QuratingScorer',
     # 'PerplexityScorer'
+    'AlpagasusScorer'
 ]
