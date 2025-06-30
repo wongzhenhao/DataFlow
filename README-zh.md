@@ -65,6 +65,10 @@ conda activate dataflow
 
 pip install open-dataflow
 ```
+如果你想要用你自己的GPU完成本地推理，则需要:
+```shell
+pip install open-dataflow[vllm]
+```
 > Dataflow 支持 Python>=3.10 的环境
 
 你可以用如下指令查看dataflow是否正确安装:
@@ -74,11 +78,11 @@ dataflow -v
 
 如果安装正确，应该会看到:
 ```log
-open-dataflow codebase version: 0.0.2
+open-dataflow codebase version: 1.0.0
         Checking for updates...
-        Local version:  0.0.2
-        PyPI newest version:  0.0.2
-You are using the latest version: 0.0.2.
+        Local version:  1.0.0
+        PyPI newest version:  1.0.0
+You are using the latest version: 1.0.0.
 ```
 
 更多使用说明和入门指南，请参考我们的 [项目文档](https://OpenDCAI.github.io/DataFlow-Doc/)。
