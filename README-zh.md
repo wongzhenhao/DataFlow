@@ -3,7 +3,7 @@
 <div align="center">
   <img src="./static/images/Face.jpg">
 
-[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
+[![Documents](https://img.shields.io/badge/官方文档-单击此处-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 [![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
 [![](https://img.shields.io/github/stars/OpenDCAI/DataFlow?style=social)](https://github.com/OpenDCAI/DataFlow)
 [![](https://img.shields.io/github/issues-raw/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/issues)
@@ -81,7 +81,9 @@ open-dataflow codebase version: 0.0.2
 You are using the latest version: 0.0.2.
 ```
 
-更多使用说明和入门指南，请参考我们的 [项目文档](https://OpenDCAI.github.io/DataFlow-Doc/)。[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
+更多使用说明和入门指南，请参考我们的 [项目文档](https://OpenDCAI.github.io/DataFlow-Doc/)。
+
+[![Documents](https://img.shields.io/badge/官方文档-单击此处-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 
 ## 5 实验结果
 

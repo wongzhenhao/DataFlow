@@ -4,7 +4,7 @@
   <img src="./static/images/Face.jpg">
 
 
-[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
+[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 [![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
 [![](https://img.shields.io/github/stars/OpenDCAI/DataFlow?style=social)](https://github.com/OpenDCAI/DataFlow)
 [![](https://img.shields.io/github/issues-raw/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/issues)
@@ -16,7 +16,7 @@
 [简体中文](./README-zh.md) | English
 
 
-**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
+**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
 
 </div>
 
@@ -95,7 +95,9 @@ open-dataflow codebase version: 0.0.2
 You are using the latest version: 0.0.2.
 ```
 
-For **Quick-Start** and **Guide**, please visit our [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/). [![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://scu-zjz.github.io/IMDLBenCo-doc/)
+For **Quick-Start** and **Guide**, please visit our [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/). 
+
+[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 
 
 ## 5 Experimental Results
