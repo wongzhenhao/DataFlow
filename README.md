@@ -79,6 +79,10 @@ conda activate dataflow
 
 pip install open-dataflow
 ```
+If you want to use your own GPU to inference locally, please use:
+```shell
+pip install open-dataflow[vllm]
+```
 > Dataflow supports Python>=3.10
 
 You can use follwing command to check if installed correctly:
@@ -88,11 +92,11 @@ dataflow -v
 
 You are expected to see following outputs:
 ```log
-open-dataflow codebase version: 0.0.2
+open-dataflow codebase version: 1.0.0
         Checking for updates...
-        Local version:  0.0.2
-        PyPI newest version:  0.0.2
-You are using the latest version: 0.0.2.
+        Local version:  1.0.0
+        PyPI newest version:  1.0.0
+You are using the latest version: 1.0.0.
 ```
 
 For **Quick-Start** and **Guide**, please visit our [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/). 
