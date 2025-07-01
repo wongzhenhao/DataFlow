@@ -53,7 +53,7 @@ class ReasoningPipeline():
             llm_serving=llm_serving
         )
         ########################## branch ############################
-        self.answer_pipeline_root_step6 = AnswerPipelineRoot()
+        # self.answer_pipeline_root_step6 = AnswerPipelineRoot() 
         ########################## answer ############################
         self.answer_generator_step7 = AnswerGenerator(
             llm_serving=llm_serving
@@ -103,11 +103,11 @@ class ReasoningPipeline():
             output_key = "question_category"
         )
         ############# branch #############
-        self.answer_pipeline_root_step6.run(
-            storage = self.storage.step(),
-            input_answer_key = "output",
-            input_gt_key = "golden_answer"
-        )
+        # self.answer_pipeline_root_step6.run(
+        #     storage = self.storage.step(),
+        #     input_answer_key = "output",
+        #     input_gt_key = "golden_answer"
+        # )
         ############## answer #############
         self.answer_generator_step7.run(
             storage = self.storage.step(),

@@ -1,6 +1,5 @@
 import torch
 from dataflow import get_logger
-from vllm import LLM,SamplingParams
 from huggingface_hub import snapshot_download
 from dataflow.core import LLMServingABC
 from transformers import AutoTokenizer
@@ -40,6 +39,12 @@ class LocalModelLLMServing(LLMServingABC):
                 self.real_model_path = model_name_or_path
         self.logger = get_logger()
         self.logger.info(f"Model will be loaded from {self.real_model_path}")
+
+        try:
+            from vllm import LLM,SamplingParams
+        except:
+            raise ImportError("please install vllm first like 'pip install open-dataflow[vllm]'")
+        
         self.sampling_params = SamplingParams(
             temperature=temperature,
             top_p=top_p,
@@ -49,6 +54,7 @@ class LocalModelLLMServing(LLMServingABC):
             seed=seed
             # hat_template_kwargs={"enable_thinking": False},
         )
+        
         self.llm = LLM(
             model=self.real_model_path,
             tensor_parallel_size=tensor_parallel_size,
