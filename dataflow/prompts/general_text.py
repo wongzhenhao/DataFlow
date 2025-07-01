@@ -58,3 +58,30 @@ class SupervisedFinetuneGeneratorPrompt:
 
         Please create {num_questions} distinct and well-formed questions based on the following context:""".format(num_questions=num_questions)
         return f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant"
+
+class AlpagasusPrompt:
+    def __init__(self, dimension='quality'):
+        self.dimension = dimension
+        self.system_prompt_template = """
+        We would like to request your feedback on the performance of AI assistant in response to the instruction and the given input displayed following.
+        Instruction: {instruction}
+        Input: {input}
+        Response: {response}
+        """
+        self.user_prompt_template = """
+        Please rate according to the {dimension} of the response to the instruction and the input. Each assistant
+        receives a score on a scale of 0 to 5, where a higher score indicates a higher level of the {dimension}. Please
+        first output a single line containing the value indicating the scores. In the subsequent line, please provide a comprehensive explanation of your evaluation, avoiding any potential bias.
+        """
+
+    def build_system_prompt(self, instruction, input_text, response):
+        """
+        生成system prompt
+        """
+        return self.system_prompt_template.format(instruction=instruction, input=input_text, response=response)
+
+    def build_user_prompt(self):
+        """
+        生成user prompt
+        """
+        return self.user_prompt_template.format(dimension=self.dimension)
