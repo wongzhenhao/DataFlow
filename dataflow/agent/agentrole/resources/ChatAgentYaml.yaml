@@ -1,0 +1,19 @@
+API_KEY: sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs
+CHAT_API_URL: https://api.chatanywhere.com.cn/v1/chat/completions
+MODEL: deepseek-v3
+# PDF_TO_JSON: 1 #暂未
+
+# MYSCALE:
+#   host: localhost
+#   port: 8123
+#   username: default
+#   password: ""
+#   database: default
+#   table: test_agent_table_01
+
+# MINIO:
+#   bucket: kb-production
+#   access_key: 
+#   secret_key: 
+#   endpoint:
+

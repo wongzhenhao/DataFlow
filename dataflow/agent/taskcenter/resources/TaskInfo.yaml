@@ -1,0 +1,27 @@
+api_key: sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs
+base_url: https://api.chatanywhere.com.cn/v1
+modelname: deepseek-v3
+tasktype: 0
+
+data_content_classification:
+  local_tool_for_sample:
+    sample_size: 50
+    use_file_sys: 1
+    json_file: /mnt/h_h_public/lh/lz/DataFlow/dataflow/example/ReasoningPipeline/pipeline_math_short.json
+    cache_type: json
+
+recommendation_inference_pipeline:
+  local_tool_for_sample:
+    sample_size: 2
+    use_file_sys: 1
+    json_file: /mnt/h_h_public/lh/lz/DataFlow/dataflow/example/ReasoningPipeline/pipeline_math_short.json
+    cache_type: json
+    
+execute_the_recommended_pipeline:
+  local_tool_for_execute_the_recommended_pipeline:
+    sh_path: /mnt/h_h_public/lh/lz/new-dataagent/DataFlow-421/ReasoningPipeline/test_reasoning_pipeline.sh
+    env_vars: 
+      HF_ENDPOINT: https://hf-mirror.com
+      API_KEY: sk-of58V1mbhxLxQDLLUXrYW9HLX1tmfaPKKwDP55mm3LcAYaV3
+    execute: True
+    dry_run: false
