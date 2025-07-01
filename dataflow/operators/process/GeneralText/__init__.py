@@ -8,6 +8,7 @@ from .filters.qurating_filter import QuratingFilter
 from .filters.superfiltering_filter import SuperfilteringFilter
 from .filters.fineweb_edu_filter import FineWebEduFilter
 from .filters.text_book_filter import TextbookFilter
+from .filters.alpagasus_filter import AlpagasusFilter
 from .filters.heuristics import (
     ColonEndFilter,
     WordNumberFilter,
