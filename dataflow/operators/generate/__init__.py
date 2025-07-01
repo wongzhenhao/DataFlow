@@ -3,7 +3,6 @@ from dataflow.utils.registry import LazyLoader
 
 from .Reasoning import *
 from .GeneralText import *
-#from .KnowledgeCleaning import *
 from .Text2SQL import *
 
 from .KnowledgeCleaning import *
@@ -35,7 +34,7 @@ _import_structure = {
     "MultiHopQAGenerator": (cur_path + "KnowledgeCleaning/MultiHopQAGenerator.py", "MultiHopQAGenerator"),
     "AutoPromptGenerator": (cur_path + "AgenticRAG/AutoPromptGenerator.py", "AutoPromptGenerator"),
     "QAScorer": (cur_path + "AgenticRAG/QAScorer.py", "QAScorer"),
-    "QAGenerator": (cur_path + "AgenticRAG/QAGenerator.py", "QAGenerator"),
+    "QAGenerator": (cur_path + "AgenticRAG/QAGenerator.py", "QAGenerator")
 }
 
 sys.modules[__name__] = LazyLoader(__name__, "dataflow/operators/generate/", _import_structure)

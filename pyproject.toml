@@ -2,14 +2,13 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "open-dataflow"
 authors = [
     {name = "Hao Liang", email = "hao.liang@stu.pku.edu.cn"},
     {name = "Xiaochen Ma", email = "xiaochen.ma.cs@gmail.com"},
 ]
-description = "Placeholder for open-dataflow."
+description = "Modern Data Centric AI system for Large Language Models"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.7, <4"
 license = {text = "Apache-2.0"}

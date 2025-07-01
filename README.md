@@ -4,23 +4,26 @@
   <img src="./static/images/Face.jpg">
 
 
+[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 [![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
 [![](https://img.shields.io/github/stars/OpenDCAI/DataFlow?style=social)](https://github.com/OpenDCAI/DataFlow)
 [![](https://img.shields.io/github/issues-raw/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/issues)
-[![](https://img.shields.io/github/last-commit/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/commits/main/)
 [![](https://img.shields.io/github/contributors/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/graphs/contributors)
+[![](https://img.shields.io/github/repo-size/OpenDCAI/DataFlow?color=green)](https://github.com/OpenDCAI/DataFlow)
+
+<!-- [![](https://img.shields.io/github/last-commit/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/commits/main/) -->
 
 [简体中文](./README-zh.md) | English
 
 
-**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
+**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
 
 </div>
 
 https://github.com/user-attachments/assets/3dadeeb0-7007-4cdf-b412-593af000020c
 
 ## 1 News
-🎉 [2025-06-28] We’re excited to announce that DataFlow, our new data-centric AI generation and evaluation system, is now released! Stay tuned for future updates.
+🎉 [2025-06-28] We’re excited to announce that DataFlow, our Data-centric AI system, is now released! Stay tuned for future updates.
 
 ## 2 Overview
 
@@ -71,15 +74,34 @@ In this framework, operators are categorized into Fundamental Operators, Generic
 For environment setup and installation, please using the following commands👇
 
 ```shell
-conda create -n dataflow python=3.10
+conda create -n dataflow python=3.10 
 conda activate dataflow
 
-git clone https://github.com/OpenDCAI/DataFlow
-cd DataFlow
-pip install -e .
+pip install open-dataflow
+```
+If you want to use your own GPU to inference locally, please use:
+```shell
+pip install open-dataflow[vllm]
+```
+> Dataflow supports Python>=3.10
+
+You can use follwing command to check if installed correctly:
+```shell
+dataflow -v
 ```
 
-For **Quick-Start** and **Guide**, please visit or [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/).
+You are expected to see following outputs:
+```log
+open-dataflow codebase version: 1.0.0
+        Checking for updates...
+        Local version:  1.0.0
+        PyPI newest version:  1.0.0
+You are using the latest version: 1.0.0.
+```
+
+For **Quick-Start** and **Guide**, please visit our [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/). 
+
+[![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 
 
 ## 5 Experimental Results
@@ -109,7 +131,7 @@ We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning
 
 
 ### 3. Text2SQL PipeLine
-We fine-tuned the Qwen2.5-Coder-7B model on the Bird dataset using both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), with data constructed via the DataFlow-Text2SQL Pipeline. Results are:
+We fine-tuned the Qwen2.5-Coder-14B model on the Bird dataset using both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), with data constructed via the DataFlow-Text2SQL Pipeline. Results are:
 ![alt text](./static/images/text2sql.png)
 
 <!-- ## Statistics

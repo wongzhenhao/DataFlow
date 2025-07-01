@@ -311,7 +311,7 @@ class ExampleConstructor:
         # 1. Basic quality check
         if (self.lang=="en" and text.count('.') < 2):  # Must have at least 2 sentences
             return False
-        elif(text.count("。") < 2):
+        elif(self.lang in ["zh","ch"] and text.count("。") < 2):
             return False
         
         # 2. Special character ratio check
