@@ -16,7 +16,7 @@
 [简体中文](./README-zh.md) | English
 
 
-**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
+**[Features](#Features) • [Quick Start](#Quick_Start) • [Documentation](https://OpenDCAI.github.io/DataFlow-Doc/) • [Experiments](#Experiments)**
 
 </div>
 
