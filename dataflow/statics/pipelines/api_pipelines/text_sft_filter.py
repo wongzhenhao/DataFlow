@@ -1,9 +1,10 @@
  
-from dataflow.operators.process.GeneralText import (
+from dataflow.operators.process.GeneralText import AlpagasusFilter
 
-    AlpagasusFilter
-)
 from dataflow.utils.storage import FileStorage
+from dataflow.llmserving import APILLMServing_request
+import os
+
 
 class TextPipeline():
     def __init__(self):
@@ -14,7 +15,12 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.alpagasus_filter = AlpagasusFilter(min_score=3,max_score=5,API_key=None,url=None)
+        llm_serving = APILLMServing_request(
+                api_url="https://api.openai.com/v1/chat/completions",
+                model_name="gpt-4o",
+                max_workers=100
+        )
+        self.alpagasus_filter = AlpagasusFilter(min_score=3,max_score=5,llm_serving=llm_serving)
 
     def forward(self):
 

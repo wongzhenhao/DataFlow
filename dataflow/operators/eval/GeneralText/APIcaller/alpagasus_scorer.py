@@ -1,69 +1,78 @@
-from openai import OpenAI
+from dataflow.utils.registry import OPERATOR_REGISTRY
+from dataflow import get_logger
 from dataflow.core import OperatorABC
 from dataflow.utils.storage import DataFlowStorage
 import pandas as pd
 from tqdm import tqdm
-from dataflow.utils.registry import OPERATOR_REGISTRY
-from dataflow import get_logger
-# Alpagasus instruction quality evaluation
-# cited from: AlpaGasus: Training A Better Alpaca with Fewer Data
+from dataflow.core import LLMServingABC
+from dataflow.prompts.general_text import AlpagasusPrompt  
+
 @OPERATOR_REGISTRY.register()
 class AlpagasusScorer(OperatorABC):
-    def __init__(self, API_key = None, url = None, model = 'gpt-3.5-turbo', dimension = 'quality'):
-        self.api_key = API_key
-        self.url = url
-        self.model = model
-        self.dimension = dimension
+    def __init__(self, llm_serving: LLMServingABC = None, dimension: str = 'quality'):
+        """
+        初始化，修改为使用 LLMServing 实现
+        """
+        self.llm_serving = llm_serving
         self.logger = get_logger()
-        self.score_name = 'AlpagasusScore' 
-        self.client = OpenAI(api_key=self.api_key, base_url=self.url)
-
-        self.system_prompt_template = """
-        We would like to request your feedback on the performance of AI assistant in response to the instruction and the given input displayed following.
-        Instruction: {instruction}
-        Input: {input}
-        Response: {response}
-        """
-        self.user_prompt_template = """
-        Please rate according to the {dimension} of the response to the instruction and the input. Each assistant
-        receives a score on a scale of 0 to 5, where a higher score indicates a higher level of the {dimension}. Please
-        first output a single line containing the value indicating the scores. In the subsequent line, please provide a comprehensive explanation of your evaluation, avoiding any potential bias.
-        """
-
-    def get_score(self, sample, input_instruction_key, input_input_key, input_output_key):
-        instruction = sample.get(input_instruction_key, [''])
-        response = sample.get(input_output_key, [''])
-        input_text = sample.get(input_input_key, [''])
-        system_prompt = self.system_prompt_template.format(instruction=instruction, input=input_text, response=response)
-        user_prompt = self.user_prompt_template.format(dimension=self.dimension)
-        api_response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-        )
-
-        score_line = api_response.choices[0].message.content.strip().split("\n")[0]
+        self.score_name = 'AlpagasusScore'
+        self.dimension = dimension
         
-        score = float(score_line.split()[0])
+        self.prompt = AlpagasusPrompt(dimension=self.dimension)
 
-        return score
-    
-    def eval(self, dataframe: pd.DataFrame, input_instruction_key: str, input_input_key: str, input_output_key: str):
-        scores = [
-            self.get_score(sample, input_instruction_key, input_input_key, input_output_key)
-            for sample in tqdm(dataframe.to_dict(orient='records'), desc="AlpagasusScorer Evaluating...")
-        ]
+    def get_score(self, samples, input_instruction_key, input_input_key, input_output_key):
+        system_prompts = []
+        user_prompts = []
+
+        for sample in samples:
+            instruction = sample.get(input_instruction_key, [''])
+            response = sample.get(input_output_key, [''])
+            input_text = sample.get(input_input_key, [''])
+
+            # 生成 system 和 user prompts
+            system_prompts.append(self.prompt.build_system_prompt(instruction, input_text, response))
+            user_prompts.append(self.prompt.build_user_prompt())
+
+        # 一次性传递所有生成的 prompts
+        inputs = [system + "\n" + user for system, user in zip(system_prompts, user_prompts)]
+        
+        # 批量调用 LLMServing 生成响应
+        responses = self.llm_serving.generate_from_input(user_inputs=inputs)
+        
+        # 提取得分
+        scores = []
+        for response in responses:
+            score_line = response.strip().split("\n")[0]
+            score = float(score_line.split()[0])  # 获取得分部分
+            scores.append(score)
+            
         return scores
 
+    def eval(self, dataframe: pd.DataFrame, input_instruction_key: str, input_input_key: str, input_output_key: str):
+        """
+        为数据集中的每个样本批量评估分数
+        """
+        # 将 dataframe 转换为字典列表
+        samples = dataframe.to_dict(orient='records')
+
+        # 批量处理并获取所有得分
+        scores = self.get_score(samples, input_instruction_key, input_input_key, input_output_key)
+        return scores
+
+
     def run(self, storage: DataFlowStorage, input_instruction_key: str, input_input_key: str, input_output_key: str, output_key: str):
+        """
+        运行算子，评估并将分数写入存储
+        """
         self.input_instruction_key = input_instruction_key
         self.input_input_key = input_input_key
         self.input_output_key = input_output_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
-        self.logger.info(f"NgramScore ready to evaluate, ")
-        scores = self.eval(dataframe, self.input_instruction_key, self.input_input_key, self.output_key)
+        self.logger.info(f"AlpagasusScorer ready to evaluate.")
+        
+        scores = self.eval(dataframe, self.input_instruction_key, self.input_input_key, self.input_output_key)
+        
+        # 将分数写入输出列
         dataframe[self.output_key] = scores
         storage.write(dataframe)
