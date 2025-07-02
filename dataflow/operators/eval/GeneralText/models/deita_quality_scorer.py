@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 @OPERATOR_REGISTRY.register()
 class DeitaQualityScorer(OperatorABC):
-    def __init__(self, device='cuda', model_cache_dir='', max_length=512):
+    def __init__(self, device='cuda', model_cache_dir='./dataflow_cache', max_length=512):
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = 'hkust-nlp/deita-quality-scorer'
         self.model_cache_dir = model_cache_dir

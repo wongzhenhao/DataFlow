@@ -1,4 +1,4 @@
-from dataflow.operators.eval.GeneralText import PerspectiveScorer 
+from dataflow.operators.eval.GeneralText import VendiScorer 
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
@@ -12,7 +12,7 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.scorer = PerspectiveScorer()
+        self.scorer = VendiScorer(device='cuda')
 
     def forward(self):
         self.scorer.run(

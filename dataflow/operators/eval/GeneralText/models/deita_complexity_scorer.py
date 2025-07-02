@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 @OPERATOR_REGISTRY.register()
 class DeitaComplexityScorer(OperatorABC):
-    def __init__(self, device=None, model_cache_dir=None, max_length=512):
+    def __init__(self, device='cuda', model_cache_dir='./cache', max_length=512):
         # Initialize model, tokenizer, and device
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = "hkust-nlp/deita-complexity-scorer"

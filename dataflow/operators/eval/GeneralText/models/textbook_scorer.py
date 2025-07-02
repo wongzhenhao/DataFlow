@@ -10,7 +10,7 @@ import numpy as np
 
 @OPERATOR_REGISTRY.register()
 class TextbookScorer(OperatorABC):
-    def __init__(self, model_cache_dir=None):
+    def __init__(self, model_cache_dir='./dataflow_cache'):
         # Initialize model, tokenizer, and parameters
         model_path = hf_hub_download(
             repo_id='kenhktsui/llm-data-textbook-quality-fasttext-classifer-v2',
