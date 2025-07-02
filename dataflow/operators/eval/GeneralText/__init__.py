@@ -20,6 +20,7 @@ from .APIcaller.treeinstruct_scorer import TreeinstructScorer
 from .APIcaller.perspective_scorer import PerspectiveScorer
 
 from .diversity.vendi_scorer import VendiScorer
+from .diversity.task2vec_scorer import Task2VecScorer
 
 __all__ = [
     'NgramScorer',
@@ -40,5 +41,6 @@ __all__ = [
     'AlpagasusScorer',
     'TreeinstructScorer',
     'PerspectiveScorer',
-    'VendiScorer'
+    'VendiScorer',
+    'Task2VecScorer'
 ]
