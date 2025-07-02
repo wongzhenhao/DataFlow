@@ -13,7 +13,7 @@ import os
 
 @OPERATOR_REGISTRY.register()
 class PairQualScorer(OperatorABC):
-    def __init__(self, model_cache_dir:str=None, device="cuda", lang='en', max_length=512):
+    def __init__(self, model_cache_dir:str='./dataflow_cache', device="cuda", lang='en', max_length=512):
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_cache_dir = model_cache_dir
         self.lang = lang

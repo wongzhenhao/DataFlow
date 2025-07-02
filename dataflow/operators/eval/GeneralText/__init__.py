@@ -19,6 +19,8 @@ from .APIcaller.alpagasus_scorer import AlpagasusScorer
 from .APIcaller.treeinstruct_scorer import TreeinstructScorer
 from .APIcaller.perspective_scorer import PerspectiveScorer
 
+from .diversity.vendi_scorer import VendiScorer
+
 __all__ = [
     'NgramScorer',
     'LexicalDiversityScorer',
@@ -37,5 +39,6 @@ __all__ = [
     # 'PerplexityScorer'
     'AlpagasusScorer',
     'TreeinstructScorer',
-    'PerspectiveScorer'
+    'PerspectiveScorer',
+    'VendiScorer'
 ]

@@ -5,6 +5,7 @@ from dataflow.core import OperatorABC
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow.utils.storage import DataFlowStorage
 from tqdm import tqdm
+from dataflow import get_logger
 
 @OPERATOR_REGISTRY.register()
 class DebertaV3Scorer(OperatorABC):
@@ -16,7 +17,8 @@ class DebertaV3Scorer(OperatorABC):
         self.score_type = str
         self.data_type = 'text'
         self.score_name = 'DebertaV3Score'
-        
+        self.logger = get_logger()
+        self.logger.info(f"Using local model: {self.model_name}")
         # Initialize model, tokenizer, and config
         self.config = AutoConfig.from_pretrained(self.model_name, cache_dir=self.model_cache_dir)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, cache_dir=self.model_cache_dir)
