@@ -109,7 +109,7 @@ class SuperfilteringScorer(OperatorABC):
         torch.cuda.empty_cache()
         return scores
     
-    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', input_input_key: str = 'input', input_output_key: str = 'output', output_key: str = 'superfiltering_score'):
+    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', input_input_key: str = 'input', input_output_key: str = 'output', output_key: str = 'SuperfilteringScore'):
         """Read the dataframe, evaluate scores, and store the results."""
         dataframe = storage.read("dataframe")  # Read the dataframe from storage
         scores = self.eval(dataframe, input_instruction_key, input_input_key, input_output_key)  # Evaluate the scores

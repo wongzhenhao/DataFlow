@@ -16,6 +16,8 @@ from .models.qurating_scorer import QuratingScorer
 # from .models.perplexity_scorer import PerplexityScorer
 
 from .APIcaller.alpagasus_scorer import AlpagasusScorer
+from .APIcaller.treeinstruct_scorer import TreeinstructScorer
+from .APIcaller.perspective_scorer import PerspectiveScorer
 
 __all__ = [
     'NgramScorer',
@@ -33,5 +35,7 @@ __all__ = [
     'SuperfilteringScorer',
     'QuratingScorer',
     # 'PerplexityScorer'
-    'AlpagasusScorer'
+    'AlpagasusScorer',
+    'TreeinstructScorer',
+    'PerspectiveScorer'
 ]

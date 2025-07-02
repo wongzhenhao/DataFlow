@@ -39,7 +39,7 @@ class FineWebEduScorer(OperatorABC):
             scores.append(score)
         return np.array(scores)
 
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str='FinewebEduScore'):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")

@@ -74,7 +74,7 @@ class DeitaComplexityScorer(OperatorABC):
         # Return as multiple columns
         return scores
 
-    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', input_output_key: str = 'output', output_key: str = 'deita_complexity_score'):
+    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', input_output_key: str = 'output', output_key: str = 'DeitaComplexityScore'):
         # Read the dataframe, evaluate scores, and store results
         dataframe = storage.read("dataframe")
         scores = self.eval(dataframe, input_instruction_key, input_output_key)

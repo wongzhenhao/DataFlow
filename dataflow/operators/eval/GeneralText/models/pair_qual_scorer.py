@@ -55,7 +55,7 @@ class PairQualScorer(OperatorABC):
             scores.append(score)
         return scores
 
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str='PairQualScore'):
         """读取数据并运行评分"""
         dataframe = storage.read("dataframe")
         scores = self.eval(dataframe, input_key)
