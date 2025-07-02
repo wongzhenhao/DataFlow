@@ -1,4 +1,4 @@
-from dataflow.operators.eval.GeneralText import VendiScorer 
+from dataflow.operators.eval.GeneralText import Task2VecScorer 
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
@@ -12,7 +12,7 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.scorer = VendiScorer(device='cuda')
+        self.scorer = Task2VecScorer(device='cuda')
 
     def forward(self):
         self.scorer.run(
