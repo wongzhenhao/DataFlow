@@ -7,6 +7,7 @@ from .Text2SQL import *
 
 from .KnowledgeCleaning import *
 from .AgenticRAG import *
+from .RARE import *
 
 
 cur_path = "dataflow/operators/generate/"
@@ -34,7 +35,10 @@ _import_structure = {
     "MultiHopQAGenerator": (cur_path + "KnowledgeCleaning/MultiHopQAGenerator.py", "MultiHopQAGenerator"),
     "AutoPromptGenerator": (cur_path + "AgenticRAG/AutoPromptGenerator.py", "AutoPromptGenerator"),
     "QAScorer": (cur_path + "AgenticRAG/QAScorer.py", "QAScorer"),
-    "QAGenerator": (cur_path + "AgenticRAG/QAGenerator.py", "QAGenerator")
+    "QAGenerator": (cur_path + "AgenticRAG/QAGenerator.py", "QAGenerator"),
+    "Doc2Query": (cur_path + "RARE/Doc2Query.py", "Doc2Query"),
+    "BM25HardNeg": (cur_path + "RARE/BM25HardNeg.py", "BM25HardNeg"),
+    "ReasonDistill": (cur_path + "RARE/ReasonDistill.py", "ReasonDistill"),
 }
 
 sys.modules[__name__] = LazyLoader(__name__, "dataflow/operators/generate/", _import_structure)
