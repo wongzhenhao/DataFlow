@@ -114,7 +114,7 @@ class InstagScorer(OperatorABC):
         torch.cuda.empty_cache()
         return scores
 
-    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', output_key: str = 'instag_score'):
+    def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', output_key: str = 'InstagScore'):
         """Process the batch and store results under the specified output_key."""
         dataframe = storage.read("dataframe")
         scores = self.eval(dataframe, input_instruction_key)

@@ -65,7 +65,7 @@ class TextbookScorer(OperatorABC):
         
         return np.array(scores)
 
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str='TextbookScore'):
         """Read the dataframe, evaluate scores, and store results under the output_key."""
         dataframe = storage.read("dataframe")  # Read dataframe from storage
         scores = self.eval(dataframe, input_key, output_key)  # Evaluate the scores
