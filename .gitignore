@@ -20,3 +20,5 @@ dataflow_cache/
 
 test_mineru
 test/test_cli
+
+.vscode
