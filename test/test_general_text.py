@@ -2,7 +2,6 @@ from dataflow.operators.eval.GeneralText import Task2VecScorer
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
-os.environ['API_KEY'] = 'AIzaSyBzInL9rMlsVvovWoU7WV7U1OeLMkgYhCI'
 class TextPipeline():
     def __init__(self):
         self.storage = FileStorage(
