@@ -133,7 +133,11 @@ class Doc2Query(OperatorABC): # Inherit from OperatorABC
                 try:
                     response = response.strip()
                     decoder = json.JSONDecoder()
-                    json_data, _ = decoder.raw_decode(response[response.find('{'):])
+                    start_idx = response.find('{')
+                    if start_idx == -1:
+                        self.logger.error(f"Invalid response format: {response}")
+                        raise ValueError("Response does not contain a valid JSON object.")
+                    json_data, _ = decoder.raw_decode(response[start_idx:])
                     questions.append(json_data['hard_query']['question'])
                     scenarios.append(json_data['hard_query']['scenario'])
                     break
