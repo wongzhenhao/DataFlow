@@ -29,7 +29,7 @@ import json
 import uuid
 from typing import List, Dict, Sequence, Any, Union, Optional, Iterable, Mapping, Set, Callable
 from pathlib import Path
-from termcolor import colored
+ 
 from functools import lru_cache
 import yaml
 # from clickhouse_connect import get_client

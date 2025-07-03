@@ -22,14 +22,15 @@ import json
 import requests
 from typing import Dict, Any
 
-from termcolor import colored
+ 
 
 from ..taskcenter.task_dispatcher import Task
 from json.decoder import JSONDecoder
 from json.decoder import JSONDecodeError
 from ..servicemanager.memory_service import Memory,MemoryClient
-from ..toolkits import (ChatAgentRequest,local_tool_for_clean_json,get_logger)
-logger = get_logger("DEBUG")
+from ..toolkits import (ChatAgentRequest,local_tool_for_clean_json)
+from dataflow import get_logger
+logger = get_logger()
 
 class DebugAgent:
     def __init__(self, task:Task,memory_entity:Memory,request:ChatAgentRequest):

@@ -2,7 +2,7 @@ import uuid
 from typing import Dict, Any, List, Union
 import json
 from .tools import get_operator_content,get_operator_descriptions
-from termcolor import colored
+ 
 
 def combine_pipeline_result(
         result: Dict[str, Any],
@@ -24,7 +24,6 @@ def combine_pipeline_result(
     # Handle case when nodes_info is None or not a list/dict
     if nodes_info is None:
         return result
-    # print(colored(f"nodes_info：{nodes_info}", "blue"))
     id_map: Dict[str, Dict[str, Any]] = {}
     # Case 1: nodes_info is a dictionary of operator descriptions (for MIXTURE)
     if isinstance(nodes_info, dict):
