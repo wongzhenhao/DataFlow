@@ -1409,6 +1409,137 @@
     },
     {
       "node": 32,
+      "name": "Doc2Query",
+      "description": "RAREPipeline: Doc2Query 算子使用大语言模型为给定文档生成推理密集型问题。\n\n输入参数：\n- input_key: 包含文档片段的字段名\n- output_question_key: 包含生成问题的字段名\n- output_scenario_key: 包含生成情景的字段名\n",
+      "command": {
+        "init": [
+          {
+            "name": "llm_serving",
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          }
+        ],
+        "run": [
+          {
+            "name": "storage",
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_key",
+            "default": "text",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "output_question_key",
+            "default": "question",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "output_scenario_key",
+            "default": "scenario",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "max_attempts",
+            "default": 3,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          }
+        ]
+      },
+      "required": "",
+      "depends_on": [],
+      "mode": "GPU"
+    },
+    {
+      "node": 33,
+      "name": "BM25HardNeg",
+      "description": "RAREPipeline: BM25HardNeg 算子使用 BM25 算法为给定查询挖掘困难负样本。\n\n输入参数：\n- input_question_key: 包含查询的字段名。\n- input_text_key: 包含正面文档的字段名。\n- output_negatives_key: 用于存储挖掘出的困难负样本列表的字段名。\n- num_neg: 每个查询需要挖掘的困难负样本数量。\n",
+      "command": {
+        "init": [],
+        "run": [
+          {
+            "name": "storage",
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_question_key",
+            "default": "question",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_text_key",
+            "default": "text",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "output_negatives_key",
+            "default": "hard_negatives",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "num_neg",
+            "default": 3,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          }
+        ]
+      },
+      "required": "",
+      "depends_on": [],
+      "mode": ""
+    },
+    {
+      "node": 34,
+      "name": "ReasonDistill",
+      "description": "RAREPipeline: ReasonDistill 算子通过组合正负示例文档，提示大语言模型生成详细的推理过程。\n\n输入参数：\n- input_text_key: 包含正面文档的字段名。\n- input_question_key: 包含问题的字段名。\n- input_scenario_key: 包含情景的字段名。\n- input_hardneg_key: 包含困难负样本列表的字段名。\n- output_key: 用于存储生成推理过程的字段名。\n",
+      "command": {
+        "init": [
+          {
+            "name": "llm_serving",
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          }
+        ],
+        "run": [
+          {
+            "name": "storage",
+            "default": null,
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_text_key",
+            "default": "text",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_question_key",
+            "default": "question",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_scenario_key",
+            "default": "scenario",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "input_hardneg_key",
+            "default": "hard_negatives",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          },
+          {
+            "name": "output_key",
+            "default": "reasoning",
+            "kind": "POSITIONAL_OR_KEYWORD"
+          }
+        ]
+      },
+      "required": "",
+      "depends_on": [],
+      "mode": "GPU"
+    },
+    {
+      "node": 35,
       "name": "AnswerFormatterFilter",
       "description": "该算子用于检查答案格式是否符合规范，主要验证数学答案是否包含正确的\\boxed{}标记。\n\n输入参数：\n- input_key：输入字段名\n- result_key：结果字段名\n\n输出参数：\n- 通过格式检查返回1，否则返回0",
       "command": {
@@ -1431,7 +1562,7 @@
       "mode": ""
     },
     {
-      "node": 33,
+      "node": 36,
       "name": "AnswerGroundTruthFilter",
       "description": "该算子用于对比预测答案与标准答案的匹配度，支持精确匹配和数学验证两种方式。\n\n输入参数：\n- test_answer_key：预测答案字段名\n- gt_answer_key：标准答案字段名\n- compare_method：比较方法（exact/math_verify）\n\n输出参数：\n- 匹配成功返回1，否则返回0",
       "command": {
@@ -1465,7 +1596,7 @@
       "mode": ""
     },
     {
-      "node": 34,
+      "node": 37,
       "name": "AnswerJudger_MathVerify",
       "description": "该算子通过符号计算验证答案正确性，执行数学表达式解析和等价性验证。\n\n输入参数：\n- answer_key：待验证答案字段名\n- gt_key：标准答案字段名\n- tolerance：数值容差阈值\n- symbolic_check：是否启用符号验证\n\n输出参数：\n- result_key：验证结果字段（True/False）",
       "command": {
@@ -1509,7 +1640,7 @@
       "mode": ""
     },
     {
-      "node": 35,
+      "node": 38,
       "name": "AnswerNgramFilter",
       "description": "该算子基于n-gram重复率过滤答案，检测回答中的重复模式。\n\n输入参数：\n- min_score：最小可接受分数\n- max_score：最大可接受分数\n- ngrams：n-gram大小\n\n输出参数：\n- 分数在范围内返回1，否则返回0",
       "command": {
@@ -1553,7 +1684,7 @@
       "mode": ""
     },
     {
-      "node": 36,
+      "node": 39,
       "name": "AnswerPipelineRoot",
       "description": "答案处理流程根节点，负责将输入数据根据有无真实标签GT分发到不同处理分支。\n\n输入参数：\n- input_file：输入文件路径\n- output_dir：输出目录路径\n- branch_config：分支配置参数\n- parallel_workers：并行工作线程数\n\n输出参数：\n- 多个输出文件路径（根据分支配置生成）",
       "command": {
@@ -1581,7 +1712,7 @@
       "mode": ""
     },
     {
-      "node": 37,
+      "node": 40,
       "name": "AnswerTokenLengthFilter",
       "description": "该算子根据token数量过滤过长的答案。\n\n输入参数：\n- max_answer_token_length：最大token数\n- tokenizer_dir：分词器路径\n- read_min/max_score：分数范围\n\n输出参数：\n- 长度合规返回1，否则返回0",
       "command": {
@@ -1615,7 +1746,7 @@
       "mode": ""
     },
     {
-      "node": 38,
+      "node": 41,
       "name": "QuestionFilter",
       "description": "该算子用于对数学问题进行正确性检查，包括格式是否规范、语义是否合理、条件是否矛盾以及是否具备充分信息可解。调用大语言模型依次执行四阶段判断，最终返回每个问题是否合格的二分类结果（0或1）。\n\n输入参数：\n- input_question_key：输入问题字段名\n- api_key：调用大模型所需的API密钥\n- model_name：使用的大模型名称\n- max_worker：并发线程数，用于加速处理\n\n输出参数：\n- result_key：判断结果字段名，值为0或1",
       "command": {
@@ -1649,7 +1780,7 @@
       "mode": "GPU"
     },
     {
-      "node": 39,
+      "node": 42,
       "name": "LanguageFilter",
       "description": "使用FastText语言识别模型过滤数据",
       "command": {
@@ -1688,7 +1819,7 @@
       "mode": ""
     },
     {
-      "node": 40,
+      "node": 43,
       "name": "DeitaQualityFilter",
       "description": "使用Deita指令质量分类器过滤掉低质量指令数据",
       "command": {
@@ -1747,7 +1878,7 @@
       "mode": ""
     },
     {
-      "node": 41,
+      "node": 44,
       "name": "DeitaComplexityFilter",
       "description": "使用Deita指令质量分类器过滤掉低质量指令数据",
       "command": {
@@ -1806,7 +1937,7 @@
       "mode": ""
     },
     {
-      "node": 42,
+      "node": 45,
       "name": "InstagFilter",
       "description": "使用Instag评分器过滤掉低标签数量数据",
       "command": {
@@ -1860,7 +1991,7 @@
       "mode": ""
     },
     {
-      "node": 43,
+      "node": 46,
       "name": "PairQualFilter",
       "description": "使用PairQual评分器过滤掉低质量数据",
       "command": {
@@ -1909,7 +2040,7 @@
       "mode": ""
     },
     {
-      "node": 44,
+      "node": 47,
       "name": "QuratingFilter",
       "description": "使用Qurating评分器过滤掉低质量数据",
       "command": {
@@ -1993,7 +2124,7 @@
       "mode": ""
     },
     {
-      "node": 45,
+      "node": 48,
       "name": "SuperfilteringFilter",
       "description": "使用Superfiltering评分器过滤掉低质量数据",
       "command": {
@@ -2057,7 +2188,7 @@
       "mode": ""
     },
     {
-      "node": 46,
+      "node": 49,
       "name": "FineWebEduFilter",
       "description": "使用Fineweb-edu质量分类器过滤低质量文本",
       "command": {
@@ -2106,7 +2237,7 @@
       "mode": ""
     },
     {
-      "node": 47,
+      "node": 50,
       "name": "ColonEndFilter",
       "description": "检查文本是否以冒号结尾，过滤掉以冒号结尾的文本",
       "command": {
@@ -2134,7 +2265,7 @@
       "mode": ""
     },
     {
-      "node": 48,
+      "node": 51,
       "name": "WordNumberFilter",
       "description": "检查文本中的单词数量是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2173,7 +2304,7 @@
       "mode": ""
     },
     {
-      "node": 49,
+      "node": 52,
       "name": "SentenceNumberFilter",
       "description": "检查文本中的句子数量是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2212,7 +2343,7 @@
       "mode": ""
     },
     {
-      "node": 50,
+      "node": 53,
       "name": "LineEndWithEllipsisFilter",
       "description": "检查文本行是否以省略号结尾，过滤掉以省略号结尾的文本行",
       "command": {
@@ -2246,7 +2377,7 @@
       "mode": ""
     },
     {
-      "node": 51,
+      "node": 54,
       "name": "ContentNullFilter",
       "description": "检查文本内容是否为空，过滤掉空文本",
       "command": {
@@ -2274,7 +2405,7 @@
       "mode": ""
     },
     {
-      "node": 52,
+      "node": 55,
       "name": "SymbolWordRatioFilter",
       "description": "检查文本中的符号与单词的比例是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2308,7 +2439,7 @@
       "mode": ""
     },
     {
-      "node": 53,
+      "node": 56,
       "name": "AlphaWordsFilter",
       "description": "检查文本中包含字母字符的单词比例是否大于0.6，过滤掉不符合条件的文本",
       "command": {
@@ -2347,7 +2478,7 @@
       "mode": ""
     },
     {
-      "node": 54,
+      "node": 57,
       "name": "HtmlEntityFilter",
       "description": "检查文本中是否包含HTML实体，过滤掉包含HTML实体的文本",
       "command": {
@@ -2375,7 +2506,7 @@
       "mode": ""
     },
     {
-      "node": 55,
+      "node": 58,
       "name": "IDCardFilter",
       "description": "检查文本中是否包含身份证相关内容，过滤掉包含身份证相关内容的文本",
       "command": {
@@ -2409,7 +2540,7 @@
       "mode": ""
     },
     {
-      "node": 56,
+      "node": 59,
       "name": "NoPuncFilter",
       "description": "检查文本中是否不含标点符号，过滤掉不含标点符号的文本",
       "command": {
@@ -2443,7 +2574,7 @@
       "mode": ""
     },
     {
-      "node": 57,
+      "node": 60,
       "name": "SpecialCharacterFilter",
       "description": "检查文本中是否包含特殊字符，过滤掉包含特殊字符的文本",
       "command": {
@@ -2471,7 +2602,7 @@
       "mode": ""
     },
     {
-      "node": 58,
+      "node": 61,
       "name": "WatermarkFilter",
       "description": "检查文本中是否包含水印，过滤掉包含水印的文本",
       "command": {
@@ -2509,7 +2640,7 @@
       "mode": ""
     },
     {
-      "node": 59,
+      "node": 62,
       "name": "MeanWordLengthFilter",
       "description": "检查文本中的平均单词长度是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2548,7 +2679,7 @@
       "mode": ""
     },
     {
-      "node": 60,
+      "node": 63,
       "name": "StopWordFilter",
       "description": "检查文本中的停用词比例是否超过阈值，过滤掉不符合条件的文本",
       "command": {
@@ -2587,7 +2718,7 @@
       "mode": ""
     },
     {
-      "node": 61,
+      "node": 64,
       "name": "CurlyBracketFilter",
       "description": "检查文本中括号比例是否过高，过滤掉括号比例过高的文本",
       "command": {
@@ -2621,7 +2752,7 @@
       "mode": ""
     },
     {
-      "node": 62,
+      "node": 65,
       "name": "CapitalWordsFilter",
       "description": "检查文本中的大写单词比例是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2660,7 +2791,7 @@
       "mode": ""
     },
     {
-      "node": 63,
+      "node": 66,
       "name": "LoremIpsumFilter",
       "description": "检查文本中是否包含Lorem Ipsum内容，过滤掉包含Lorem Ipsum内容的文本",
       "command": {
@@ -2694,7 +2825,7 @@
       "mode": ""
     },
     {
-      "node": 64,
+      "node": 67,
       "name": "UniqueWordsFilter",
       "description": "检查文本中的唯一单词比例是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2728,7 +2859,7 @@
       "mode": ""
     },
     {
-      "node": 65,
+      "node": 68,
       "name": "CharNumberFilter",
       "description": "检查文本中的字符数量是否在指定范围内，过滤掉不符合条件的文本",
       "command": {
@@ -2762,7 +2893,7 @@
       "mode": ""
     },
     {
-      "node": 66,
+      "node": 69,
       "name": "LineStartWithBulletpointFilter",
       "description": "检查文本行是否以项目符号开头，过滤掉以项目符号开头的文本行",
       "command": {
@@ -2796,7 +2927,7 @@
       "mode": ""
     },
     {
-      "node": 67,
+      "node": 70,
       "name": "LineWithJavascriptFilter",
       "description": "检查文本行是否包含'javascript'，过滤掉包含'javascript'的文本行",
       "command": {
@@ -2830,7 +2961,7 @@
       "mode": ""
     },
     {
-      "node": 68,
+      "node": 71,
       "name": "BlocklistFilter",
       "description": "使用预定义的阻止词列表过滤文本",
       "command": {
@@ -2874,7 +3005,7 @@
       "mode": ""
     },
     {
-      "node": 69,
+      "node": 72,
       "name": "MinHashDeduplicator",
       "description": "使用MinHash算法进行文本去重",
       "command": {
@@ -2928,7 +3059,7 @@
       "mode": ""
     },
     {
-      "node": 70,
+      "node": 73,
       "name": "ContentChooser",
       "description": "该算子用于从大量的文档片段中选取部分文档片段，用于后续生成种子QA对\n\n输入参数:\n- input_key: 包含文档片段的字段名\n- embedding_model_path: 嵌入模型路径\n- num_samples: 选取的文档片段数量\n- method: 选择方法，随机或k-center-greedy\n\n",
       "command": {
@@ -2967,7 +3098,7 @@
       "mode": ""
     },
     {
-      "node": 71,
+      "node": 74,
       "name": "HtmlUrlRemoverRefiner",
       "description": "去除文本中的URL和HTML标签",
       "command": {
@@ -2990,7 +3121,7 @@
       "mode": ""
     },
     {
-      "node": 72,
+      "node": 75,
       "name": "RemoveExtraSpacesRefiner",
       "description": "去除文本中的多余空格",
       "command": {
@@ -3013,7 +3144,7 @@
       "mode": ""
     },
     {
-      "node": 73,
+      "node": 76,
       "name": "RemoveEmojiRefiner",
       "description": "去除文本中的表情符号",
       "command": {

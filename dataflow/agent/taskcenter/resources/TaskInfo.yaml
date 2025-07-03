@@ -1,7 +1,3 @@
-task_api_key: 
-task_chat_api_url: 
-task_model: deepseek-v3
-
 data_content_classification:
   local_tool_for_sample:
     sample_size: 10

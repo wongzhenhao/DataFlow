@@ -54,7 +54,7 @@ class DebugAgent:
             ],
         }
         content = await self.client.post(
-            url=f"{self.task.base_url}/chat/completions",
+            url=f"{self.task.base_url}",
             headers=self.headers,
             json_data=json_data,
             session_key= self.request.sessionKEY

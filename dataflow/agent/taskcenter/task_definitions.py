@@ -26,8 +26,9 @@ from .task_reg import TaskRegistry
 yaml_dir = f"{os.path.dirname(__file__)}/resources"
 
 @TaskRegistry.register('conversation_router')
-def _make_conversation_router(prompts_template):
+def _make_conversation_router(prompts_template,request):
     return Task(
+        request=request,
         config_path=f'{yaml_dir}/TaskInfo.yaml',
         prompts_template=prompts_template,
         system_template="system_prompt_for_chat",
@@ -42,8 +43,9 @@ def _make_conversation_router(prompts_template):
     )
 
 @TaskRegistry.register('data_content_classification')
-def _make_data_content_classification(prompts_template):
+def _make_data_content_classification(prompts_template,request):
     return Task(
+        request=request,
         config_path=f'{yaml_dir}/TaskInfo.yaml',
         prompts_template=prompts_template,
         system_template="system_prompt_for_data_content_classification",
@@ -57,8 +59,9 @@ def _make_data_content_classification(prompts_template):
         task_name= "data_content_classification"
     )
 @TaskRegistry.register('recommendation_inference_pipeline')
-def _make_recommendation_task(prompts_template):
+def _make_recommendation_task(prompts_template,request):
     return  Task(
+        request=request,
         config_path=f'{yaml_dir}/TaskInfo.yaml',
         prompts_template=prompts_template,
         system_template="system_prompt_for_recommendation_inference_pipeline",
@@ -76,8 +79,9 @@ def _make_recommendation_task(prompts_template):
         task_name="recommendation_inference_pipeline"
     )
 @TaskRegistry.register('execute_the_recommended_pipeline')
-def _make_execute_the_recommended_pipeline(prompts_template):
+def _make_execute_the_recommended_pipeline(prompts_template,request):
     return  Task(
+        request=request,
         config_path=f'{yaml_dir}/TaskInfo.yaml',
         prompts_template=prompts_template,
         system_template="system_prompt_for_execute_the_recommended_pipeline",

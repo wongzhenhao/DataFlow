@@ -104,7 +104,7 @@ class AnalysisService:
     async def _process_with_task_chain(self, request, session_id):
         last_result = None
         for task in self.tasks:
-            task.pre_task_result = last_result  # 这里没有修改 ，应该是要按照任务的dependon进行组合
+            task.pre_task_result = last_result  
             # task.task_params = generate_pre_task_params(
             #     system_template=task.system_template,
             #     task_template=task.task_template,

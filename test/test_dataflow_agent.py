@@ -21,18 +21,18 @@ memorys = {
     "executioner": Memory(),
     "debugger": Memory(),
 }
-BASE_DIR = Path(__file__).resolve().parent
-def _build_task_chain(language: str, tmpl:PromptsTemplateGenerator):
-    router   = TaskRegistry.get("conversation_router", tmpl)
-    classify = TaskRegistry.get("data_content_classification", tmpl)
-    rec      = TaskRegistry.get("recommendation_inference_pipeline", tmpl)
-    exe      = TaskRegistry.get("execute_the_recommended_pipeline", tmpl)
+BASE_DIR = Path(__file__).resolve().parent.parent
+def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
+    router   = TaskRegistry.get("conversation_router", prompts_template=tmpl,request=req)
+    classify = TaskRegistry.get("data_content_classification", prompts_template=tmpl,request=req)
+    rec      = TaskRegistry.get("recommendation_inference_pipeline", prompts_template=tmpl,request=req)
+    exe      = TaskRegistry.get("execute_the_recommended_pipeline", prompts_template=tmpl,request=req)
     return [router, classify, rec, exe]
 
 
 async def _run_service(req: ChatAgentRequest) -> ChatResponse:
     tmpl = PromptsTemplateGenerator(req.language)
-    task_chain = _build_task_chain(req.language,tmpl = tmpl)
+    task_chain = _build_task_chain(req,tmpl = tmpl)
     execution_agent = ExecutionAgent(
                               req,
                               memorys["executioner"],
@@ -65,8 +65,8 @@ if __name__ == "__main__":
             language="zh", #en 或者 zh
             target="帮我针对数据推荐一个预测的 pipeline,我只需要2个算子！！！",
             # target="你好！你是谁？？",
-            api_key =  "",
-            chat_api_url = "",
+            api_key =  "sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
+            chat_api_url = "https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             json_file = f"{BASE_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
