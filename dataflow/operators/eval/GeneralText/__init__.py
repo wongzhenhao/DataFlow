@@ -8,7 +8,7 @@ from .models.debertav3_scorer import DebertaV3Scorer
 from .models.deita_complexity_scorer import DeitaComplexityScorer
 from .models.fineweb_edu_scorer import FineWebEduScorer
 from .models.pair_qual_scorer import PairQualScorer
-# from .models.presidio_scorer import PresidioScorer
+from .models.presidio_scorer import PresidioScorer
 from .models.rm_scorer import RMScorer
 from .models.textbook_scorer import TextbookScorer
 from .models.superfiltering_scorer import SuperfilteringScorer
@@ -32,7 +32,7 @@ __all__ = [
     'DeitaComplexityScorer',
     'FineWebEduScorer',
     'PairQualScorer',
-    # 'PresidioScorer',
+    'PresidioScorer',
     'RMScorer',
     'TextbookScorer',
     'SuperfilteringScorer',
