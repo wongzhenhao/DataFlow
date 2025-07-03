@@ -32,7 +32,7 @@ from pathlib import Path
 from termcolor import colored
 from functools import lru_cache
 import yaml
-from clickhouse_connect import get_client
+# from clickhouse_connect import get_client
 import subprocess
 from collections import defaultdict, deque
 from dataflow.utils.storage import FileStorage
@@ -425,41 +425,41 @@ def local_tool_for_iter_json_items(json_file: Path) -> List[Dict[str, Any]]:
                 raise ValueError(f"无法解析 JSONL 行：{line}\n{e}") from None
         return items
 
-def local_tool_for_create_table_if_absent(
-    cfg: Dict[str, Any],
-    schema: List[Dict[str, str]],
-    engine_stmt: str = "ENGINE = MergeTree ORDER BY tuple()",
-) -> None:
-    """
-    使用 get_client(...) 与 MyScale/ClickHouse 建立连接，并建表（存在则跳过）。
+# def local_tool_for_create_table_if_absent(
+#     cfg: Dict[str, Any],
+#     schema: List[Dict[str, str]],
+#     engine_stmt: str = "ENGINE = MergeTree ORDER BY tuple()",
+# ) -> None:
+#     """
+#     使用 get_client(...) 与 MyScale/ClickHouse 建立连接，并建表（存在则跳过）。
 
-    Parameters
-    ----------
-    cfg     :  YAML 中的 MYSCALE 节点（host/port/username/...）
-    schema  :  [{"name": "...", "type": "..."}, ...]
-    engine_stmt : 完整的 ENGINE 子句
-    """
-    field_defs = ", ".join(f"{col['name']} {col['type']}" for col in schema)
-    ddl = (
-        f"CREATE TABLE IF NOT EXISTS {cfg['database']}.{cfg['table']} "
-        f"({field_defs}) "
-        f"{engine_stmt}"
-    )
+#     Parameters
+#     ----------
+#     cfg     :  YAML 中的 MYSCALE 节点（host/port/username/...）
+#     schema  :  [{"name": "...", "type": "..."}, ...]
+#     engine_stmt : 完整的 ENGINE 子句
+#     """
+#     field_defs = ", ".join(f"{col['name']} {col['type']}" for col in schema)
+#     ddl = (
+#         f"CREATE TABLE IF NOT EXISTS {cfg['database']}.{cfg['table']} "
+#         f"({field_defs}) "
+#         f"{engine_stmt}"
+#     )
 
-    client = get_client(
-        host=cfg["host"],
-        port=cfg["port"],
-        username=cfg["username"],
-        password=cfg["password"],
-        database=cfg["database"],
-    )
-    try:
-        client.command(ddl)
-    finally:
-        try:
-            client.disconnect()
-        except Exception:
-            pass
+#     client = get_client(
+#         host=cfg["host"],
+#         port=cfg["port"],
+#         username=cfg["username"],
+#         password=cfg["password"],
+#         database=cfg["database"],
+#     )
+#     try:
+#         client.command(ddl)
+#     finally:
+#         try:
+#             client.disconnect()
+#         except Exception:
+#             pass
 
 def local_tool_for_clean_json(
     data: Any,

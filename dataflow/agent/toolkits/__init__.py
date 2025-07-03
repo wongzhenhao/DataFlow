@@ -22,7 +22,7 @@ from .tools import (
     generate_pre_task_params
 )
 from .post_processor import combine_pipeline_result
-from .logger import get_logger, setup_logging
+# from .logger import get_logger, setup_logging
 from .pipeline_processor import local_tool_for_execute_the_recommended_pipeline
 from .tool_factory import ToolRegistry
 # from .MinioTookits import
