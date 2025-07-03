@@ -63,8 +63,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "request":
         test_req = ChatAgentRequest(
             language="zh", #en 或者 zh
-            target="帮我针对数据推荐一个预测的 pipeline,我只需要2个算子！！！",
-            # target="你好！你是谁？？",
+            target="帮我针对数据推荐一个预测的 pipeline,我只需要4个算子！！！而且不要去重算子！！",
+            # target="你好！今天武汉天气如何？？",
             api_key =  "",
             chat_api_url = "",
             model="deepseek-v3",
