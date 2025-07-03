@@ -16,10 +16,6 @@ class BleuScorer(OperatorABC):
         self.eff = eff  # [shortest, average, longest]
         self.special_reflen = special_reflen  # Special reference length if specified
 
-        
-    @staticmethod
-    def get_desc(self, lang):
-        return NotImplementedError("The description of BleuScorer is not implemented!")
     
     def _score_func(self, eval_text, ref_text):
         bleu_scorer = Bleu(

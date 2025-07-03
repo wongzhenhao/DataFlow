@@ -1,4 +1,4 @@
-from dataflow.operators.eval.GeneralText import BleuScorer 
+from dataflow.operators.eval.GeneralText import CiderScorer 
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
@@ -11,7 +11,7 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.scorer = BleuScorer()
+        self.scorer = CiderScorer()
 
     def forward(self):
         self.scorer.run(
