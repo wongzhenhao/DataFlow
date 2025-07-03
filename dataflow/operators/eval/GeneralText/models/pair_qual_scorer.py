@@ -38,7 +38,7 @@ class PairQualScorer(OperatorABC):
 
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用PairQual评分器评估文本质量" if lang == "zh" else "Evaluate text quality using the PairQual scorer."
 
     def inference(self, input_text):

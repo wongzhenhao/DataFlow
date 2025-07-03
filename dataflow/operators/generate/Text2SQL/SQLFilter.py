@@ -26,7 +26,7 @@ class SQLFilter(OperatorABC):
         self.logger = get_logger()
         
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于筛选SQL执行异常和模型判定SQL与自然语言问题是否一致。\n\n"

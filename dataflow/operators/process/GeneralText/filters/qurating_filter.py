@@ -24,7 +24,7 @@ class QuratingFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with min_scores={self.min_scores} and max_scores={self.max_scores}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Qurating评分器过滤掉低质量数据" if lang == "zh" else "Filter out low-quality data using the Qurating scorer."
 
     def eval(self, dataframe, input_key):

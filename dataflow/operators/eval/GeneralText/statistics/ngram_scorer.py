@@ -14,7 +14,7 @@ class NgramScorer(OperatorABC):
         self.ngrams = ngrams
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return NotImplementedError("The description of NgramScorer is not implemented!")
     
     def _score_func(self, sample):

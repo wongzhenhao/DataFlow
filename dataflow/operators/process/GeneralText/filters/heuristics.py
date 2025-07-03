@@ -18,7 +18,7 @@ class ColonEndFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本是否以冒号结尾，过滤掉以冒号结尾的文本" if lang == "zh" else "Check if the text ends with a colon and filter out texts that end with a colon."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = None):
@@ -50,7 +50,7 @@ class WordNumberFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with min_words={self.min_words}, max_words={self.max_words}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的单词数量是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the number of words in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='word_number_filter_label'):
@@ -86,7 +86,7 @@ class SentenceNumberFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with min_sentences={self.min_sentences}, max_sentences={self.max_sentences}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的句子数量是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the number of sentences in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'sentence_number_filter_label'):
@@ -178,7 +178,7 @@ class LineEndWithEllipsisFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本行是否以省略号结尾，过滤掉以省略号结尾的文本行" if lang == "zh" else "Check if the lines in the text end with ellipsis and filter out lines that end with ellipsis."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'line_end_with_ellipsis_filter_label'):
@@ -224,7 +224,7 @@ class ContentNullFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本内容是否为空，过滤掉空文本" if lang == "zh" else "Check if the text content is empty and filter out empty texts."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='content_null_filter_label'):
@@ -262,7 +262,7 @@ class SymbolWordRatioFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的符号与单词的比例是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the ratio of symbols to words in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='symbol_word_ratio_filter_label'):
@@ -314,7 +314,7 @@ class AlphaWordsFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中包含字母字符的单词比例是否大于0.6，过滤掉不符合条件的文本" if lang == "zh" else "Check whether the ratio of words that contain at least one alphabetic character is greater than 0.6 and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='alpha_words_filter_label'):
@@ -359,7 +359,7 @@ class HtmlEntityFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否包含HTML实体，过滤掉包含HTML实体的文本" if lang == "zh" else "Check if the text contains HTML entities and filter out texts that contain HTML entities."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='html_entity_filter_label'):
@@ -409,7 +409,7 @@ class IDCardFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否包含身份证相关内容，过滤掉包含身份证相关内容的文本" if lang == "zh" else "Check if the text contains ID card related content and filter out texts that contain ID card related content."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='id_card_filter_label'):
@@ -452,7 +452,7 @@ class NoPuncFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否不含标点符号，过滤掉不含标点符号的文本" if lang == "zh" else "Check if the text does not contain punctuation marks and filter out texts that do not contain punctuation marks."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='no_punc_filter_label'):
@@ -503,7 +503,7 @@ class SpecialCharacterFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否包含特殊字符，过滤掉包含特殊字符的文本" if lang == "zh" else "Check if the text contains special characters and filter out texts that contain special characters."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='special_character_filter_label'):
@@ -551,7 +551,7 @@ class WatermarkFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with watermarks={self.watermarks}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否包含水印，过滤掉包含水印的文本" if lang == "zh" else "Check if the text contains watermarks and filter out texts that contain watermarks."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='watermark_filter_label'):
@@ -593,7 +593,7 @@ class MeanWordLengthFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with min_length={self.min_length}, max_length={self.max_length}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的平均单词长度是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the average word length in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='mean_word_length_filter_label'):
@@ -648,7 +648,7 @@ class StopWordFilter(OperatorABC):
         nltk.download('stopwords', download_dir='./dataflow/operators/process/GeneralText/filters/')
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的停用词比例是否超过阈值，过滤掉不符合条件的文本" if lang == "zh" else "Check if the ratio of stop words in the text exceeds the threshold and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='stop_word_filter_label'):
@@ -698,7 +698,7 @@ class CurlyBracketFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中括号比例是否过高，过滤掉括号比例过高的文本" if lang == "zh" else "Check if the ratio of curly brackets in the text is too high and filter out texts with a high ratio of curly brackets."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='curly_bracket_filter_label'):
@@ -741,7 +741,7 @@ class CapitalWordsFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}, use_tokenizer={self.use_tokenizer}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的大写单词比例是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the ratio of capital words in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='capital_words_filter'):
@@ -791,7 +791,7 @@ class LoremIpsumFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中是否包含Lorem Ipsum内容，过滤掉包含Lorem Ipsum内容的文本" if lang == "zh" else "Check if the text contains Lorem Ipsum content and filter out texts that contain Lorem Ipsum content."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='loremipsum_filter_label'):
@@ -837,7 +837,7 @@ class UniqueWordsFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的唯一单词比例是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the ratio of unique words in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='unique_words_filter'):
@@ -887,7 +887,7 @@ class CharNumberFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本中的字符数量是否在指定范围内，过滤掉不符合条件的文本" if lang == "zh" else "Check if the number of characters in the text is within a specified range and filter out texts that do not meet the criteria."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='char_number_filter_label'):
@@ -932,7 +932,7 @@ class LineStartWithBulletpointFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本行是否以项目符号开头，过滤掉以项目符号开头的文本行" if lang == "zh" else "Check if the lines in the text start with bullet points and filter out lines that start with bullet points."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='line_start_with_bullet_point_filter_label'):
@@ -985,7 +985,7 @@ class LineWithJavascriptFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with threshold={self.threshold}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "检查文本行是否包含'javascript'，过滤掉包含'javascript'的文本行" if lang == "zh" else "Check if the lines in the text contain 'javascript' and filter out lines that contain 'javascript'."
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='line_with_javascript_filter_label'):
@@ -1038,7 +1038,7 @@ class BlocklistFilter(OperatorABC):
         self.blocklist = self.load_blocklist()
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用预定义的阻止词列表过滤文本" if lang == "zh" else "Filter text using a predefined blocklist of words."
 
     def load_blocklist(self):
