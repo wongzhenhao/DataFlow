@@ -143,3 +143,9 @@ We fine-tuned the Qwen2.5-Coder-14B model on the Bird dataset using both Supervi
  </picture>
 </a>
  -->
+
+ ## Follow us
+📌 Follow our lab’s Xiaohongshu account 26133106768 for the latest updates on our research and ongoing projects. We look forward to sharing more cutting-edge work with you! 🎉🎉🎉
+<div align="center">
+  <img src="./static/images/xiaohongshu.jpg" width="30%">
+</div>
