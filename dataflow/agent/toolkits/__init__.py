@@ -9,7 +9,7 @@ from .tools import (
     local_tool_for_mineru_extrac_pdfs,
     local_tool_for_load_yaml_cfg,
     local_tool_for_iter_json_items,
-    local_tool_for_create_table_if_absent,
+    # local_tool_for_create_table_if_absent,
     # local_tool_for_execute_the_recommended_pipeline,
     local_tool_for_get_chat_target,
     local_tool_for_get_workflow_bg,
