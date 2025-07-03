@@ -18,7 +18,7 @@ class AnswerGenerator(OperatorABC):
         self.llm_serving = llm_serving
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于生成数学问题的标准答案，调用大语言模型进行分步推理和计算。\n\n"

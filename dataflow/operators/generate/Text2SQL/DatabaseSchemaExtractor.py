@@ -20,7 +20,7 @@ class DatabaseSchemaExtractor(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于提取出数据库模式和数据库定义语言，并将其格式化输出。\n\n"

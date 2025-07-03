@@ -16,7 +16,7 @@ class FineWebEduFilter(OperatorABC):
                          f"device={device}, model_cache_dir={model_cache_dir}")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Fineweb-edu质量分类器过滤低质量文本" if lang == "zh" else "Filter out low-quality text data using the Fineweb-edu quality classifier."
 
     def eval(self, dataframe, input_key):

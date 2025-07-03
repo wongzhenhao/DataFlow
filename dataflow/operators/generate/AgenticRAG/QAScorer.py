@@ -18,7 +18,7 @@ class QAScorer(OperatorABC):
         self.llm_serving = llm_serving
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于为给的的文档片段生成种子QA对打分\n\n"

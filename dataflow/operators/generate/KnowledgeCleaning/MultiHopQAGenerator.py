@@ -38,7 +38,7 @@ class MultiHopQAGenerator(OperatorABC):
         self.logger=get_logger()
 
     @staticmethod
-    def get_desc(self, lang: str = "zh") -> tuple:
+    def get_desc(lang: str = "zh") -> tuple:
         """Returns a description of the processor's functionality.
         
         Args:

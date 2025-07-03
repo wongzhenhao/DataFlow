@@ -21,7 +21,7 @@ class SuperfilteringFilter(OperatorABC):
         self.logger.info(f"Initializing {self.__class__.__name__} with min_score={self.min_score} and max_score={self.max_score}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Superfiltering评分器过滤掉低质量数据" if lang == "zh" else "Filter out low-quality data using the Superfiltering scorer."
 
     def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', input_input_key: str = 'input', input_output_key: str = 'output', output_key: str = "superfiltering_filter_label"):

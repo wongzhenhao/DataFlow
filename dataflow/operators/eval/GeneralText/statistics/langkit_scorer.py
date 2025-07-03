@@ -13,8 +13,8 @@ class LangkitScorer(OperatorABC):
         self.llm_schema = light_metrics.init()
 
     @staticmethod
-    def get_desc(self, lang):
-        return NotImplementedError("The description of LangkitScorer is not implemented!")
+    def get_desc(lang: str = "zh"):
+        return "使用Langkit评分器评估文本质量" if lang == "zh" else "Evaluate text quality using the Langkit scorer."
 
     def _score_func(self, sample):
         # Process the sample using langkit

@@ -29,7 +29,8 @@ class CorpusTextSplitter(OperatorABC):
         self.chunker = self._initialize_chunker()
         self.logger = get_logger()
         
-    def get_desc(self, lang):
+    @staticmethod
+    def get_desc(lang: str = "zh"):
         if(lang=="zh"):
             return (
                 "CorpusTextSplitter是轻量级文本分割工具，",
