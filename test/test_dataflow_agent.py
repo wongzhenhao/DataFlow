@@ -13,8 +13,7 @@ from dataflow.agent.toolkits import (
 from dataflow.agent.agentrole.debugger import DebugAgent
 from dataflow.agent.agentrole.executioner import ExecutionAgent
 from dataflow import get_logger
-logger = get_logger()
-memory = Memory()       
+logger = get_logger()     
 toolkit = ToolRegistry()
 memorys = {
     "planner": Memory(),
