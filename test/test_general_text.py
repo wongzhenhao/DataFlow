@@ -1,4 +1,4 @@
-from dataflow.operators.eval.GeneralText import RMScorer 
+from dataflow.operators.eval.GeneralText import PresidioScorer 
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
@@ -11,11 +11,12 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.scorer = RMScorer(device='cuda')
+        self.scorer = PresidioScorer(device='cuda')
 
     def forward(self):
         self.scorer.run(
-            storage=self.storage.step()
+            storage=self.storage.step(),
+            input_key='instruction'
         )
 
 model = TextPipeline()

@@ -32,6 +32,10 @@ langkit
 openai
 sentencepiece
 datasketch
+presidio_analyzer[transformers]
+presidio_anonymizer
+vendi-score==0.0.3
+google-api-core
 
 # knowledge base cleaning
 chonkie
