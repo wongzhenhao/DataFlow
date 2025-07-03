@@ -57,7 +57,7 @@ Current Pipelines in Dataflow are as follows:
 - **Knowlege Base Cleaning Pipeline**: Extract and structure knowledge from unorganized sources like tables, PDFs, and Word documents into usable entries for downstream RAG or QA pair generation.
   - ![](./static/images/dataflow_KnowledgeBaseClean_pipeline.jpg)
 - **Agentic RAG Pipeline**: Identify and extract QA pairs from existing QA datasets or knowledge bases that require external knowledge to answer, for use in downstream training of Agnetic RAG tasks.
-
+  - ![](./static/images/dataflow_agenticRAG_pipeline.jpg)
 ### 3.2 Flexible Operator PipeLines
 In this framework, operators are categorized into Fundamental Operators, Generic Operators, Domain-Specific Operators, and Evaluation Operators, etc., supporting data processing and evaluation functionalities. Please refer to the [documentation](https://OpenDCAI.github.io/DataFlow-Doc/) for details.
 
