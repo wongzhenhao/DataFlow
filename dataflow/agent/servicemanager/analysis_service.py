@@ -151,7 +151,7 @@ class AnalysisService:
             # ---------- end router ----------
             if task.is_result_process:
                 last_result = task.task_result_processor(last_result, self.task_results)
-            logger.debug(f"[最终执行结果（传给下一个任务的结果）]:{last_result}")
+            logger.info(f"[The final execution result (the result passed to the next task)]:{last_result}")
             self.memory.set_session_data(session_id,f'{task.task_name}',last_result)
         self.memory.add_messages(session_id, [{"role": "user", "content": request.target}])
         # self.memory.add_response(session_id, {"role": "assistant", "content": last_result})

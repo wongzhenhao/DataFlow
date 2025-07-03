@@ -147,7 +147,7 @@ def local_tool_for_get_purpose(memory, request:ChatAgentRequest) -> str:
     # else:
     #     return ""
     purpose = memory.get_session_data(session_id=memory.get_session_id(request.sessionKEY),key = "conversation_router").get('purpose')
-
+    logger.info(f'[user purpose]: {purpose}')
     if purpose:
         return purpose
     else:
