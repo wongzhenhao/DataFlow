@@ -1,4 +1,26 @@
+#!/usr/bin/env python3
+"""
+tools.py  ── Versatile utility collection for agent operations
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module provides a comprehensive toolbox for agents, including:
+
+* chat history and workflow utilities
+* knowledge base access and file parsing functions
+* context formatting and filename validation
+* operator introspection and content mapping
+* category and configuration management
+* various helper methods for dataflow, chat, and knowledge tasks
+
+Designed for extensibility and ease of use in agent-driven applications.
+Thread-safety depends on each tool’s implementation; most stateless functions are thread-safe.
+
+"""
 from __future__ import annotations
+import asyncio
+import inspect
 import sys
 import os
 from pydantic import BaseModel
@@ -14,11 +36,12 @@ from clickhouse_connect import get_client
 import subprocess
 from collections import defaultdict, deque
 from dataflow.utils.storage import FileStorage
-from .logger import get_logger
-logger = get_logger(__name__)
+from .pipeline_processor import local_tool_for_update_operators_info
+# from .logger import get_logger
+from dataflow import get_logger
+logger = get_logger()
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
+parent_dir = os.path.dirname(os.path.abspath(__file__))
 MAX_JSONL_LINES = 50
 DATA_DIR = Path("./data/knowledgebase")  # Local data storage directory
 
@@ -32,16 +55,25 @@ class GlobalVariables(BaseModel):
     feedback: Optional[str] = None
     history: List[HistoryItem] = []
 
-
 class ChatAgentRequest(BaseModel):
     user_id: Optional[int] = None
     target: str = ""
+    api_key:str = ""
+    chat_api_url:str = ""
     model: Optional[str] = None
     kb_id: Optional[str] = None
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     language: Optional[str] = None
     sessionKEY: str
+    json_file: str
+    py_path: str
+    execute_the_pipeline: bool
+    use_local_model: bool
+    local_model_name_or_path: str
+    timeout: int
+    max_debug_round: int
+
 
 class ChatResponse(BaseModel):
     id: str
@@ -120,8 +152,6 @@ def local_tool_for_get_purpose(memory, request:ChatAgentRequest) -> str:
     else:
         return ""
 
-
-
 def get_kb_content(request: ChatAgentRequest) -> Optional[Any]:
     """
     Load knowledge base content from a JSON file based on the request.
@@ -161,7 +191,8 @@ def get_operator_content(request: Any, data_key: Union[Dict[str, Any], List[Dict
     except StopIteration:
         print("Error: No key-value pairs in data_key!")
         return None
-    file_path = "/mnt/h_h_public/lh/lz/DataFlow-AgentBot/Config/Operator.json"
+    
+    file_path = f"{parent_dir}/resources/Operator_patched.json"
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             operator_content = json.load(f)
@@ -195,6 +226,9 @@ def get_operator_content_map_from_all_operators(
     Any
         Operator mapping content or None if not found or error.
     """
+    # 更新Operators信息
+    local_tool_for_update_operators_info()
+
     data_key = pre_task_result
     if isinstance(data_key, list):
         if not data_key:
@@ -214,11 +248,11 @@ def get_operator_content_map_from_all_operators(
     except StopIteration:
         print("Error: No key-value pairs in data_key!")
         return None
-    if subtype == "MIXTURE":
-        result = get_operator_descriptions("dataflow")
-        return result
+    # if subtype == "MIXTURE":
+    #     result = get_operator_descriptions("dataflow")
+    #     return result
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, "resources", "Operator.json")
+    file_path = os.path.join(base_dir, "resources", "Operator_patched.json")
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             operator_content = json.load(f)
@@ -229,53 +263,91 @@ def get_operator_content_map_from_all_operators(
         print(f"Error: Unable to parse JSON file {file_path}!")
         return None
     result = operator_content.get(subtype)
+    KEEP_KEYS = {
+        "node",
+        "name",
+        "type",
+        "description",
+        "required",
+        "depends_on",
+        "mode",
+    }
+    result = [
+        {k: op.get(k) for k in KEEP_KEYS} for op in result
+    ]
     if result is None:
         print(f"Warning: Key '{subtype}' not found in Operator.json; available keys: {list(operator_content.keys())}")
     return result
 
-def get_operator_descriptions(root_package: str = "dataflow", lang: str = "zh") -> List[Dict[str, Any]]:
+def get_operator_descriptions(root_package: str = "dataflow",
+                              lang: str = "zh") -> List[Dict[str, Any]]:
     """
-    Scan all classes with a get_desc method under the root package,
-    returning a list of dicts with id, name, and description.
+    扫描 root_package 下所有带有静态方法 get_desc 的类，
+    返回 [node, name, description] 列表。
+    只有当 get_desc 被显式标记为 @staticmethod 时才会被收录。
     """
-    import importlib
-    import os
-    import inspect
+    import importlib, os, inspect
+    from pathlib import Path
+
+    root_dir = Path(importlib.import_module(root_package).__file__).parent
     operator_classes = []
 
-    root_dir = os.path.dirname(importlib.import_module(root_package).__file__)
-    for root, dirs, files in os.walk(root_dir):
-        for file in files:
-            if file.endswith('.py'):
-                relative_path = os.path.relpath(root, root_dir)
-                if relative_path == '.':
-                    module_name = f"{root_package}.{file[:-3]}"
-                else:
-                    module_name = f"{root_package}.{relative_path.replace(os.sep, '.')}.{file[:-3]}"
-                module_name = module_name.replace('..', '.')
-                try:
-                    module = importlib.import_module(module_name)
-                    for name, obj in inspect.getmembers(module):
-                        if inspect.isclass(obj) and hasattr(obj, 'get_desc'):
-                            operator_classes.append(obj)
-                except ImportError:
-                    continue
+    # 1. 递归导入模块并收集符合条件的类 -----------------------------
+    for py in root_dir.rglob("*.py"):
+        # 生成包名：dataflow.xxx.yyy
+        rel_path = py.relative_to(root_dir).with_suffix("")
+        module_name = f"{root_package}.{'.'.join(rel_path.parts)}"
 
-    desc_list = []
-    for idx, operator in enumerate(operator_classes, 1):
         try:
-            if isinstance(operator.__dict__.get('get_desc', None), staticmethod):
-                desc = operator.get_desc(lang)
-            else:
-                desc = operator().get_desc(lang)
-        except Exception as e:
-            desc = f"Error getting description: {e}"
-        desc_list.append({
-            "node": idx,
-            "name": operator.__name__,
-            "description": desc
-        })
+            module = importlib.import_module(module_name)
+        except Exception:
+            # 导入失败直接跳过
+            continue
+
+        # 遍历模块内所有类
+        for _, cls in inspect.getmembers(module, inspect.isclass):
+            # 必须位于当前模块（排除继承链上的外部类）
+            if cls.__module__ != module.__name__:
+                continue
+            # 仅保留 get_desc 是 staticmethod 的类
+            if isinstance(cls.__dict__.get("get_desc"), staticmethod):
+                operator_classes.append(cls)
+    def _call_get_desc_static(cls, lang: str) -> str | None:
+        func_obj = cls.__dict__.get("get_desc")
+        if not isinstance(func_obj, staticmethod):
+            return None                                  
+        fn = func_obj.__func__                           
+        params = list(inspect.signature(fn).parameters)
+        if params == ["lang"]:                           
+            return fn(lang)
+        if params == ["self", "lang"]:                   
+            return fn(None, lang)
+        return None
+    # 2. 生成描述 ------------------------------------------------------
+    desc_list: List[Dict[str, Any]] = []
+    # for idx, cls in enumerate(operator_classes, 1):
+    #     try:
+    #         desc = cls.get_desc(lang)
+    #     except Exception as e:
+    #         # 调用失败直接跳过，不写入结果
+    #         print(f"[Skip] {cls.__name__}: {e}")
+    #         continue
+
+    #     desc_list.append(
+    #         {
+    #             "node": idx,
+    #             "name": cls.__name__,
+    #             "description": desc,
+    #         }
+    #     )
+    for idx, cls in enumerate(operator_classes, 1):
+        desc = _call_get_desc_static(cls, lang)
+        if desc is None:
+            continue 
+        desc_list.append({"node": idx, "name": cls.__name__, "description": desc})
+
     return desc_list
+
 
 def local_tool_for_get_chat_history(
     request,
@@ -291,7 +363,8 @@ def local_tool_for_get_chat_target(
     return request.target
 
 def local_tool_for_get_categories():
-    filepath = "/mnt/h_h_public/lh/lz/new-dataagent/toolkits/resources/Operator.json"
+    filepath = f"{parent_dir}/resources/Operator_patched.json"
+    logger.warning(f"[filepath]: {filepath}")
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
     return ','.join(data.keys())
@@ -745,26 +818,33 @@ def main_print_logo():
             console.print(pad + line, style=color, highlight=False, overflow="ignore")
 
 def local_tool_for_sample(
+    request,
     sample_size: int = 100,
     use_file_sys: int = 1,
-    json_file: str = "",
-    cache_type: str = "jsonl"
+    cache_type: str = "jsonl",
+    only_keys: bool = False,
 ) -> Dict[str, Any]:
     from collections import Counter
     """
     Sample, classify, and compute statistics on sample data.
 
     Args:
-        storage: Optional storage backend. If None, use default JSONAnyStorage(json_file).
         sample_size: Number of samples to retrieve.
-        json_file: Path for JSON storage if storage is not provided.
+        use_file_sys: Whether to use file system storage (1) or not (0).
+        cache_type: Storage cache type ("jsonl" by default).
 
     Returns:
         A dictionary with overall statistics and sample details.
     """
     def judge_type(sample: Dict[str, Any]) -> str:
         """
-        Judge and return the type of a sample.
+        Determine and return the type of a sample.
+
+        Args:
+            sample: The sample to be judged.
+
+        Returns:
+            The type of the sample as a string.
         """
         if not isinstance(sample, dict):
             return "Other"
@@ -790,31 +870,33 @@ def local_tool_for_sample(
                 return "PT"
         return "Other"
 
-    # Storage选择
+    # Storage selection
     if use_file_sys:
         from ..servicemanager import SampleFileStorage
-        storage = SampleFileStorage(first_entry_file_name=json_file,cache_type="json")
-        storage.step()  
+        storage = SampleFileStorage(first_entry_file_name=request.json_file, cache_type="json")
+        storage.step()
     else:
         storage = None
-    logger.debug(f"------------采样之前--------------------")
-    samples,total = storage.rsample(mode="manual",k=sample_size)
-    logger.debug(f"------------采样之后--------------------")
+    logger.debug(f"------------Before Sampling--------------------")
+    samples, total = storage.rsample(mode="manual", k=sample_size)
+    logger.debug(f"------------After Sampling--------------------")
 
     type_list = [judge_type(s) for s in samples]
     counter = Counter(type_list)
 
-    # total = len(samples)
     dist = {
         t: {"count": c, "ratio": round(c / total, 4)}
         for t, c in counter.items()
     }
+    key_set = set().union(*(s.keys() for s in samples if isinstance(s, dict)))
+    if only_keys:
+        return sorted(key_set)
     stats = {
         "total": total,
         "distribution": dist,
         "samples": samples
     }
-    logger.debug(f"-------数据统计-------\n {stats}")
+    logger.debug(f"-------Data Statistics-------\n {stats}")
     return stats
 
 def generate_pre_task_params(
@@ -862,5 +944,107 @@ def generate_pre_task_params(
         ]
     }
 
-# if __name__ == "__main__":
+async def generate_pre_task_params_with_sandboxed_prompt_param_builder(
+    system_template: str,
+    task_template: str,
+    request: "ChatAgentRequest",
+    *,
+    param_funcs: Optional[Dict[str, Callable]] = None,
+    pre_task_result: Any = None,
+    memory=None,
+    extral_param: Optional[Dict[str, Dict[str, Any]]] = None,
+    execution_agent: None,
+    debuggable_tools: Mapping[str, bool] | None = None,
+) -> Dict[str, Any]:
+    """
+    Generate prompt parameters based on templates and tool functions.
+
+    1. If `execution_agent` is provided and `param_name` is in `debuggable_tools`:
+         - Use execution_agent.safe_call_tool for isolated execution and automatic debugging;
+         - Return SandboxResult.result as the parameter value.
+    2. Otherwise, call the tool function synchronously.
+
+    Any exceptions will be caught and logged, the parameter value will be set to None, and the main process will not crash.
+    """
+    params: Dict[str, Any] = {}
+    logger.debug(f"[extral_param]: {extral_param}")
+
+    if not param_funcs:
+        return {
+            "templates": [
+                {"name": system_template, "params": {}},
+                {"name": task_template, "params": params},
+            ]
+        }
+
+    # Determine if currently in a running event loop
+    try:
+        asyncio.get_running_loop()
+        has_loop = True
+    except RuntimeError:
+        has_loop = False
+
+    async def _run_safe_call(func, kwargs, param_name, is_debug_subprocess_code):
+        return await execution_agent.safe_call_tool(
+            tool_func=func,
+            func_name=param_name,
+            call_args=kwargs,
+            task_name=task_template,
+            max_debug_rounds=request.max_debug_round,
+            timeout=request.timeout,
+            is_debug_subprocess_code=is_debug_subprocess_code
+        )
+    debuggable_tools = debuggable_tools or {}
+    for param_name, func in param_funcs.items():
+        try:
+            sig = inspect.signature(func)
+            accepted = sig.parameters.keys()
+
+            # ------------ Assemble call arguments ------------
+            kwargs = {}
+            if "request" in accepted:
+                kwargs["request"] = request
+            if "pre_task_result" in accepted:
+                kwargs["pre_task_result"] = pre_task_result
+            if "memory" in accepted:
+                kwargs["memory"] = memory
+            if extral_param and param_name in extral_param:
+                kwargs.update(extral_param[param_name])
+
+            logger.debug(f"[param_name]: {param_name}\n[kwargs]: {kwargs}")
+
+            need_isolated = (
+                execution_agent is not None and param_name in debuggable_tools
+            )
+            is_debug_subprocess_code = debuggable_tools.get(param_name, False) 
+
+            if need_isolated:
+                if has_loop:
+                    sandbox_result = await _run_safe_call(func, kwargs, param_name, is_debug_subprocess_code)
+                else:
+                    sandbox_result = asyncio.run(
+                        _run_safe_call(func, kwargs, param_name, is_debug_subprocess_code)
+                    )
+                params[param_name] = (
+                    sandbox_result.result if sandbox_result.success else None
+                )
+            else:
+                # --- Normal synchronous call ---
+                params[param_name] = func(**kwargs)
+
+        except Exception as e:
+            logger.exception(
+                f"[generate_pre_task_params] {getattr(func, '__name__', func)} failed: {e}"
+            )
+            params[param_name] = None
+
+    return {
+        "templates": [
+            {"name": system_template, "params": {}},
+            {"name": task_template, "params": params},
+        ]
+    }
+
+if __name__ == "__main__":
+    print(get_operator_descriptions())
 #     print(local_tool_for_sample(json_file="/mnt/h_h_public/lh/lz/DataFlow/dataflow/example/ReasoningPipeline/pipeline_math_short.json"))

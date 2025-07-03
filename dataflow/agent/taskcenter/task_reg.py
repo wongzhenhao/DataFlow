@@ -1,3 +1,22 @@
+#!/usr/bin/env python3
+"""
+task_registry.py  ── Registry and factory for Task instances in agent pipelines
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module provides a TaskRegistry class for managing and instantiating Task objects by name.
+
+Features:
+* Decorator-based registration of task factories.
+* Retrieval of Task instances by name, with support for custom prompt templates.
+* Listing of all registered tasks.
+* Ensures unique task names and clear error handling for unregistered tasks.
+
+Intended for extensible agent pipelines where tasks are defined, registered, and instantiated dynamically.
+
+Thread-safety: Registry modification is not thread-safe by default and should be synchronized if used in concurrent environments.
+"""
 from typing import Callable, Dict
 from ..promptstemplates.prompt_template import PromptsTemplateGenerator
 from .task_dispatcher import Task

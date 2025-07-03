@@ -26,34 +26,33 @@ from json.decoder import JSONDecodeError
 from fastapi import HTTPException, status
 import httpx
 import uuid
-from ..toolkits.tools import generate_pre_task_params,ChatResponse,ChatAgentRequest,get_logger
+# generate_pre_task_params
+from ..toolkits import generate_pre_task_params,ChatResponse,ChatAgentRequest,generate_pre_task_params_with_sandboxed_prompt_param_builder
 from ..servicemanager.memory_service import Memory
 from ..agentrole.analyst import AnalystAgent
+from ..agentrole.executioner import ExecutionAgent
 from ..agentrole.debugger import DebugAgent
 import yaml
 import os
 from termcolor import colored
-logger = get_logger(__name__)
+from dataflow import get_logger
+logger = get_logger()
 
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 class Config:
-    def __init__(self, config_path):
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-        self.API_KEY = config.get('API_KEY')
-        self.CHAT_API_URL = config.get('CHAT_API_URL')
-        self.MODEL = config.get('MODEL')
-        self.LOCAL = config.get('local', False)
-        self.TaskYaml = config.get('TaskYaml')
+    def __init__(self, request:ChatAgentRequest):
+        self.API_KEY = request.api_key
+        self.CHAT_API_URL = request.chat_api_url
+        self.MODEL = request.model
         self.HEADER = {
                 "Authorization": f"Bearer {self.API_KEY}",
                 "Content-Type": "application/json"
             }
 class AnalysisService:
-    def __init__(self, config_path: str, tasks: list, memory_entity: Memory, request: ChatAgentRequest):
-        self.config = Config(config_path)
+    def __init__(self, tasks: list, memory_entity: Memory, request: ChatAgentRequest,execution_agent:ExecutionAgent):
+        self.config = Config(request)
         self.memory = memory_entity
         self.request = request
         session_id = self.memory.get_session_id(self.request.sessionKEY)
@@ -64,7 +63,9 @@ class AnalysisService:
         else:
             self.tasks = tasks
         self.prompt_template_generator = self.tasks[-1].prompts_template
-        self.debug_agent = DebugAgent(self.tasks[-1], self.memory, request=self.request)
+        # self.debug_agent = DebugAgent(self.tasks[-1], self.memory, request=self.request)
+        self.debug_agent = execution_agent.debug_agent
+        self.execution_agent = execution_agent
 
     async def process_request(self):
 
@@ -104,14 +105,26 @@ class AnalysisService:
         last_result = None
         for task in self.tasks:
             task.pre_task_result = last_result  # 这里没有修改 ，应该是要按照任务的dependon进行组合
-            task.task_params = generate_pre_task_params(
+            # task.task_params = generate_pre_task_params(
+            #     system_template=task.system_template,
+            #     task_template=task.task_template,
+            #     request=request,
+            #     param_funcs=task.param_funcs,
+            #     pre_task_result=task.pre_task_result if task.use_pre_task_result else None,
+            #     memory=self.memory,
+            #     extral_param = task.tool_call_map
+            # )
+            
+            task.task_params =await generate_pre_task_params_with_sandboxed_prompt_param_builder(
                 system_template=task.system_template,
                 task_template=task.task_template,
                 request=request,
                 param_funcs=task.param_funcs,
                 pre_task_result=task.pre_task_result if task.use_pre_task_result else None,
                 memory=self.memory,
-                extral_param = task.tool_call_map
+                extral_param = task.tool_call_map,
+                execution_agent=self.execution_agent,
+                debuggable_tools={"local_tool_for_execute_the_recommended_pipeline":True},
             )
             task.render_templates()
             agent = AnalystAgent(task, self.memory, self.debug_agent)
@@ -141,7 +154,7 @@ class AnalysisService:
             # ---------- end router ----------
             if task.is_result_process:
                 last_result = task.task_result_processor(last_result, self.task_results)
-            logger.debug(f"最终执行结果（传给下一个任务的结果）：{last_result}")
+            logger.debug(f"[最终执行结果（传给下一个任务的结果）]:{last_result}")
             self.memory.set_session_data(session_id,f'{task.task_name}',last_result)
         self.memory.add_messages(session_id, [{"role": "user", "content": request.target}])
         # self.memory.add_response(session_id, {"role": "assistant", "content": last_result})
@@ -191,10 +204,10 @@ class AnalysisService:
     async def _call_llm_api(self, payload):
         async with httpx.AsyncClient() as client:
             resp = await client.post(
-                self.config.CHAT_API_URL,
-                headers=self.config.HEADER,
-                json=payload,
-                timeout=120.0
+                url     = self.config.CHAT_API_URL,
+                headers = self.config.HEADER,
+                json    = payload,
+                timeout = 120.0
             )
             resp.raise_for_status()
             return resp.json()["choices"][0]["message"]["content"]

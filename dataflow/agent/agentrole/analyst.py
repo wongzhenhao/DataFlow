@@ -1,14 +1,31 @@
+#!/usr/bin/env python3
+"""
+analyst.py  ── AnalystAgent: LLM-driven analysis and robust JSON parsing for agent workflows
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-03
+
+This module defines the AnalystAgent, an agent component for generating analysis results using LLMs,
+managing conversational context, and robustly extracting structured data from responses.
+
+Features:
+* Handles chat-based analysis tasks with flexible session and memory management.
+* Integrates optional debug agent for iterative LLM output correction.
+* Supports robust JSON parsing with comment and trailing comma removal, enabling extraction and merging of multiple JSON objects from model output.
+* Designed for modular use in agent pipelines and dataflow systems.
+
+Thread-safety: AnalystAgent instances are not inherently thread-safe and should be managed accordingly in concurrent environments.
+"""
 from typing import Dict, Any
 from ..taskcenter.task_dispatcher import Task
 from json.decoder import JSONDecoder, JSONDecodeError
 from ..servicemanager.memory_service import Memory, MemoryClient
-from ..toolkits import (
-    get_logger,    
+from ..toolkits import (  
     ChatAgentRequest
 )
 import re
-
-logger = get_logger(__name__)
+from dataflow import get_logger
+logger = get_logger()
 
 class AnalystAgent:
     def __init__(
@@ -37,7 +54,7 @@ class AnalystAgent:
         Generate analysis results using the provided chat request.
         """
         task_description = self.task.task_prompts
-        logger.info(f"[{self.task.task_name}'s task promots]: {task_description}")
+        logger.debug(f"[{self.task.task_name}'s task promots]: {task_description}")
         if task_description is None:
             return {}
         logger.debug(f"[Previous task result]:{self.task.pre_task_result}!")
@@ -57,10 +74,10 @@ class AnalystAgent:
             session_key=session_key
         )
         if self.debug_agent:
-            logger.info(f"[Task name]: \n ---------------{self.task.task_name}---------------")
+            logger.info(f"[Task name]: ---------------{self.task.task_name}---------------")
             content = await self.debug_agent.debug_form(self.task.task_name, content)
         self.task.task_result = self.robust_parse_json(content)
-        logger.info(f"[parse results]: \n --------------- {self.task.task_result} ---------------")
+        logger.debug(f"[parse results]: \n --------------- {self.task.task_result} ---------------")
         return self.task.task_result
     def _strip_json_comments(self, s: str) -> str:
         """

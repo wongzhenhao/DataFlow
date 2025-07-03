@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-memory.py  ── Simple in-memory session & conversation store
+memory_service.py  ── Simple in-memory session & conversation store
 Author  : Zhou Liu
 License : MIT
 Created : 2024-06-24

@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+task_definitions.py  ── Task factory registrations for agent workflow pipeline
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module defines and registers a collection of Task factory functions using TaskRegistry.
+Each factory specifies configuration, templates, and parameter functions for a specific agent task.
+
+Features:
+* Centralized registration of all supported task types (conversation, classification, pipeline inference, pipeline execution, etc.)
+* Easy extension: add new task factories with the @TaskRegistry.register decorator.
+* Parameter functions are injected for dynamic, context-aware task execution.
+* Maintains a unified configuration resource directory for task YAML files.
+
+Intended for use in agent workflow orchestration, enabling modular and dynamic task dispatch.
+
+Thread-safety: Task registration is not thread-safe by default; use with care in concurrent environments.
+"""
 import os
 from .task_dispatcher import Task
 from ..toolkits import combine_pipeline_result,local_tool_for_get_purpose,local_tool_for_sample,get_operator_content,local_tool_for_get_chat_target,get_operator_content_map_from_all_operators,local_tool_for_get_chat_history,local_tool_for_execute_the_recommended_pipeline,local_tool_for_get_categories
