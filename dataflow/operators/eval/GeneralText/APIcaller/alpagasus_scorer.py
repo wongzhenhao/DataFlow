@@ -69,6 +69,5 @@ class AlpagasusScorer(OperatorABC):
         
         scores = self.eval(dataframe, self.input_instruction_key, self.input_input_key, self.input_output_key)
         
-        # 将分数写入输出列
         dataframe[self.output_key] = scores
         storage.write(dataframe)
