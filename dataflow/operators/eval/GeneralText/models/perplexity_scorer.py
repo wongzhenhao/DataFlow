@@ -7,7 +7,7 @@ from dataflow.utils.utils import get_logger
 @OPERATOR_REGISTRY.register()
 class PerplexityScorer(OperatorABC):
     # Need to download model first!
-    def __init__(self, lang='en', model_name='dataflow/Eval/Text/models/Kenlm/wikipedia'):
+    def __init__(self, lang='en', model_name='dataflow/operators/eval/GeneralText/models/Kenlm/wikipedia'):
         self.model_name = model_name
         self.language = lang
         self.score_name = 'PerplexityScore'
@@ -37,7 +37,7 @@ class PerplexityScorer(OperatorABC):
         dataframe = storage.read("dataframe")
         self.logger.info(f"Perplexity score ready to evaluate.")
         scores = self.eval(dataframe, input_key)
-        dataframe[output_key] = scores        
+        dataframe[output_key] = scores      
         storage.write(dataframe)
 
 
