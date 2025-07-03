@@ -23,6 +23,7 @@ from .diversity.vendi_scorer import VendiScorer
 from .diversity.task2vec_scorer import Task2VecScorer
 
 from .gen.bleu_scorer import BleuScorer
+from .gen.cider_scorer import CiderScorer
 
 __all__ = [
     'NgramScorer',
@@ -45,5 +46,6 @@ __all__ = [
     'PerspectiveScorer',
     'VendiScorer',
     'Task2VecScorer',
-    'BleuScorer'
+    'BleuScorer',
+    'CiderScorer'
 ]

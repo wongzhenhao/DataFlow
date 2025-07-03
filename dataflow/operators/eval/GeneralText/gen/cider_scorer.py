@@ -6,7 +6,7 @@ from dataflow.core import OperatorABC
 from dataflow.utils.storage import DataFlowStorage
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
-from dataflow.operators.eval.GeneralText.gen.cider import Cider
+from dataflow.operators.eval.GeneralText.gen.cider.cider import Cider
 
 def load_idf(idf_path):
     with open(idf_path, 'rb') as f:
@@ -15,21 +15,19 @@ def load_idf(idf_path):
 
 @OPERATOR_REGISTRY.register()
 class CiderScorer(OperatorABC):
-    def __init__(self, n=4, sigma=6.0, df_mode="coco-val-df", idf_path="dataflow/Eval/Text/gen/ciderscorer/coco-val-df.p"):
+    def __init__(self, n=4, sigma=6.0, df_mode="coco-val-df", idf_path="./dataflow/operators/eval/GeneralText/gen/cider/coco-val-df.p"):
         self.logger = get_logger()
         self.n = n  # Max n-gram length (default: 4)
         self.sigma = sigma  # Sigma for Gaussian penalty (default: 6.0)
         
-        # Decide which IDF file to load based on 'df_mode'
         self.df_mode = df_mode
         if self.df_mode != "corpus":
+            # The idf file can be downloaded at https://github.com/ramavedantam/coco-caption/blob/master/data/coco-val-df.p
+            # Put the file in the correct idf_path
             self.idf = load_idf(idf_path)
         else:
             self.idf = None  # No need to load IDF for 'corpus' mode
         
-    @staticmethod
-    def get_desc(self, lang):
-        return NotImplementedError("The description of CiderScorer is not implemented!")
     
     def _score_func(self, eval_text, ref_text):
         cider_scorer = Cider(
@@ -51,7 +49,7 @@ class CiderScorer(OperatorABC):
         scores = [self._score_func(eval_text, ref_text) for eval_text, ref_text in tqdm(zip(eval_data, ref_data), desc="CiderScorer Evaluating...")]
         return scores
     
-    def run(self, storage: DataFlowStorage, input_key: str, reference_key: str, output_key: str):
+    def run(self, storage: DataFlowStorage, input_key: str, reference_key: str, output_key: str='CiderScore'):
         self.input_key = input_key
         self.reference_key = reference_key
         self.output_key = output_key
@@ -60,6 +58,5 @@ class CiderScorer(OperatorABC):
         self.logger.info(f"CiderScore ready to evaluate.")
         
         scores = self.eval(dataframe, input_key, reference_key)
-        
         dataframe[self.output_key] = scores
         storage.write(dataframe)
