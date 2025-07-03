@@ -26,7 +26,7 @@ class PromptGenerator(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于构建完整的提示词和思维链推理过程。\n\n"

@@ -16,7 +16,7 @@ class KnowledgeExtractor(OperatorABC):
         self.intermediate_dir=kwargs.get("intermediate_dir", "intermediate")
         
     @staticmethod
-    def get_desc(self, lang="en"):
+    def get_desc(lang: str = "zh"):
         """
         返回算子功能描述 (根据run()函数的功能实现)
         """

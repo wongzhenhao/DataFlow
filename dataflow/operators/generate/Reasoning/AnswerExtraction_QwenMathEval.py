@@ -28,7 +28,7 @@ class AnswerExtraction_QwenMathEval(OperatorABC):
         self.answer_extractor = AnswerExtractor(string_cleaner)
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于从数学问题回答中提取规范化答案表达式，进行字符串清洗、单位处理和格式标准化。\n\n"

@@ -18,7 +18,7 @@ class KnowledgeCleaner(OperatorABC):
         self.llm_serving = llm_serving
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "知识清洗算子：对原始知识内容进行标准化处理，包括HTML标签清理、特殊字符规范化、"
