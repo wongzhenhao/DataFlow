@@ -66,15 +66,17 @@ if __name__ == "__main__":
     if len(sys.argv) == 2 and sys.argv[1] == "request":
         test_req = ChatAgentRequest(
             language="zh", #en 或者 zh
-            target="帮我针对数据推荐一个预测的 pipeline,我只需要4个算子！！！而且不要去重算子！！",
+            target="帮我针对数据推荐一个预测的 pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
             # target="你好！今天武汉天气如何？？",
-            api_key =  "",
-            chat_api_url = "",
+            # api_key =  "",
+            # chat_api_url = "",
+            api_key =  "sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
+            chat_api_url = "https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             json_file = f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
-            py_path = f"{DATAFLOW_DIR}/test/recommend_pipeline.py",
-            execute_the_pipeline =  False,
+            py_path = f"{DATAFLOW_DIR}/test/recommend_pipeline_2.py",
+            execute_the_pipeline =  True,
             use_local_model = True,
             local_model_name_or_path = "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
             timeout = 3600,
