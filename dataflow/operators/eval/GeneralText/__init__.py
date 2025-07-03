@@ -22,6 +22,8 @@ from .APIcaller.perspective_scorer import PerspectiveScorer
 from .diversity.vendi_scorer import VendiScorer
 from .diversity.task2vec_scorer import Task2VecScorer
 
+from .gen.bleu_scorer import BleuScorer
+
 __all__ = [
     'NgramScorer',
     'LexicalDiversityScorer',
@@ -42,5 +44,6 @@ __all__ = [
     'TreeinstructScorer',
     'PerspectiveScorer',
     'VendiScorer',
-    'Task2VecScorer'
+    'Task2VecScorer',
+    'BleuScorer'
 ]
