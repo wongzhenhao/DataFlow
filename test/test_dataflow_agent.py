@@ -68,10 +68,8 @@ if __name__ == "__main__":
             language="zh", #en 或者 zh
             target="帮我针对数据推荐一个预测的 pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
             # target="你好！今天武汉天气如何？？",
-            # api_key =  "",
-            # chat_api_url = "",
-            api_key =  "sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
-            chat_api_url = "https://api.chatanywhere.com.cn/v1/chat/completions",
+            api_key =  "",
+            chat_api_url = "",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             json_file = f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
