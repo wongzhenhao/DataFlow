@@ -22,8 +22,9 @@ import os
 from .task_dispatcher import Task
 from ..toolkits import combine_pipeline_result,local_tool_for_get_purpose,local_tool_for_sample,get_operator_content,local_tool_for_get_chat_target,get_operator_content_map_from_all_operators,local_tool_for_get_chat_history,local_tool_for_execute_the_recommended_pipeline,local_tool_for_get_categories
 from .task_reg import TaskRegistry
+from dataflow.cli_funcs.paths import DataFlowPath
 
-yaml_dir = f"{os.path.dirname(__file__)}/resources"
+yaml_dir = f"{DataFlowPath.get_dataflow_agent_dir()}/taskcenter/resources"
 
 @TaskRegistry.register('conversation_router')
 def _make_conversation_router(prompts_template,request):
