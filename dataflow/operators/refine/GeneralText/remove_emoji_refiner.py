@@ -27,7 +27,7 @@ class RemoveEmojiRefiner(OperatorABC):
         )
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "去除文本中的表情符号" if lang == "zh" else "Remove emojis from the text."
 
     def run(self, storage: DataFlowStorage, input_key: str):

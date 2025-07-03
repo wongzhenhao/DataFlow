@@ -18,7 +18,7 @@ class PretrainGenerator(OperatorABC):
         self.llm_serving = llm_serving
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "基于给定文档内容，生成预训练格式的多轮对话问答数据。" if lang == "zh" else "Generate pre-training format multi-turn dialogue Q&A data based on the given document content."
 
     def run(self, storage: DataFlowStorage, input_key: str = "raw_content", output_key: str = "generated_content"):
