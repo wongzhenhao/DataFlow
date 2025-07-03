@@ -30,7 +30,7 @@ class PresidioScorer(OperatorABC):
         self.nlp_engine = TransformersNlpEngine(models=model_config)
         self.analyzer = AnalyzerEngine(nlp_engine=self.nlp_engine)
         self.score_name = 'PresidioScore'
-        self.logger.info(f"Using local model: {self.model_name}")
+        self.logger.info(f"Presidio analyzer load complete!")
 
 
     def eval(self, dataframe, input_key):
