@@ -43,7 +43,8 @@
       },
       "command": "python Text2SqlPipeline/code/SQLFilter.py --yaml_path \"Text2SqlPipeline/yaml/SQLFilter.yaml\"",
       "required": true,
-      "depends_on": []
+      "depends_on": [],
+      "mode": ""
     },
     {
       "node": 2,
@@ -1071,7 +1072,7 @@
     },
     {
       "node": 2,
-      "name": "MathProblemFilter",
+      "name": "QuestionFilter",
       "type": "filter",
       "description": "检查每个问题的正确性",
       "input": [

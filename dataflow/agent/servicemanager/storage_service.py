@@ -1,10 +1,28 @@
+#!/usr/bin/env python3
+"""
+storage_service.py  ── Enhanced FileStorage with sampling utilities
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module provides the `SampleFileStorage` class, which extends standard file storage
+with advanced sampling capabilities, including:
+
+* Efficient statistical and reservoir sampling from large datasets
+* Built-in support for sample size estimation (Cochran formula) for both proportions and means
+* Streamed and in-memory data access for pandas DataFrames
+* Helper methods for counting, field listing, and full/streamed record fetching
+
+Designed for rapid data inspection, human evaluation, and scalable sampling tasks.
+Thread-safety and memory usage depend on the base FileStorage implementation and dataset size.
+
+"""
+
 import random
 from typing import Iterator, Dict, Any, List, Tuple, Literal
 import math
 import pandas as pd
 from dataflow.utils.storage import FileStorage
-
-
 class SampleFileStorage(FileStorage):
     """
     A FileStorage that supports statistical / reservoir sampling.
@@ -126,4 +144,3 @@ class SampleFileStorage(FileStorage):
                     reservoir[j] = rec
 
         return reservoir, k
-

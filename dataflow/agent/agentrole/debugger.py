@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+debugger.py  ── DebugAgent: LLM-driven debugging, validation, and repair of agent task outputs
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module defines DebugAgent, a tool for validating, debugging, and repairing the output of agent tasks using LLMs.
+
+Features:
+* Automated LLM-based code and JSON debugging with template-based correction prompts.
+* End-to-end interaction with agent memory and task context.
+* Flexible integration into agent pipelines as a drop-in component for output validation and repair.
+* Robust JSON structure comparison and key validation against prompt templates.
+* Supports iterative correction loops for LLM-generated outputs that do not conform to required schemas.
+
+Designed for agent workflow applications that require reliable and automated output validation and correction.
+
+Thread-safety: DebugAgent instances are not inherently thread-safe and should be used accordingly in concurrent environments.
+"""
 import json
 import requests
 from typing import Dict, Any
@@ -25,13 +45,11 @@ class DebugAgent:
         self.request = request
         self.json_template_keys = {} #跟任务绑定固定的模板
         # 在通过Tool做最后处理
-
-
     async def llm_caller(self,prompts:str):
         json_data = {
             "model": self.task.modelname,
             "messages": [
-                {"role": "system", "content": "你是一个debug专家"},
+                {"role": "system", "content": "你是一个python代码debug专家"},
                 {"role": "user", "content": prompts}
             ],
         }
@@ -44,19 +62,24 @@ class DebugAgent:
         # content = result["choices"][0]["message"]["content"]
         return content
 
-    def debug_code(self, key, code, error, context):
-        prompt = self._build_debug_prompt(key, code, error, context)
-        fixed_code =self.llm_caller(prompt)
-        return fixed_code
+    async def debug_simple_tool_code(self, func_name, code, error, history):
+        prompt = self._build_debug_prompt(func_name, code, error, history)
+        debug_info = await self.llm_caller(prompt)
+        return debug_info
 
-    def _build_debug_prompt(self, key, code, error, context):
-        return (
-            f"你是一个Python代码debug专家。\n"
-            f"这是函数{key}的原始代码：\n{code}\n"
-            f"遇到的报错如下：\n{error}\n"
-            f"上下文信息（相关输入/依赖）：\n{context}\n"
-            "请你帮我修复这个函数，返回完整修正后的函数代码。"
-        )
+    def _build_debug_prompt(self, func_name, code, error, history):
+        prompt = self.prompt_generator.render_code_debug("task_prompt_for_code_debug_fix",
+                                              func_name = func_name,
+                                              code = code,
+                                              error = error,
+                                              history = history
+                                              )
+        return prompt
+    
+    async def debug_pipeline_tool_code(self, template_name, code, error, cls_detail_code, history, data_keys):
+        prompt = self.prompt_generator.render_code_debug(template_name,code = code,error = error ,cls_detail_code = cls_detail_code,history = history,data_keys = data_keys)
+        debug_info = await self.llm_caller(prompt)
+        return debug_info
 
     async def debug_form(self, key, result_json_str):
         # 获取模板
@@ -102,7 +125,6 @@ class DebugAgent:
         #     "type", "value"
         # ],
         # result_json_str = local_tool_for_clean_json(result_json_str,allowed_tpl,concat_keys={"reason"},hoist_children_spec={"outputs":[]})
-
         return result_json_str
 
     def _extract_json_from_prompt(self, prompt):

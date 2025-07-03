@@ -1,74 +1,84 @@
 import os, asyncio
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from typing import Optional
-
 from pathlib import Path
-CONFIG_PATH = (Path(__file__).resolve().parent / ".." / "dataflow" / "agent" /
-               "agentrole" / "resources" / "ChatAgentYaml.yaml").resolve()
 from dataflow.agent.promptstemplates.prompt_template import PromptsTemplateGenerator
 from dataflow.agent.taskcenter import TaskRegistry
 import dataflow.agent.taskcenter.task_definitions
 from dataflow.agent.servicemanager import AnalysisService, Memory
 from dataflow.agent.toolkits import (
     ChatResponse,
-    get_logger,
-    setup_logging,
-    main_print_logo,
     ChatAgentRequest,
+    ToolRegistry,
 )
-main_print_logo()
-logger = get_logger(__name__)
-setup_logging("DEBUG")
+from dataflow.agent.agentrole.debugger import DebugAgent
+from dataflow.agent.agentrole.executioner import ExecutionAgent
+from dataflow import get_logger
+logger = get_logger()
 memory = Memory()       
-
-# class ChatAgentRequest(BaseModel):
-#     language: str = Field(..., description="回答语言，例如 zh / en")
-#     target: str   = Field(..., description="用户当前输入的内容")
-#     model: str    = "deepseek-v3"
-#     sessionKEY: str
-#     temperature: Optional[float] = 0.7
-#     max_tokens:   Optional[int]  = 1024
-
-
-def _build_task_chain(language: str, with_execute: bool):
-    tmpl = PromptsTemplateGenerator(language)
-    router = TaskRegistry.get("conversation_router", tmpl)
+toolkit = ToolRegistry()
+memorys = {
+    "planner": Memory(),
+    "analyst": Memory(),
+    "executioner": Memory(),
+    "debugger": Memory(),
+}
+BASE_DIR = Path(__file__).resolve().parent
+def _build_task_chain(language: str, tmpl:PromptsTemplateGenerator):
+    router   = TaskRegistry.get("conversation_router", tmpl)
     classify = TaskRegistry.get("data_content_classification", tmpl)
     rec      = TaskRegistry.get("recommendation_inference_pipeline", tmpl)
-    if with_execute:
-        exe  = TaskRegistry.get("execute_the_recommended_pipeline", tmpl)
-        return [router, classify, rec, exe]
-    return [router, classify, rec]
+    exe      = TaskRegistry.get("execute_the_recommended_pipeline", tmpl)
+    return [router, classify, rec, exe]
 
-async def _run_service(req: ChatAgentRequest, with_execute: bool) -> ChatResponse:
+
+async def _run_service(req: ChatAgentRequest) -> ChatResponse:
+    tmpl = PromptsTemplateGenerator(req.language)
+    task_chain = _build_task_chain(req.language,tmpl = tmpl)
+    execution_agent = ExecutionAgent(
+                              req,
+                              memorys["executioner"],
+                              tmpl,
+                              debug_agent=DebugAgent(task_chain[-1],memorys["debugger"],req),
+                              task_chain= task_chain
+                              )
+    
     service = AnalysisService(
-        config_path = CONFIG_PATH,
-        tasks=_build_task_chain(req.language, with_execute),
-        memory_entity=memory,
+        tasks= task_chain,
+        memory_entity=memorys["analyst"],
         request=req,
+        execution_agent= execution_agent
     )
     return await service.process_request()
 
 app = FastAPI(title="Dataflow Agent Service")
 @app.post("/recommend", response_model=ChatResponse)
 async def recommend(req: ChatAgentRequest):
-    return await _run_service(req, with_execute=False)
+    return await _run_service(req)
 
 @app.post("/recommend_and_execute", response_model=ChatResponse)
 async def recommend_and_execute(req: ChatAgentRequest):
-    return await _run_service(req, with_execute=True)
+    return await _run_service(req)
 
 if __name__ == "__main__":
     import uvicorn, json, sys
-    if len(sys.argv) == 2 and sys.argv[1] == "test":
+    if len(sys.argv) == 2 and sys.argv[1] == "request":
         test_req = ChatAgentRequest(
             language="zh", #en 或者 zh
-            target="帮我针对数据推荐一个预测的 pipeline,不需要去重的算子！",
+            target="帮我针对数据推荐一个预测的 pipeline,我只需要前2个算子！！！",
+            # target="你好！你是谁？？",
+            api_key =  "sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
+            chat_api_url = "https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
+            json_file = f"{BASE_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
+            py_path = f"{BASE_DIR}/test/recommend_pipeline.py",
+            execute_the_pipeline =  False,
+            use_local_model = True,
+            local_model_name_or_path = "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
+            timeout = 3600,
+            max_debug_round = 5
         )
-        resp = asyncio.run(_run_service(test_req, with_execute=False))
+        resp = asyncio.run(_run_service(test_req))
         print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))
     else:
         uvicorn.run("test_dataflow_agent:app", host="0.0.0.0", port=8000, reload=True)

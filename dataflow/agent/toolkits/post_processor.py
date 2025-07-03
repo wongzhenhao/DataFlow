@@ -4,7 +4,6 @@ import json
 from .tools import get_operator_content,get_operator_descriptions
 from termcolor import colored
 
-
 def combine_pipeline_result(
         result: Dict[str, Any],
         task_results_history: List
@@ -25,11 +24,8 @@ def combine_pipeline_result(
     # Handle case when nodes_info is None or not a list/dict
     if nodes_info is None:
         return result
-
-    print(colored(f"nodes_info：{nodes_info}", "blue"))
-
+    # print(colored(f"nodes_info：{nodes_info}", "blue"))
     id_map: Dict[str, Dict[str, Any]] = {}
-
     # Case 1: nodes_info is a dictionary of operator descriptions (for MIXTURE)
     if isinstance(nodes_info, dict):
         for node_id, (op_name, description) in enumerate(nodes_info.items(), start=1):
@@ -89,8 +85,6 @@ def combine_pipeline_result(
     new_result["edges"] = normalized_edges
     new_result["name"] = f"{uuid.uuid4()}_pipeline"
     return new_result
-
-
 
 if __name__ == "__main__":
     pass

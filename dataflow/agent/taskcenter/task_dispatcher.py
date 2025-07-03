@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+task_dispatcher.py  ── Task object with dynamic template and function serialization support
+Author  : [Zhou Liu]
+License : MIT
+Created : 2024-07-02
+
+This module provides the `Task` class, which encapsulates:
+
+* Dynamic template rendering for system and task prompts
+* Serialization/deserialization of non-picklable function references and objects
+* Task configuration, parameters, dependencies, and result processing logic
+* Integration with YAML config files and prompt template generators
+
+It is designed for flexible agent orchestration and supports advanced
+workflows with custom function injection and template management.
+
+Thread-safety depends on user code and injected functions.
+"""
+
 import json
 import requests
 import yaml
@@ -9,15 +29,16 @@ import importlib
 import inspect
 import pickle
 import yaml
-from typing import Callable, Dict, Any, Union,List
+from typing import Callable, Dict, Any, Union, List
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 
 FuncSpec = Dict[str, str]
+
 def func2spec(fn: Callable) -> FuncSpec:
     """
-    把 *模块级* 函数转成可 JSON/pickle 的描述
+    Convert a *module-level* function to a JSON/pickle-friendly spec.
     """
     mod = fn.__module__
     qual = fn.__qualname__
@@ -25,7 +46,7 @@ def func2spec(fn: Callable) -> FuncSpec:
 
 def spec2func(spec: FuncSpec) -> Callable:
     """
-    通过描述信息重新拿回函数对象
+    Restore a function object from its spec.
     """
     mod = importlib.import_module(spec["module"])
     fn  = mod
@@ -34,27 +55,29 @@ def spec2func(spec: FuncSpec) -> Callable:
     return fn
 
 def is_module_level_fn(fn: Any) -> bool:
+    """
+    Check if a function is a module-level function (not a bound method).
+    """
     return inspect.isfunction(fn) and fn.__qualname__ == fn.__name__
 
 class Task:
-    def __init__(self, config_path, prompts_template:PromptsTemplateGenerator,
+    def __init__(self, config_path, prompts_template: PromptsTemplateGenerator,
                  system_template: str, task_template: str,
-                 param_funcs: dict,is_result_process = False, task_result_processor = None,use_pre_task_result = True,task_name = None):
-        # ------------------- 配置 -------------------
+                 param_funcs: dict, is_result_process = False, task_result_processor = None,
+                 use_pre_task_result = True, task_name = None):
+        # ------------------- Configuration -------------------
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
-        self.config_path      = config_path          # 反序列化时要用
-        self.api_key          = config["api_key"]
-        self.base_url         = config["base_url"]
-        self.modelname        = config["modelname"]
-        
-        # self.tasktype         = TaskType(config["tasktype"])
-
-        # ------------------- 运行期字段 -------------------
+        self.config_path      = config_path
+        self.api_key          = config["task_api_key"]
+        self.base_url         = config["task_chat_api_url"]
+        self.modelname        = config["task_model"]
+        # self.tasktype      = TaskType(config["tasktype"])
+        # ------------------- Runtime fields -------------------
         self.prompts_template   = prompts_template
-        self.param_funcs        = param_funcs         # 里头有不可 pickle 的
+        self.param_funcs        = param_funcs         # May contain non-picklable objects
         self.task_result_processor = task_result_processor
-        # ------------------- 纯数据字段 -------------------
+        # ------------------- Data fields -------------------
         self.task_name        = task_name
         self.system_template  = system_template
         self.task_template    = task_template
@@ -64,11 +87,11 @@ class Task:
         self.task_result      = ""
         self.pre_task_result: Union[Dict[str, Any], List[Dict[str, Any]]] = {}
         self.use_pre_task_result = use_pre_task_result
-        self.depends_on       = [] #任务依赖，默认依赖前一个任务的结果
+        self.depends_on       = [] # Task dependencies, default is previous task result
         self.task_params      = None
         self.is_result_process= is_result_process
         if self.task_name in config:
-            self.tool_call_map= config[self.task_name]    
+            self.tool_call_map= config[self.task_name]
         else:
             self.tool_call_map= {}
 
@@ -94,10 +117,11 @@ class Task:
             except Exception as e:
                 print(f"Error rendering template {template_name}: {str(e)}")
 
-
     def __getstate__(self):
+        """
+        Make the object serializable for pickling. Save function references as specs.
+        """
         state = self.__dict__.copy()
-
         state["_prompts_template_cls"] = (
             self.prompts_template.__class__.__module__,
             self.prompts_template.__class__.__qualname__,
@@ -108,7 +132,7 @@ class Task:
             if is_module_level_fn(fn):
                 serializable_funcs[name] = func2spec(fn)
             else:
-                # 对于 local_tool_for_sample 这类 bound-method，只保存占位信息
+                # For bound-methods like local_tool_for_sample, save a placeholder
                 serializable_funcs[name] = {"bound_sampler": True}
         state["param_funcs"] = serializable_funcs
         trp = self.task_result_processor
@@ -117,11 +141,12 @@ class Task:
             state["_trp_is_spec"] = True
         else:
             state["_trp_is_spec"] = False
-
         return state
 
-
     def __setstate__(self, state):
+        """
+        Restore object state from a pickle, including functions and template generator.
+        """
         self.__dict__.update(state)
         # ---- prompts_template ----
         mod_name, qual_name = self.__dict__.pop("_prompts_template_cls")
@@ -129,12 +154,12 @@ class Task:
         cls = mod
         for attr in qual_name.split("."):
             cls = getattr(cls, attr)
-        self.prompts_template = cls()       # 重新实例化
+        self.prompts_template = cls()       # Re-instantiate template generator
         # ---- param_funcs ----
         restored = {}
         for name, spec in self.param_funcs.items():
             if spec == {"bound_sampler": True}:
-                # 需要新的 Sampler 实例
+                # Requires a new Sampler instance
                 from ..toolkits import local_tool_for_sample
                 restored[name] = local_tool_for_sample
             else:

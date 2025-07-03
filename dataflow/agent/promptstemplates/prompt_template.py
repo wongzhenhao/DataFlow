@@ -45,11 +45,13 @@ class PromptsTemplateGenerator:
         # Built-in templates
         self.templates: Dict[str, str] = {}
         self.json_form_templates: Dict[str, str] = {}
+        self.code_debug_templates: Dict[str, str] = {}
+        self.operator_templates: Dict[str, Dict] = {}
 
         # Load external templates
         self._load_external_templates()
         self._load_external_json_forms()
-        self.operator_templates: Dict[str, Dict] = {}
+        self._load_code_debug_templates()
         self._load_operator_templates()
 
     @staticmethod
@@ -68,6 +70,21 @@ class PromptsTemplateGenerator:
                 if v in kwargs:
                     tpl = tpl.replace("{" + v + "}", str(kwargs[v]))
             return tpl
+        
+    def _load_code_debug_templates(self):
+        """
+        Load templates from `resources/code_debug_template.json`.
+        Structure: { "template_name": "… {code_snippet} …", ... }
+        """
+        path = pathlib.Path(__file__).parent / "resources" / "code_debug_template.json"
+        if not path.exists():
+            return
+        try:
+            data = json.loads(path.read_text("utf-8"))
+            if isinstance(data, dict):
+                self.code_debug_templates.update(data)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load code_debug_template.json: {e}")
 
     def _load_external_templates(self):
         """
@@ -148,6 +165,16 @@ class PromptsTemplateGenerator:
             raise KeyError(f"Missing prompt: operator={operator_name}, language={lang}, type={prompt_type}")
         txt = self._safe_format(tpl, **kwargs)
         return txt + (self.ANSWER_SUFFIX.format(lang=lang) if add_suffix else "")
+    
+    def render_code_debug(self, template_name: str, *, add_suffix: bool = False, **kwargs: Any) -> str:
+        """
+        Render a code-debugging prompt template that lives in
+        `code_debug_template.json`.
+        """
+        if template_name not in self.code_debug_templates:
+            raise ValueError(f"Code-debug template '{template_name}' does not exist")
+        txt = self._safe_format(self.code_debug_templates[template_name], **kwargs)
+        return txt + (self.ANSWER_SUFFIX.format(lang=self.output_language) if add_suffix else "")
 
     def add_sys_template(self, name: str, template: str):
         """Add a new system-level prompt template."""
