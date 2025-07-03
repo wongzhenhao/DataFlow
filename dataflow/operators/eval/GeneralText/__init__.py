@@ -13,7 +13,7 @@ from .models.rm_scorer import RMScorer
 from .models.textbook_scorer import TextbookScorer
 from .models.superfiltering_scorer import SuperfilteringScorer
 from .models.qurating_scorer import QuratingScorer
-# from .models.perplexity_scorer import PerplexityScorer
+from .models.perplexity_scorer import PerplexityScorer
 
 from .APIcaller.alpagasus_scorer import AlpagasusScorer
 from .APIcaller.treeinstruct_scorer import TreeinstructScorer
@@ -37,7 +37,7 @@ __all__ = [
     'TextbookScorer',
     'SuperfilteringScorer',
     'QuratingScorer',
-    # 'PerplexityScorer'
+    'PerplexityScorer',
     'AlpagasusScorer',
     'TreeinstructScorer',
     'PerspectiveScorer',
