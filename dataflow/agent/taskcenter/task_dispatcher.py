@@ -61,7 +61,7 @@ def is_module_level_fn(fn: Any) -> bool:
     return inspect.isfunction(fn) and fn.__qualname__ == fn.__name__
 
 class Task:
-    def __init__(self, config_path, prompts_template: PromptsTemplateGenerator,
+    def __init__(self, request, config_path, prompts_template: PromptsTemplateGenerator,
                  system_template: str, task_template: str,
                  param_funcs: dict, is_result_process = False, task_result_processor = None,
                  use_pre_task_result = True, task_name = None):
@@ -69,9 +69,12 @@ class Task:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
         self.config_path      = config_path
-        self.api_key          = config["task_api_key"]
-        self.base_url         = config["task_chat_api_url"]
-        self.modelname        = config["task_model"]
+        # self.api_key          = config["task_api_key"]
+        # self.base_url         = config["task_chat_api_url"]
+        # self.modelname        = config["task_model"]
+        self.api_key          = request.api_key
+        self.base_url         = request.chat_api_url
+        self.modelname        = request.model
         # self.tasktype      = TaskType(config["tasktype"])
         # ------------------- Runtime fields -------------------
         self.prompts_template   = prompts_template
