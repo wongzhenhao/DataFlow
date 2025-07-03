@@ -1,5 +1,5 @@
-task_api_key: sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs
-task_chat_api_url: https://api.chatanywhere.com.cn/v1
+task_api_key: 
+task_chat_api_url: 
 task_model: deepseek-v3
 
 data_content_classification:
