@@ -52,15 +52,15 @@ dependencies = {file = "requirements.txt"}
 [project.optional-dependencies]
 vllm = ["vllm<0.8"]
 agent = [
-    "cloudpickle>=3.1.1",
-    "fastapi>=0.115.14",
-    "httpx>=0.28.1",
-    "minio>=7.2.15",
-    "pandas>=2.3.0",
-    "psutil>=6.1.1",
-    "pyfiglet>=1.0.3",
-    "pyyaml>=6.0.2",
-    "requests>=2.32.4",
-    "termcolor>=3.1.0",
+    "cloudpickle",
+    "fastapi",
+    "httpx",
+    "minio",
+    "pandas",
+    "psutil",
+    "pyfiglet",
+    "pyyaml",
+    "requests",
+    "termcolor",
 ]
 
