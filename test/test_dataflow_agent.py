@@ -12,6 +12,7 @@ from dataflow.agent.toolkits import (
 )
 from dataflow.agent.agentrole.debugger import DebugAgent
 from dataflow.agent.agentrole.executioner import ExecutionAgent
+from dataflow.cli_funcs.paths import DataFlowPath
 from dataflow import get_logger
 logger = get_logger()     
 toolkit = ToolRegistry()
@@ -21,7 +22,9 @@ memorys = {
     "executioner": Memory(),
     "debugger": Memory(),
 }
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = DataFlowPath.get_dataflow_dir()
+DATAFLOW_DIR = BASE_DIR.parent
+
 def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
     router   = TaskRegistry.get("conversation_router", prompts_template=tmpl,request=req)
     classify = TaskRegistry.get("data_content_classification", prompts_template=tmpl,request=req)
@@ -69,9 +72,9 @@ if __name__ == "__main__":
             chat_api_url = "",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
-            json_file = f"{BASE_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
-            py_path = f"{BASE_DIR}/test/recommend_pipeline.py",
-            execute_the_pipeline =  True,
+            json_file = f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
+            py_path = f"{DATAFLOW_DIR}/test/recommend_pipeline.py",
+            execute_the_pipeline =  False,
             use_local_model = True,
             local_model_name_or_path = "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
             timeout = 3600,

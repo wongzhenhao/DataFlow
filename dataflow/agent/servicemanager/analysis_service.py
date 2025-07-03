@@ -38,9 +38,6 @@ import os
 from dataflow import get_logger
 logger = get_logger()
 
-
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
 class Config:
     def __init__(self, request:ChatAgentRequest):
         self.API_KEY = request.api_key

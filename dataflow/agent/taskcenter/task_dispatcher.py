@@ -30,12 +30,7 @@ import inspect
 import pickle
 import yaml
 from typing import Callable, Dict, Any, Union, List
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-
 FuncSpec = Dict[str, str]
-
 def func2spec(fn: Callable) -> FuncSpec:
     """
     Convert a *module-level* function to a JSON/pickle-friendly spec.

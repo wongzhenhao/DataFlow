@@ -40,8 +40,9 @@ from .pipeline_processor import local_tool_for_update_operators_info
 # from .logger import get_logger
 from dataflow import get_logger
 logger = get_logger()
+from dataflow.cli_funcs.paths import DataFlowPath
 
-parent_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = f"{DataFlowPath.get_dataflow_agent_dir()}/toolkits"
 MAX_JSONL_LINES = 50
 DATA_DIR = Path("./data/knowledgebase")  # Local data storage directory
 
