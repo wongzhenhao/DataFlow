@@ -22,7 +22,7 @@ class InstagFilter(OperatorABC):
         self.logger.info(f"Initializing {self.__class__.__name__} with min_score={self.min_score} and max_score={self.max_score}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Instag评分器过滤掉低标签数量数据" if lang == "zh" else "Filter out data with low tag counts using the Instag scorer."
 
     def run(self, storage: DataFlowStorage, input_instruction_key: str = 'instruction', output_key: str = 'instag_filter_label'):

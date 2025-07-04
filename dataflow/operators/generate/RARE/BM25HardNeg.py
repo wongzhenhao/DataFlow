@@ -92,7 +92,7 @@ class BM25HardNeg(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(lang: str) -> str:
+    def get_desc(lang: str = "zh") -> str:
         if lang == "zh":
             return (
                 "RAREPipeline: BM25HardNeg 算子使用 BM25 算法为给定查询挖掘困难负样本。\n\n"

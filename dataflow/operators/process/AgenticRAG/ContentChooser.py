@@ -144,7 +144,7 @@ class ContentChooser(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于从大量的文档片段中选取部分文档片段，用于后续生成种子QA对\n\n"

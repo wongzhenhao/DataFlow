@@ -29,7 +29,7 @@ class LanguageFilter(OperatorABC):
             raise
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用FastText语言识别模型过滤数据" if lang == "zh" else "Filter data using FastText language identification model."
 
     def eval(self, dataframe, input_key):

@@ -41,3 +41,14 @@ google-api-core
 chonkie
 trafilatura
 lxml_html_clean
+
+# dataflow agent
+cloudpickle
+fastapi
+httpx
+pandas
+psutil
+pyfiglet
+pyyaml
+requests
+termcolor
