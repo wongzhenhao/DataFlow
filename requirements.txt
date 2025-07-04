@@ -36,6 +36,7 @@ presidio_analyzer[transformers]
 presidio_anonymizer
 vendi-score==0.0.3
 google-api-core
+google-api-python-client
 
 # knowledge base cleaning
 chonkie
