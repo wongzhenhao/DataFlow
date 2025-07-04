@@ -26,7 +26,7 @@ class DeitaQualityScorer(OperatorABC):
         self.logger.info(f'{self.__class__.__name__} initialized.')
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Deita指令质量分类器评估指令质量" if lang == "zh" else "Evaluate instruction quality using the Deita instruction quality classifier."
 
     def infer_quality(self, input_text, resp_text):

@@ -18,7 +18,7 @@ class PairQualFilter(OperatorABC):
         self.logger.info(f"Initializing {self.filter_name} with min_score={self.min_score}, max_score={self.max_score}...")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用PairQual评分器过滤掉低质量数据" if lang == "zh" else "Filter out low-quality data using the PairQual scorer."
 
     def eval(self, dataframe, input_key):

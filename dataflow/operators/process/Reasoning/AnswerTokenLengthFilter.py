@@ -19,7 +19,7 @@ class AnswerTokenLengthFilter(OperatorABC):
         self.logger = get_logger()
        
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子根据token数量过滤过长的答案。\n\n"

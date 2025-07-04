@@ -96,7 +96,7 @@ class LexicalDiversityScorer(OperatorABC):
         self.metrics_to_keep = {'mtld': True, 'hdd': True}
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return NotImplementedError("The description of LexicalDiversityScorer is not implemented!")
 
     def _score_func(self, sample):

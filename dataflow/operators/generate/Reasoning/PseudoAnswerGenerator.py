@@ -33,7 +33,7 @@ class PseudoAnswerGenerator(OperatorABC):
         return answer_extractor
         
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子生成多个候选答案并通过统计选择最优解，实现伪答案生成。\n\n"

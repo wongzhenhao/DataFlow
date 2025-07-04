@@ -17,7 +17,7 @@ class QAGenerator:
         self.llm_serving = llm_serving
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于生成对应文档片段的QA对。\n\n"

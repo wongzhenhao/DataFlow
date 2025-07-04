@@ -30,7 +30,7 @@ class QuratingScorer(OperatorABC):
         self.logger.info(f'{self.__class__.__name__} initialized.')
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Qurating评分器评估文本质量" if lang == "zh" else "Evaluate text quality using the Qurating scorer."
 
     def _score_func(self, sample):

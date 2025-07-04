@@ -21,7 +21,7 @@ class ExtraKnowledgeGenerator(OperatorABC):
         self.prompt = ExtraKnowledgePrompt()
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于生成基于构建SQL生成所需的额外知识\n\n"

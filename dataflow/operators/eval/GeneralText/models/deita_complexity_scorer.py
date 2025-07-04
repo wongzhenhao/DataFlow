@@ -23,7 +23,7 @@ class DeitaComplexityScorer(OperatorABC):
         self.logger.info(f'{self.__class__.__name__} initialized.')
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Deita指令复杂度分类器评估指令复杂度" if lang == "zh" else "Evaluate instruction complexity using the Deita instruction complexity classifier."
 
     def infer_complexity(self, input_text):
