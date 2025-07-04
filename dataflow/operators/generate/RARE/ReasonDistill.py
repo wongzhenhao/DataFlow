@@ -38,7 +38,7 @@ class ReasonDistill(OperatorABC):
         self.llm_serving = llm_serving
 
     @staticmethod
-    def get_desc(lang: str) -> str:
+    def get_desc(lang: str = "zh") -> str:
         if lang == "zh":
             return (
                 "RAREPipeline: ReasonDistill 算子通过组合正负示例文档，提示大语言模型生成详细的推理过程。\n\n"

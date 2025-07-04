@@ -13,7 +13,7 @@ class AnswerPipelineRoot(OperatorABC):
         self.logger = get_logger()
         
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "答案处理流程根节点，负责将输入数据根据有无真实标签GT分发到不同处理分支。\n\n"

@@ -34,7 +34,7 @@ class Text2SQLDifficultyClassifier(OperatorABC):
         }
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于根据大模型生成SQL的准确率对Text2SQL问题进行难度分类。\n\n"

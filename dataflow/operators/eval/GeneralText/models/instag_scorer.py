@@ -31,7 +31,7 @@ class InstagScorer(OperatorABC):
         self.score_template = np.array([1, 2, 3, 4, 5, 6])
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Instag评分器评估指令意图标签" if lang == "zh" else "Evaluate instruction intention tags using the Instag scorer."
 
     def make_prompt(self, query):

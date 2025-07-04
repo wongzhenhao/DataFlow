@@ -22,7 +22,7 @@ class DeitaComplexityScorer(OperatorABC):
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, cache_dir=self.model_cache_dir).to(self.device)
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用Deita指令复杂度分类器评估指令复杂度" if lang == "zh" else "Evaluate instruction complexity using the Deita instruction complexity classifier."
 
     def infer_complexity(self, input_text):
