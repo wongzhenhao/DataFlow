@@ -66,7 +66,7 @@ class Doc2Query(OperatorABC): # Inherit from OperatorABC
         self.max_attempts = 3 # Default value, can be made configurable in run method if needed
 
     @staticmethod
-    def get_desc(lang): # Removed self as it's a static method
+    def get_desc(lang: str = "zh"): # Removed self as it's a static method
         if lang == "zh":
             return (
                 "RAREPipeline: Doc2Query 算子使用大语言模型为给定文档生成推理密集型问题。\n\n"

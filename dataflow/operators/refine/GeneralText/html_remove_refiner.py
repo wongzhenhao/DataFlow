@@ -11,7 +11,7 @@ class HtmlUrlRemoverRefiner(OperatorABC):
         self.logger = get_logger()
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "去除文本中的URL和HTML标签" if lang == "zh" else "Remove URLs and HTML tags from the text."
 
     def run(self, storage: DataFlowStorage, input_key: str):

@@ -17,7 +17,7 @@ class MinHashDeduplicator(OperatorABC):
         self.n_gram = ngram
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "使用MinHash算法进行文本去重" if lang == "zh" else "Deduplicate text using the MinHash algorithm."
 
     def create_minhash(self, data):
