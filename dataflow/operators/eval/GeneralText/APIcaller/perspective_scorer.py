@@ -9,6 +9,7 @@ import os
 @OPERATOR_REGISTRY.register()
 class PerspectiveScorer(OperatorABC):
     def __init__(self, url: str='https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1'):
+        raise NotImplementedError("This operator is needing Refactor to work properly. @Sunnyhaze")
         self.logger = get_logger()
         self.logger.info(f'Initializing {self.__class__.__name__}...')
         self.api_key = os.environ.get('API_KEY')
@@ -25,7 +26,7 @@ class PerspectiveScorer(OperatorABC):
         )
         self.score_name = 'PerspectiveScore'
         self.logger.info(f'{self.__class__.__name__} initialized.')
- 
+
 
     def analyze_toxicity(self, text: str) -> float:
         analyze_request = {
