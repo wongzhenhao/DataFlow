@@ -4,52 +4,50 @@ from dataflow.core import OperatorABC
 from dataflow.utils.storage import DataFlowStorage
 import pandas as pd
 from dataflow.core import LLMServingABC
-from dataflow.prompts.general_text import AlpagasusPrompt  
+from dataflow.prompts.general_text import TreeinstructPrompt  
 
 @OPERATOR_REGISTRY.register()
-class AlpagasusScorer(OperatorABC):
-    def __init__(self, llm_serving: LLMServingABC = None, dimension: str = 'quality'):
+class TreeinstructScorer(OperatorABC):
+    def __init__(self, llm_serving: LLMServingABC = None):
         self.logger = get_logger()
         self.logger.info(f'Initializing {self.__class__.__name__}...')
         self.llm_serving = llm_serving
         self.score_name = 'AlpagasusScore'
-        self.dimension = dimension
-        self.prompt = AlpagasusPrompt(dimension=self.dimension)
+        self.prompt = TreeinstructPrompt()
         self.logger.info(f'{self.__class__.__name__} initialized.')
 
-    def get_score(self, samples, input_instruction_key, input_input_key, input_output_key):
+    def get_score(self, samples, input_instruction_key):
         system_prompts = []
         user_prompts = []
         for sample in samples:
             instruction = sample.get(input_instruction_key, [''])
-            response = sample.get(input_output_key, [''])
-            input_text = sample.get(input_input_key, [''])
-            system_prompts.append(self.prompt.build_system_prompt(instruction, input_text, response))
+            system_prompts.append(self.prompt.build_system_prompt(instruction))
             user_prompts.append(self.prompt.build_user_prompt())
+
         inputs = [system + "\n" + user for system, user in zip(system_prompts, user_prompts)]
         responses = self.llm_serving.generate_from_input(user_inputs=inputs)
+        
         scores = []
         for response in responses:
-            score_line = response.strip().split("\n")[0]
+            response_lines = response.strip().split("\n")
+            score_line = response_lines[-1]
             score = float(score_line.split()[0])
             scores.append(score)
             
         return scores
 
-    def eval(self, dataframe: pd.DataFrame, input_instruction_key: str, input_input_key: str, input_output_key: str):
-        samples = dataframe.to_dict(orient='records')
+    def eval(self, dataframe: pd.DataFrame, input_instruction_key: str):
         self.logger.info(f"Evaluating {self.score_name}...")
-        scores = self.get_score(samples, input_instruction_key, input_input_key, input_output_key)
+        samples = dataframe.to_dict(orient='records')
+        scores = self.get_score(samples, input_instruction_key)
         self.logger.info("Evaluation complete!")
         return scores
 
 
-    def run(self, storage: DataFlowStorage, input_instruction_key: str, input_input_key: str, input_output_key: str, output_key: str='AlpagasusScore'):
+    def run(self, storage: DataFlowStorage, input_instruction_key: str, output_key: str='TreeinstructScore'):
         self.input_instruction_key = input_instruction_key
-        self.input_input_key = input_input_key
-        self.input_output_key = input_output_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
-        scores = self.eval(dataframe, self.input_instruction_key, self.input_input_key, self.input_output_key)
+        scores = self.eval(dataframe, self.input_instruction_key)
         dataframe[self.output_key] = scores
         storage.write(dataframe)
