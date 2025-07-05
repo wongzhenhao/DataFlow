@@ -1,3 +1,4 @@
+import os
 import torch
 from dataflow import get_logger
 from huggingface_hub import snapshot_download
@@ -44,6 +45,9 @@ class LocalModelLLMServing(LLMServingABC):
             from vllm import LLM,SamplingParams
         except:
             raise ImportError("please install vllm first like 'pip install open-dataflow[vllm]'")
+        # Set the environment variable for vllm to use spawn method for multiprocessing
+        # See https://docs.vllm.ai/en/v0.7.1/design/multiprocessing.html 
+        os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = "spawn"
         
         self.sampling_params = SamplingParams(
             temperature=temperature,
