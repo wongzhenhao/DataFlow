@@ -9,7 +9,7 @@ from dataflow.operators.process.AgenticRAG import (
 )
 
 from dataflow.utils.storage import FileStorage
-from dataflow.serving import APILLMServing_request, LocalModelLLMServing
+from dataflow.serving import APILLMServing_request
 
 
 class AgenticRAGPipeline():
