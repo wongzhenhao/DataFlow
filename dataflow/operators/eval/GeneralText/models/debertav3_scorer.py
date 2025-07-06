@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from transformers import AutoModel, AutoTokenizer, AutoConfig
+from huggingface_hub import PyTorchModelHubMixin
 from dataflow.core import OperatorABC
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow.utils.storage import DataFlowStorage
@@ -52,7 +53,7 @@ class DebertaV3Scorer(OperatorABC):
         storage.write(dataframe)
 
 
-class QualityModel(nn.Module):
+class QualityModel(nn.Module, PyTorchModelHubMixin):
     def __init__(self, config):
         super(QualityModel, self).__init__()
         self.model = AutoModel.from_pretrained(config["base_model"])
