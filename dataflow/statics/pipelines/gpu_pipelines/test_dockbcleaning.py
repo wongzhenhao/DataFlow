@@ -5,7 +5,7 @@ from dataflow.operators.generate.KnowledgeCleaning import (
     MultiHopQAGenerator,
 )
 from dataflow.utils.storage import FileStorage
-from dataflow.serving import LocalModelLLMServing
+from dataflow.serving import LocalModelLLMServing_vllm
 
 class KBCleaningPipeline():
     def __init__(self):
@@ -17,13 +17,12 @@ class KBCleaningPipeline():
             cache_type="json",
         )
 
-        local_llm_serving = LocalModelLLMServing(
-            model_name_or_path="Qwen/Qwen2.5-7B-Instruct",
-            max_tokens=512,
-            tensor_parallel_size=4,
-            model_source="local",
-            gpu_memory_utilization=0.6,
-            repetition_penalty=1.2
+        local_llm_serving = LocalModelLLMServing_vllm(
+            hf_model_name_or_path="Qwen/Qwen2.5-7B-Instruct",
+            vllm_max_tokens=512,
+            vllm_tensor_parallel_size=4,
+            vllm_gpu_memory_utilization=0.6,
+            vllm_repetition_penalty=1.2
         )
 
         self.knowledge_cleaning_step1 = KnowledgeExtractor(
