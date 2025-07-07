@@ -40,7 +40,7 @@ class HtmlUrlRemoverRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]
