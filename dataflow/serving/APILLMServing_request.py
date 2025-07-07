@@ -164,3 +164,9 @@ class APILLMServing_request(LLMServingABC):
                     response = future.result() # (id, response)
                     responses[response[0]] = response[1]
         return responses
+    
+    def cleanup(self):
+        # Cleanup resources if needed
+        logging.info("Cleaning up resources in APILLMServing_request")
+        # No specific cleanup actions needed for this implementation
+        pass
