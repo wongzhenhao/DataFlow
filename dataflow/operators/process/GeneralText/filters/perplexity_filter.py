@@ -16,12 +16,13 @@ class PerplexityFilter(OperatorABC):
             model_name=model_name,
             lang=lang
         )
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_score = {self.min_score} and max_score = {self.max_score}")
         
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'PerplexityScore'):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
-        self.logger.info(f"Running {self.__class__.__name__}...")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key} and output_key = {self.output_key}...")
 
         # Get the scores for filtering
         scores = np.array(self.scorer.eval(dataframe, self.input_key))

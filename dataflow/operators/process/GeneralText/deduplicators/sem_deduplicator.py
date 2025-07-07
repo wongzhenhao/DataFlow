@@ -69,6 +69,7 @@ class SemDeduplicator(OperatorABC):
         self.model_cache_dir = model_cache_dir
         self.model = BertModel.from_pretrained(self.model_name, cache_dir=model_cache_dir).to(self.device)
         self.tokenizer = BertTokenizer.from_pretrained(self.model_name, cache_dir=model_cache_dir)
+        self.logger.info(f"Initializing {self.__class__.__name__} with eps = {self.eps}, model_name = {self.model_name}, model_cache_dir = {self.model_cache_dir}, device = {self.device}")
         
     def _compute_hash(self, text: str) -> str:
         return self.hash_func_dict[self.hash_func](text.encode('utf-8')).hexdigest()
@@ -80,7 +81,10 @@ class SemDeduplicator(OperatorABC):
         if input_keys is not None and input_key is not None:
             self.logger.error(f"{self.__class__.__name__} only need one input args!")
             raise ValueError(f"{self.__class__.__name__} only need one input args!")
-        self.logger.info(f"Start running {self.__class__.__name__}...")
+        if input_keys is not None:
+            self.logger.info(f"Running {self.__class__.__name__} with input_keys = {input_keys} and output_key = {output_key}")
+        else:
+            self.logger.info(f"Running {self.__class__.__name__} with input_key = {input_key} and output_key = {output_key}")
         self.input_key = input_key
         self.input_keys = input_keys
         self.output_key = output_key

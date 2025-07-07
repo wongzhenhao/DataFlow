@@ -17,6 +17,7 @@ class SimHashDeduplicator(OperatorABC):
         self.logger = get_logger()
         self.fingerprint_size = fingerprint_size
         self.bound = bound
+        self.logger.info(f"Initializing {self.__class__.__name__} with fingerprint_size = {self.fingerprint_size}, bound = {self.bound}...")
 
     def run(self, storage: DataFlowStorage, input_keys: list = None, input_key: str = None, output_key: str = 'minhash_deduplicated_label'):
         if input_keys is None and input_key is None:
@@ -25,7 +26,10 @@ class SimHashDeduplicator(OperatorABC):
         if input_keys is not None and input_key is not None:
             self.logger.error(f"{self.__class__.__name__} only need one input args!")
             raise ValueError(f"{self.__class__.__name__} only need one input args!")
-        self.logger.info(f"Start running {self.__class__.__name__}...")
+        if input_keys is not None:
+            self.logger.info(f"Running {self.__class__.__name__} with input_keys = {input_keys} and output_key = {output_key}")
+        else:
+            self.logger.info(f"Running {self.__class__.__name__} with input_key = {input_key} and output_key = {output_key}")
         self.input_key = input_key
         self.input_keys = input_keys
         self.output_key = output_key
