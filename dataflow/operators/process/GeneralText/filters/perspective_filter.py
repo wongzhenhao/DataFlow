@@ -14,7 +14,7 @@ class PerspectiveFilter(OperatorABC):
         self.max_score = max_score
         self.scorer = PerspectiveScorer(url=url)
         
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'perspective_filter_label'):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'PerspectiveScore'):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")

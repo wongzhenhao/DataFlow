@@ -14,7 +14,7 @@ class AlpagasusFilter(OperatorABC):
         self.max_score = max_score
         self.scorer = AlpagasusScorer(llm_serving, dimension)
 
-    def run(self, storage: DataFlowStorage, input_instruction_key: str, input_input_key: str, input_output_key: str, output_key: str='alpagasus_filter_label'):
+    def run(self, storage: DataFlowStorage, input_instruction_key: str, input_input_key: str, input_output_key: str, output_key: str='AlpagasusScore'):
         self.input_instruction_key = input_instruction_key
         self.input_input_key = input_input_key
         self.input_output_key = input_output_key

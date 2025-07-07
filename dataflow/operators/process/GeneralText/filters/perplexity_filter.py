@@ -17,7 +17,7 @@ class PerplexityFilter(OperatorABC):
             lang=lang
         )
         
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'perplexity_filter_label'):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'PerplexityScore'):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
@@ -25,7 +25,6 @@ class PerplexityFilter(OperatorABC):
 
         # Get the scores for filtering
         scores = np.array(self.scorer.eval(dataframe, self.input_key))
-        print(scores)
         dataframe[self.output_key] = scores
         filtered_dataframe = dataframe[(scores >= self.min_score) & (scores <= self.max_score)]
 

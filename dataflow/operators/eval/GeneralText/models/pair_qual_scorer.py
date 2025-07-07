@@ -48,7 +48,7 @@ class PairQualScorer(OperatorABC):
             score = self.inference(sample)
             scores.append(score)
         self.logger.info("Evaluation complete!")
-        return scores
+        return np.array(scores)
 
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str='PairQualScore'):
         dataframe = storage.read("dataframe")
