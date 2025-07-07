@@ -103,6 +103,10 @@ class LocalModelLLMServing_vllm(LLMServingABC):
         responses = self.llm.generate(full_prompts, self.sampling_params)
         return [output.outputs[0].text for output in responses]
 
+    def generate_embedding_from_input(self, texts: list[str]) -> list[list[float]]:
+        outputs = self.llm.embed(texts)
+        return [output.outputs.embedding for output in outputs]
+
     def cleanup(self):
         del self.llm
         import gc;
