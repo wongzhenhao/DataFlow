@@ -18,7 +18,7 @@ class SuperfilteringFilter(OperatorABC):
             model_cache_dir=model_cache_dir,
             max_length=max_length
         )
-        self.logger.info(f"Initializing {self.__class__.__name__} with min_score={self.min_score} and max_score={self.max_score}...")
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_score = {self.min_score} and max_score = {self.max_score}...")
 
     @staticmethod
     def get_desc(lang: str = "zh"):
@@ -30,7 +30,7 @@ class SuperfilteringFilter(OperatorABC):
         self.input_response_key = input_output_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
-        self.logger.info(f"Running {self.__class__.__name__ }...")
+        self.logger.info(f"Running {self.__class__.__name__ } with input_instruction_key = {self.input_instruction_key}, intput_output_key = {self.input_output_key}, output_key = {self.output_key}...")
 
         # Get the scores for filtering
         scores = self.scorer.eval(dataframe, input_instruction_key, input_input_key, input_output_key)

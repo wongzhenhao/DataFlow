@@ -15,7 +15,7 @@ class PairQualFilter(OperatorABC):
         self.scorer = PairQualScorer(model_cache_dir=model_cache_dir, lang=lang)
         self.filter_name = 'PairQualFilter'
 
-        self.logger.info(f"Initializing {self.filter_name} with min_score={self.min_score}, max_score={self.max_score}...")
+        self.logger.info(f"Initializing {self.filter_name} with min_score = {self.min_score}, max_score = {self.max_score}...")
 
     @staticmethod
     def get_desc(lang: str = "zh"):
@@ -34,7 +34,7 @@ class PairQualFilter(OperatorABC):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
-        self.logger.info(f"Running {self.filter_name}...")
+        self.logger.info(f"Running {self.filter_name} with input_key = {self.input_key} and output_key = {self.output_key}...")
         scores = np.array(self.scorer.eval(dataframe, input_key))
         dataframe[self.output_key] = scores
         filtered_dataframe = dataframe[(scores >= self.min_score) & (scores <= self.max_score)]

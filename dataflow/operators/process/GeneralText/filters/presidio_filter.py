@@ -13,6 +13,7 @@ class PresidioFilter(OperatorABC):
         self.min_score = min_score
         self.max_score = max_score
         self.scorer = PresidioScorer(lang=lang, device=device, model_cache_dir=model_cache_dir)
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_score = {self.min_score} and max_score = {self.max_score}")
         
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'PresidioScore'):
         self.input_key = input_key

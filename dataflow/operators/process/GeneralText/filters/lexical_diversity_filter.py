@@ -14,8 +14,9 @@ class LexicalDiversityFilter(OperatorABC):
         self.min_scores = min_scores
         self.max_scores = max_scores
         if not self.min_scores.keys() == self.max_scores.keys():
-            raise ValueError("min_scores and max_scores must have the same keys")  
+            raise ValueError("min_scores and max_scores must have the same keys")
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_scores: {self.min_scores} and max_scores: {self.max_scores}...")  
         self.metric_name_map = {
             'hdd': 'LexicalDiversityHD-DScore',
             'mtld': 'LexicalDiversityMTLDScore',
@@ -27,6 +28,7 @@ class LexicalDiversityFilter(OperatorABC):
         self.output_keys = output_keys
         if not list(self.min_scores.keys()) == output_keys:
             raise ValueError("min_scores and output_keys must have the same keys")  
+        self.logger.info(f"Running {self.__class__.__name__} with input_key: {self.input_key} and output_keys: {self.output_keys}...")
         dataframe = storage.read("dataframe")
         scores = self.scorer.eval(dataframe, self.input_key)
         results = np.ones(len(dataframe), dtype=int)

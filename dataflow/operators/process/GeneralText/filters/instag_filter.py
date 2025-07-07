@@ -19,7 +19,7 @@ class InstagFilter(OperatorABC):
             device=device,
             max_new_tokens=max_new_tokens
         )
-        self.logger.info(f"Initializing {self.__class__.__name__} with min_score={self.min_score} and max_score={self.max_score}...")
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_score = {self.min_score} and max_score = {self.max_score}...")
 
     @staticmethod
     def get_desc(lang: str = "zh"):
