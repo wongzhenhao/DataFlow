@@ -19,7 +19,7 @@ class DebertaV3Filter(OperatorABC):
         )
         
         
-    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'debertav3_filter_label'):
+    def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'Debertav3Score'):
         self.input_key = input_key
         self.output_key = output_key
         dataframe = storage.read("dataframe")
