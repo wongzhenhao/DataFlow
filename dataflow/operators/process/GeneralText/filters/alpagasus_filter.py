@@ -12,6 +12,7 @@ class AlpagasusFilter(OperatorABC):
         self.logger = get_logger()
         self.min_score = min_score
         self.max_score = max_score
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_score = {self.min_score} and max_score = {self.max_score}...")
         self.scorer = AlpagasusScorer(llm_serving, dimension)
 
     def run(self, storage: DataFlowStorage, input_instruction_key: str, input_input_key: str, input_output_key: str, output_key: str='AlpagasusScore'):
@@ -19,6 +20,7 @@ class AlpagasusFilter(OperatorABC):
         self.input_input_key = input_input_key
         self.input_output_key = input_output_key
         self.output_key = output_key
+        self.logger.info(f"Running {self.__class__.__name__} with input_instruction_key = {self.input_instruction_key}, input_input_key = {self.input_input_key}, input_output_key = {self.input_output_key} and output_key = {self.output_key}...")    
         dataframe = storage.read("dataframe")
         scores = self.scorer.eval(dataframe, self.input_instruction_key, self.input_input_key, self.input_output_key)
         dataframe[self.output_key] = scores
