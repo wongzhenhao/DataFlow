@@ -39,7 +39,6 @@ class PresidioScorer(OperatorABC):
         self.logger.info(f"Evaluating {self.score_name}...")
         for text in input_texts:
             analysis_results = self.analyzer.analyze(text=text, language=self.language)
-            print(analysis_results)
             pii_count = len(analysis_results)
             results.append(pii_count)
         self.logger.info("Evaluation complete!")

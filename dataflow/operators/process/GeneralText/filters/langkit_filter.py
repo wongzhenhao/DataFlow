@@ -67,12 +67,14 @@ class LangkitFilter(OperatorABC):
             raise ValueError("min_scores and max_scores must have the same keys")  
         self.logger = get_logger()
         self.scorer = LangkitScorer()
+        self.logger.info(f"Initializing {self.__class__.__name__} with min_scores: {self.min_scores} and max_scores: {self.max_scores}...")
         
     def run(self, storage: DataFlowStorage, input_key: str, output_keys: list = ["flesch_reading_ease", "automated_readability_index", "aggregate_reading_level", "syllable_count", "lexicon_count", "sentence_count", "character_count", "letter_count", "polysyllable_count", "monosyllable_count", "difficult_words"]):
         self.input_key = input_key
         self.output_keys = output_keys
         if not list(self.min_scores.keys()) == output_keys:
             raise ValueError("min_scores and output_keys must have the same keys")  
+        self.logger.info("Running {self.__class__.__name__}...")
         dataframe = storage.read("dataframe")
         scores = self.scorer.eval(dataframe, self.input_key)
         results = np.ones(len(dataframe), dtype=int)

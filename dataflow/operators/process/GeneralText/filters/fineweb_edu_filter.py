@@ -12,8 +12,8 @@ class FineWebEduFilter(OperatorABC):
         self.logger = get_logger()
         self.scorer = FineWebEduScorer(model_cache_dir=model_cache_dir, device=device)
         self.filter_name = 'FineWebEduFilter'
-        self.logger.info(f"Initializing {self.filter_name} with min_score={self.min_score}, max_score={self.max_score}, "
-                         f"device={device}, model_cache_dir={model_cache_dir}")
+        self.logger.info(f"Initializing {self.filter_name} with min_score = {self.min_score}, max_score = {self.max_score}, "
+                         f"device = {device}, model_cache_dir = {model_cache_dir}")
 
     @staticmethod
     def get_desc(lang: str = "zh"):
