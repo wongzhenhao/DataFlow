@@ -46,10 +46,12 @@ ENTITY_LABELS = {
 class NERRefiner(OperatorABC):
     def __init__(self):
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
         self.nlp = spacy.load("en_core_web_sm")
     
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         dataframe = storage.read("dataframe")
         numbers = 0
         refined_data = []
@@ -71,7 +73,7 @@ class NERRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]
