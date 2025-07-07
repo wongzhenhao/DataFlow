@@ -4,15 +4,16 @@ from dataflow.core import OperatorABC
 from dataflow.utils.storage import DataFlowStorage
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow.operators.eval.GeneralText import PerspectiveScorer
+from dataflow.serving import PerspectiveAPIServing
 
 @OPERATOR_REGISTRY.register()
 class PerspectiveFilter(OperatorABC):
-
-    def __init__(self, min_score: float = 0.0, max_score: float = 0.1, url: str = 'https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1'):
+    def __init__(self, min_score: float = 0.0, max_score: float = 0.5):
         self.logger = get_logger()
         self.min_score = min_score
         self.max_score = max_score
-        self.scorer = PerspectiveScorer(url=url)
+        self.serving = PerspectiveAPIServing(max_workers=10)
+        self.scorer = PerspectiveScorer(serving=self.serving)
         
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'PerspectiveScore'):
         self.input_key = input_key

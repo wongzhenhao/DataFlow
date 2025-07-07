@@ -8,7 +8,7 @@ from dataflow.operators.eval.GeneralText import PerplexityScorer
 @OPERATOR_REGISTRY.register()
 class PerplexityFilter(OperatorABC):
 
-    def __init__(self, min_score: float = 10.0, max_score: float = 100.0,  model_name='dataflow/operators/eval/GeneralText/models/Kenlm/wikipedia', lang='en'):
+    def __init__(self, min_score: float = 10.0, max_score: float = 500.0,  model_name='dataflow/operators/eval/GeneralText/models/Kenlm/wikipedia', lang='en'):
         self.logger = get_logger()
         self.min_score = min_score
         self.max_score = max_score
