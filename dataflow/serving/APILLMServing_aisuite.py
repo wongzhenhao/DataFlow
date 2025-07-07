@@ -101,3 +101,9 @@ class APILLMServing_aisuite(LLMServingABC):
             outputs.append(content)
 
         return outputs
+
+    def cleanup(self):
+        # Cleanup resources if needed
+        logging.info("Cleaning up resources in APILLMServing_aisuite")
+        # No specific cleanup actions needed for this implementation
+        pass

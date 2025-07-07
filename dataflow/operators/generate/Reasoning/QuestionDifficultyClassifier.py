@@ -20,7 +20,7 @@ class QuestionDifficultyClassifier(OperatorABC):
 
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于评估问题的难度等级。"

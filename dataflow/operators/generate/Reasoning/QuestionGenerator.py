@@ -32,7 +32,7 @@ class QuestionGenerator(OperatorABC):
             raise ValueError(f"Missing required config keys: {missing_keys}")
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于基于现有问题生成新问题。\n\n"

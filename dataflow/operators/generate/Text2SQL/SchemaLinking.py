@@ -32,7 +32,7 @@ class SchemaLinking(OperatorABC):
         self.schema_cache = {}  
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于通过解析SQL语句提取使用的数据库Schema。\n\n"

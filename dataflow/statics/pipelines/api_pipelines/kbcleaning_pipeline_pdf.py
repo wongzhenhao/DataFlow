@@ -5,7 +5,7 @@ from dataflow.operators.generate.KnowledgeCleaning import (
     MultiHopQAGenerator,
 )
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request
+from dataflow.serving import APILLMServing_request
 
 class KBCleaningPipeline():
     def __init__(self):
@@ -13,7 +13,7 @@ class KBCleaningPipeline():
         self.storage = FileStorage(
             first_entry_file_name="../example_data/KBCleaningPipeline/kbc_placeholder.json",
             cache_path="./.cache/api",
-            file_name_prefix="doc_cleaning_step",
+            file_name_prefix="pdf_cleaning_step",
             cache_type="json",
         )
 
@@ -24,7 +24,8 @@ class KBCleaningPipeline():
         )
 
         self.knowledge_cleaning_step1 = KnowledgeExtractor(
-            intermediate_dir="../example_data/KBCleaningPipeline/raw/"
+            intermediate_dir="../example_data/KBCleaningPipeline/raw/",
+            lang="en"
         )
 
         self.knowledge_cleaning_step2 = CorpusTextSplitter(
@@ -35,12 +36,12 @@ class KBCleaningPipeline():
 
         self.knowledge_cleaning_step3 = KnowledgeCleaner(
             llm_serving=api_llm_serving,
-            lang="ch"
+            lang="en"
         )
 
         self.knowledge_cleaning_step4 = MultiHopQAGenerator(
             llm_serving=api_llm_serving,
-            lang="ch"
+            lang="en"
         )
 
     def forward(self, url:str=None, raw_file:str=None):
@@ -48,7 +49,6 @@ class KBCleaningPipeline():
             storage=self.storage,
             raw_file=raw_file,
             url=url,
-            lang="ch"
         )
         
         self.knowledge_cleaning_step2.run(
@@ -62,14 +62,12 @@ class KBCleaningPipeline():
             input_key= "raw_content",
             output_key="cleaned",
         )
-
         self.knowledge_cleaning_step4.run(
             storage=self.storage.step(),
             input_key="cleaned",
             output_key="MultiHop_QA"
         )
-
+        
 if __name__ == "__main__":
     model = KBCleaningPipeline()
-    model.forward(raw_file="../example_data/KBCleaningPipeline/test.doc")
-
+    model.forward(raw_file="../example_data/KBCleaningPipeline/test.pdf")

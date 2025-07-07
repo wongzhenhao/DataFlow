@@ -38,7 +38,7 @@ class SupervisedFinetuneGenerator(OperatorABC):
         self.max_tokens = 4096  
     
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         return "基于给定文档内容，生成监督微调格式的问答数据。" if lang == "zh" else "Generate supervised fine-tuning format Q&A data based on the given document content."
 
     def run(self, storage: DataFlowStorage, input_key: str = "raw_content"):

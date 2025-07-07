@@ -36,7 +36,7 @@ Github = "https://github.com/Open-DataFlow/DataFlow"
 Documentation = "https://open-dataflow.github.io/DataFlow-Doc/"
 "Bug Reports" = "https://github.com/Open-DataFlow/DataFlow/issues"
 
-[project.entry-points."console_scripts"]
+[project.scripts]
 dataflow = "dataflow.cli:main"
 
 [tool.setuptools]
@@ -51,6 +51,7 @@ dependencies = {file = "requirements.txt"}
 
 [project.optional-dependencies]
 vllm = ["vllm<0.8"]
+sglang =["sglang[all]<=0.4.3"]
 agent = [
     "cloudpickle",
     "fastapi",

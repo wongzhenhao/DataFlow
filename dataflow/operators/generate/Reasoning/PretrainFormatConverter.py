@@ -38,7 +38,7 @@ class PretrainFormatConverter(OperatorABC):
         return [read_key_question, read_key_answer, output_key]
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于将SFT格式数据转换为预训练格式。\n\n"
