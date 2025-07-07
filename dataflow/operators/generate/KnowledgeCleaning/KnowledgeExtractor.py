@@ -11,10 +11,10 @@ class KnowledgeExtractor(OperatorABC):
     '''
     Answer Generator is a class that generates answers for given questions.
     '''
-    def __init__(self, **kwargs):
+    def __init__(self, intermediate_dir: str = "intermediate", lang: str = "en"):
         self.logger = get_logger()
-        self.intermediate_dir=kwargs.get("intermediate_dir", "intermediate")
-        self.lang=kwargs.get("lang", "en")
+        self.intermediate_dir=intermediate_dir
+        self.lang=lang
         
     @staticmethod
     def get_desc(lang: str = "zh"):
