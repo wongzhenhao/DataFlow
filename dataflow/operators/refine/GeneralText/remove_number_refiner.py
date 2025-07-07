@@ -8,10 +8,12 @@ from dataflow.utils.registry import OPERATOR_REGISTRY
 class RemoveNumberRefiner(OperatorABC):
     def __init__(self):
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
 
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
         dataframe = storage.read("dataframe")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         numbers = 0
         refined_data = []
         for item in tqdm(dataframe[self.input_key], desc=f"Implementing {self.__class__.__name__}"):
@@ -27,7 +29,7 @@ class RemoveNumberRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]

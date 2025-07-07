@@ -12,6 +12,7 @@ class HtmlEntityRefiner(OperatorABC):
             "lsquo", "rsquo", "ldquo", "rdquo"
         ]):
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
         # 从参数中获取自定义 HTML 实体列表，如果未提供则使用默认列表
         self.html_entities = html_entities
 
@@ -41,6 +42,7 @@ class HtmlEntityRefiner(OperatorABC):
 
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         dataframe = storage.read("dataframe")
         numbers = 0
         refined_data = []
@@ -62,7 +64,7 @@ class HtmlEntityRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]

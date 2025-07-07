@@ -18,6 +18,7 @@ class ReferenceRemoverRefiner(OperatorABC):
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
         dataframe = storage.read("dataframe")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         numbers = 0
         # 定义要删除的模式 - 更全面的版本
         # 1. 所有<ref>标签及其内容(包括各种不完整形式)
@@ -55,7 +56,7 @@ class ReferenceRemoverRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]

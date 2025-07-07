@@ -12,6 +12,7 @@ from dataflow.utils.registry import OPERATOR_REGISTRY
 class SpellingCorrectionRefiner(OperatorABC):
     def __init__(self, max_edit_distance: int = 2, prefix_length: int = 7, dictionary_path: str = "frequency_dictionary_en_82_765.txt"):
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
         self.max_edit_distance = max_edit_distance  # Default to 2 if not specified
         self.prefix_length = prefix_length  # Default to 7 if not specified
         self.dictionary_path = dictionary_path
@@ -19,7 +20,6 @@ class SpellingCorrectionRefiner(OperatorABC):
         if not os.path.exists(self.dictionary_path):
             self.download_dictionary()
         self.sym_spell = SymSpell(max_dictionary_edit_distance=self.max_edit_distance, prefix_length=self.prefix_length)
-        print(2)
         term_index = 0
         count_index = 1
         if not self.sym_spell.load_dictionary(self.dictionary_path, term_index, count_index):
@@ -29,6 +29,7 @@ class SpellingCorrectionRefiner(OperatorABC):
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
         dataframe = storage.read("dataframe")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         numbers = 0
         refined_data = []
         for item in tqdm(dataframe[self.input_key], desc=f"Implementing {self.__class__.__name__}"):
@@ -44,7 +45,7 @@ class SpellingCorrectionRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]

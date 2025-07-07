@@ -10,6 +10,7 @@ from dataflow.utils.registry import OPERATOR_REGISTRY
 class RemoveStopwordsRefiner(OperatorABC):
     def __init__(self, model_cache_dir: str = './dataflow_cache'):
         self.logger = get_logger()
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
         self.model_cache_dir = model_cache_dir
         nltk.data.path.append(self.model_cache_dir)
         nltk.download('stopwords', download_dir=self.model_cache_dir)
@@ -23,6 +24,7 @@ class RemoveStopwordsRefiner(OperatorABC):
     
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         dataframe = storage.read("dataframe")
         numbers = 0
         refined_data = []
@@ -40,7 +42,7 @@ class RemoveStopwordsRefiner(OperatorABC):
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]

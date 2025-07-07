@@ -19,6 +19,7 @@ class RemoveEmoticonsRefiner(OperatorABC):
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
         dataframe = storage.read("dataframe")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         numbers = 0
         refined_data = []
         for item in tqdm(dataframe[self.input_key], desc=f"Implementing {self.__class__.__name__}"):
