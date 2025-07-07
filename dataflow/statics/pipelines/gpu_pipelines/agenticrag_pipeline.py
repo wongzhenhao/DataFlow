@@ -29,7 +29,7 @@ class AgenticRAGPipeline():
             vllm_max_tokens=8192,
         )
 
-        embedding_serving = LocalModelLLMServing_vllm(hf_model_name_or_path="your_embedding_model_path", vllm_max_tokens=8192)
+        embedding_serving = LocalModelLLMServing_vllm(hf_model_name_or_path="Alibaba-NLP/gte-Qwen2-7B-instruct", vllm_max_tokens=8192)
         self.content_chooser_step1 = ContentChooser(embedding_serving=embedding_serving, num_samples=5, method="random")
 
         self.prompt_generator_step2 = AutoPromptGenerator(llm_serving)
