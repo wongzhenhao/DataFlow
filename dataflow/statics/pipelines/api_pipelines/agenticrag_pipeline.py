@@ -10,7 +10,7 @@ from dataflow.operators.process.AgenticRAG import (
 
 from dataflow.utils.storage import FileStorage
 from dataflow.serving import APILLMServing_request
-
+from dataflow.serving import LocalModelLLMServing_vllm
 
 class AgenticRAGPipeline():
     def __init__(self):
@@ -29,7 +29,8 @@ class AgenticRAGPipeline():
                 max_workers=1
         )
 
-        self.content_chooser_step1 = ContentChooser(embedding_model_path="your embedding model path")
+        embedding_serving = LocalModelLLMServing_vllm(hf_model_name_or_path="your_embedding_model_path", vllm_max_tokens=8192)
+        self.content_chooser_step1 = ContentChooser(embedding_serving=embedding_serving, num_samples=5, method="random")
 
         self.prompt_generator_step2 = AutoPromptGenerator(llm_serving)
 
@@ -41,9 +42,7 @@ class AgenticRAGPipeline():
 
         self.content_chooser_step1.run(
             storage = self.storage.step(),
-            input_key = "text",
-            num_samples =5,
-            method = "random"
+            input_key = "text"
         )
 
         self.prompt_generator_step2.run(
