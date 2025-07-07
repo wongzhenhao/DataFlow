@@ -40,6 +40,7 @@ google-api-python-client
 evaluate
 contractions
 symspellpy
+simhash
 
 # knowledge base cleaning
 chonkie
