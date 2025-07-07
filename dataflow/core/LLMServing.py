@@ -18,6 +18,7 @@ class LLMServingABC(ABC):
         Cleanup the generator and garbage collect all GPU/CPU memory.
         """
         pass
+    
     def load_model(self, model_name_or_path: str, **kwargs: Any):
         """
         Load the model from the given path.
