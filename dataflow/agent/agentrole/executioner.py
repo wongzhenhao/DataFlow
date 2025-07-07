@@ -781,6 +781,10 @@ class ExecutionAgent:
         # ───────── 0. Preprocess script path ─────────
         py_file: Path | None = None
         if is_debug_subprocess_code:
+            import secrets
+            orig_path = Path(call_args["request"].py_path)          # recommend_pipeline.py
+            token     = secrets.token_hex(8)                       # 16-char hex
+            call_args.get("request").py_path = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
             py_path: str | None = call_args.get("request").py_path
             if not py_path:
                 raise ValueError("call_args must include the 'py_path' field")
@@ -798,7 +802,7 @@ class ExecutionAgent:
         else:
             code_src = inspect.getsource(tool_func)
 
-        logger.info(f"[first code src (truncated)]: {code_src[:800]} ...")
+        logger.info(f"[first code src (truncated)]: {code_src[:1000]} ...")
 
         current_round = 0
         while current_round <= max_debug_rounds:
