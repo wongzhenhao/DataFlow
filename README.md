@@ -134,7 +134,7 @@ We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning
 We fine-tuned the Qwen2.5-Coder-14B model on the Bird dataset using both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), with data constructed via the DataFlow-Text2SQL Pipeline. Results are:
 ![alt text](./static/images/text2sql.png)
 
-<!-- ## Statistics
+## Statistics
 <a href="https://star-history.com/#OpenDCAI/DataFlow&Date">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date&theme=dark" />
@@ -142,7 +142,7 @@ We fine-tuned the Qwen2.5-Coder-14B model on the Bird dataset using both Supervi
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
  </picture>
 </a>
- -->
+
 
  ## Follow us
 📌 Follow our lab’s Xiaohongshu account 26133106768 for the latest updates on our research and ongoing projects. We look forward to sharing more cutting-edge work with you! 🎉🎉🎉
