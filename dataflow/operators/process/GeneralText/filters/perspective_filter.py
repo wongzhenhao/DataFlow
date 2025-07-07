@@ -24,7 +24,10 @@ class PerspectiveFilter(OperatorABC):
         scores = np.array(self.scorer.eval(dataframe, self.input_key))
 
         dataframe[self.output_key] = scores
-        filtered_dataframe = dataframe[(scores >= self.min_score) & (scores <= self.max_score)]
+        metric_filter = (scores >= self.min_score) & (scores <= self.max_score)
+        nan_filter = np.isnan(scores)
+        metric_filter = metric_filter | nan_filter    
+        filtered_dataframe = dataframe[metric_filter]
 
         # Write the filtered dataframe back to storage
         storage.write(filtered_dataframe)
