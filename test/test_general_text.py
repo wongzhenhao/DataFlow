@@ -1,4 +1,4 @@
-from dataflow.operators.eval.GeneralText import LexicalDiversityScorer 
+from dataflow.operators.process.GeneralText import LexicalDiversityFilter
 from dataflow.utils.storage import FileStorage
 from dataflow.serving import APILLMServing_request
 import os
@@ -11,10 +11,10 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.scorer = LexicalDiversityScorer()
+        self.processor = LexicalDiversityFilter()
 
     def forward(self):
-        self.scorer.run(
+        self.processor.run(
             storage=self.storage.step(),
             input_key='raw_content'
         )
