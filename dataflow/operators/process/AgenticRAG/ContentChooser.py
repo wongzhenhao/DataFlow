@@ -5,12 +5,11 @@ import torch
 from torch import Tensor
 from typing import List, Optional
 import torch.nn.functional as F
-from dataflow.serving.LocalModelLLMServing import LocalModelLLMServing_vllm
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 
 from dataflow.utils.storage import DataFlowStorage
-from dataflow.core import OperatorABC
+from dataflow.core import OperatorABC, LLMServingABC
 
 class KCenterGreedy:
     """Implements k-center-greedy method.
@@ -139,7 +138,7 @@ class KCenterGreedy:
 
 @OPERATOR_REGISTRY.register()
 class ContentChooser(OperatorABC):
-    def __init__(self, num_samples: int, method: str = "random", embedding_serving = None):
+    def __init__(self, num_samples: int, method: str = "random", embedding_serving : LLMServingABC = None):
         self.num_samples = num_samples
         self.method = method
         self.embedding_serving = embedding_serving
