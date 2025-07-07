@@ -19,6 +19,7 @@ class HashDeduplicator(OperatorABC):
         
         if self.hash_func not in self.hash_func_dict:
             raise ValueError(f'Invalid hash function: {self.hash_func}')
+        self.logger.info(f"Initializing {self.__class__.__name__} with hash_func = {self.hash_func}...")
         
     def _compute_hash(self, text: str) -> str:
         return self.hash_func_dict[self.hash_func](text.encode('utf-8')).hexdigest()
@@ -30,7 +31,10 @@ class HashDeduplicator(OperatorABC):
         if input_keys is not None and input_key is not None:
             self.logger.error(f"{self.__class__.__name__} only need one input args!")
             raise ValueError(f"{self.__class__.__name__} only need one input args!")
-        self.logger.info(f"Start running {self.__class__.__name__}...")
+        if input_keys is not None:
+            self.logger.info(f"Running {self.__class__.__name__} with input_keys = {input_keys} and output_key = {output_key}")
+        else:
+            self.logger.info(f"Running {self.__class__.__name__} with input_key = {input_key} and output_key = {output_key}")
         self.input_key = input_key
         self.input_keys = input_keys
         self.output_key = output_key
