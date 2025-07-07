@@ -28,8 +28,8 @@ from ..promptstemplates.prompt_template import PromptsTemplateGenerator
 import importlib
 import inspect
 import pickle
-import yaml
-from typing import Callable, Dict, Any, Union, List
+from dataclasses import dataclass, field
+from typing import Callable, Dict, Any, Union, List, Set
 FuncSpec = Dict[str, str]
 def func2spec(fn: Callable) -> FuncSpec:
     """
@@ -55,6 +55,29 @@ def is_module_level_fn(fn: Any) -> bool:
     """
     return inspect.isfunction(fn) and fn.__qualname__ == fn.__name__
 
+@dataclass
+class TaskChainConfig:
+    # ── Router 分流时可保留的任务名 ──
+    pipeline_tasks: Set[str] = field(
+        default_factory=lambda: {
+            "data_content_classification",
+            "recommendation_inference_pipeline",
+            "execute_the_recommended_pipeline",
+        }
+    )
+    operator_tasks: Set[str] = field(
+        default_factory=lambda: {
+            "match_operator",
+            "write_the_operator",
+        }
+    )
+    # ── 传给 generate_pre_task_params_with_sandboxed_prompt_param_builder 的调试工具 ──
+    debuggable_tools: Dict[str, bool] = field(
+        default_factory=lambda: {
+            "local_tool_for_execute_the_recommended_pipeline": True,
+        }
+    )
+
 class Task:
     def __init__(self, request, config_path, prompts_template: PromptsTemplateGenerator,
                  system_template: str, task_template: str,
@@ -70,6 +93,11 @@ class Task:
         self.api_key          = request.api_key
         self.base_url         = request.chat_api_url
         self.modelname        = request.model
+
+        task_entry = config.get(task_name, {}) if task_name else {}
+        if "special_model" in task_entry:
+            self.modelname = task_entry.pop("special_model") or self.modelname
+
         # self.tasktype      = TaskType(config["tasktype"])
         # ------------------- Runtime fields -------------------
         self.prompts_template   = prompts_template

@@ -412,7 +412,6 @@ def local_tool_for_execute_the_recommended_pipeline(
     directly read the existing file to avoid overwriting patched code during debugging.
     """
     py_file = Path(request.py_path)
-
     if is_in_debug_process and py_file.exists():
         code = py_file.read_text(encoding="utf-8")
         logger.info(f"Reusing existing pipeline file {request.py_path}")

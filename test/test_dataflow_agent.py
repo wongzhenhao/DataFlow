@@ -2,7 +2,7 @@ import os, asyncio
 from fastapi import FastAPI
 from pathlib import Path
 from dataflow.agent.promptstemplates.prompt_template import PromptsTemplateGenerator
-from dataflow.agent.taskcenter import TaskRegistry
+from dataflow.agent.taskcenter import TaskRegistry,TaskChainConfig
 import dataflow.agent.taskcenter.task_definitions
 from dataflow.agent.servicemanager import AnalysisService, Memory
 from dataflow.agent.toolkits import (
@@ -30,12 +30,19 @@ def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
     classify = TaskRegistry.get("data_content_classification", prompts_template=tmpl,request=req)
     rec      = TaskRegistry.get("recommendation_inference_pipeline", prompts_template=tmpl,request=req)
     exe      = TaskRegistry.get("execute_the_recommended_pipeline", prompts_template=tmpl,request=req)
-    return [router, classify, rec, exe]
 
+    op_match = TaskRegistry.get("match_operator",prompts_template=tmpl, request = req)
+    op_write = TaskRegistry.get("write_the_operator",prompts_template=tmpl, request = req)
+    op_debug = TaskRegistry.get("exe_and_debug_operator",prompts_template=tmpl, request = req)
+
+    cfg = TaskChainConfig(pipeline_tasks={"data_content_classification","recommendation_inference_pipeline","execute_the_recommended_pipeline",},
+                          operator_tasks={"match_operator","write_the_operator","exe_and_debug_operator"},
+                          debuggable_tools={"local_tool_for_execute_the_recommended_pipeline": True})
+    return [router, classify, rec, exe , op_match, op_write, op_debug], cfg
 
 async def _run_service(req: ChatAgentRequest) -> ChatResponse:
     tmpl = PromptsTemplateGenerator(req.language)
-    task_chain = _build_task_chain(req,tmpl = tmpl)
+    task_chain, chain_cfg = _build_task_chain(req,tmpl = tmpl)
     execution_agent = ExecutionAgent(
                               req,
                               memorys["executioner"],
@@ -45,10 +52,11 @@ async def _run_service(req: ChatAgentRequest) -> ChatResponse:
                               )
     
     service = AnalysisService(
-        tasks= task_chain,
-        memory_entity=memorys["analyst"],
-        request=req,
-        execution_agent= execution_agent
+        tasks           = task_chain,
+        memory_entity   = memorys["analyst"],
+        request         = req,
+        execution_agent = execution_agent,
+        cfg             = chain_cfg
     )
     return await service.process_request()
 
@@ -62,25 +70,51 @@ async def recommend_and_execute(req: ChatAgentRequest):
     return await _run_service(req)
 
 if __name__ == "__main__":
-    import uvicorn, json, sys
-    if len(sys.argv) == 2 and sys.argv[1] == "request":
+    import uvicorn, json, sys, asyncio
+    pipeline_recommand_params = {
+        "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
+        "py_path": f"{DATAFLOW_DIR}/test/recommend_pipeline.py",
+        "execute_the_pipeline": False,
+        "use_local_model": True,
+        "local_model_name_or_path": "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
+        "timeout": 3600,
+        "max_debug_round": 5
+    }
+
+    operator_write = {
+        "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
+        "py_path": f"{DATAFLOW_DIR}/test/operator.py",
+        "execute_the_operator": True,
+        "timeout": 3600,
+        "max_debug_round": 5
+    }
+
+    if len(sys.argv) == 2 and sys.argv[1] == "recommand":
         test_req = ChatAgentRequest(
-            language="zh", #en 或者 zh
-            target="帮我针对数据推荐一个预测的 pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
-            # target="你好！今天武汉天气如何？？",
-            api_key =  "",
-            chat_api_url = "",
+            language="zh",
+            target="帮我针对数据推荐一个预测的pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
+            api_key="",
+            chat_api_url="",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
-            json_file = f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
-            py_path = f"{DATAFLOW_DIR}/test/recommend_pipeline_2.py",
-            execute_the_pipeline =  True,
-            use_local_model = True,
-            local_model_name_or_path = "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
-            timeout = 3600,
-            max_debug_round = 5
+            **pipeline_recommand_params
+        )
+
+        resp = asyncio.run(_run_service(test_req))
+        print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))
+        sys.exit(0) 
+
+    if len(sys.argv) == 2 and sys.argv[1] == "write":
+        test_req = ChatAgentRequest(
+            language="zh",
+            target="我需要一个新的算子，这个算子可以使用MinHash算法进行文本去重!!",
+            api_key="",
+            chat_api_url="",
+            model="deepseek-v3",
+            sessionKEY="dataflow_demo",
+            ** operator_write
         )
         resp = asyncio.run(_run_service(test_req))
         print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))
-    else:
-        uvicorn.run("test_dataflow_agent:app", host="0.0.0.0", port=8000, reload=True)
+        sys.exit(0)        
+    uvicorn.run("test_dataflow_agent:app", host="0.0.0.0", port=8000, reload=True)

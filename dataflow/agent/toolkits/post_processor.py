@@ -2,9 +2,13 @@ import uuid
 from typing import Dict, Any, List, Union
 import json
 from .tools import get_operator_content,get_operator_descriptions
+from .tools import ChatAgentRequest
  
+def post_process_save_op_code(request:ChatAgentRequest,
+                              result: Dict[str, Any]):
+    pass
 
-def combine_pipeline_result(
+def post_process_combine_pipeline_result(
         result: Dict[str, Any],
         task_results_history: List
 ) -> Dict[str, Any]:

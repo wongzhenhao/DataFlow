@@ -59,21 +59,23 @@ class GlobalVariables(BaseModel):
 class ChatAgentRequest(BaseModel):
     user_id: Optional[int] = None
     target: str = ""
-    api_key:str = ""
-    chat_api_url:str = ""
+    api_key: str = ""
+    chat_api_url: str = ""
     model: Optional[str] = None
-    kb_id: Optional[str] = None
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    language: Optional[str] = None
     sessionKEY: str
-    json_file: str
-    py_path: str
-    execute_the_pipeline: bool
-    use_local_model: bool
-    local_model_name_or_path: str
-    timeout: int
-    max_debug_round: int
+    timeout: int = 3600
+    max_debug_round: int = 1
+    language: Optional[str] = "zh"
+
+    # —— pipeline 场景独有 ——
+    json_file: Optional[str] = None
+    py_path: Optional[str] = None
+    execute_the_pipeline: bool = False
+    use_local_model: bool = False
+    local_model_name_or_path: Optional[str] = None
+
+    # —— operator 场景独有 ——
+    execute_the_operator: bool = False
 
 
 class ChatResponse(BaseModel):
@@ -204,6 +206,14 @@ def get_operator_content(request: Any, data_key: Union[Dict[str, Any], List[Dict
         print(f"Error: Unable to parse JSON file {file_path}!")
         return None
     result = operator_content.get(subtype)
+    KEEP_KEYS = {
+        "name",
+        "type",
+        "description",
+    }
+    result = [
+        {k: op.get(k) for k in KEEP_KEYS} for op in result
+    ]
     if result is None:
         print(f"Warning: Key '{subtype}' not found in Operator.json; available keys: {list(operator_content.keys())}")
     return result
@@ -252,8 +262,8 @@ def get_operator_content_map_from_all_operators(
     # if subtype == "MIXTURE":
     #     result = get_operator_descriptions("dataflow")
     #     return result
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, "resources", "Operator_patched.json")
+    # base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(parent_dir, "resources", "Operator_patched.json")
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             operator_content = json.load(f)

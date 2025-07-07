@@ -13,3 +13,13 @@ recommendation_inference_pipeline:
 execute_the_recommended_pipeline:
   local_tool_for_execute_the_recommended_pipeline:
     dry_run: False
+
+match_operator:
+  get_operator_content:
+    data_key: 
+      ContentSubType: MIXTURE
+
+write_the_operator:
+  special_model: o3
+  
+
