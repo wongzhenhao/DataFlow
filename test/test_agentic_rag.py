@@ -28,7 +28,7 @@ class AgenticRAGPipeline():
         else:
             api_llm_serving = llm_serving
 
-        self.content_chooser_step1 = ContentChooser(embedding_model_path="/mnt/public/data/lh/models/hub/gte-Qwen2-7B-instruct")
+        self.content_chooser_step1 = ContentChooser(num_samples=5, method="random", embedding_model_path="/mnt/public/data/lh/models/hub/gte-Qwen2-7B-instruct")
 
         self.prompt_generator_step2 = AutoPromptGenerator(api_llm_serving)
 
@@ -41,9 +41,7 @@ class AgenticRAGPipeline():
 
         self.content_chooser_step1.run(
             storage = self.storage.step(),
-            input_key= "text",
-            num_samples=5,
-            method= "random"
+            input_key= "text"
         )
 
         self.prompt_generator_step2.run(

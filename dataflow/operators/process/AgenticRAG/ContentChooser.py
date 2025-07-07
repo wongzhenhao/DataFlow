@@ -139,7 +139,9 @@ class KCenterGreedy:
 
 @OPERATOR_REGISTRY.register()
 class ContentChooser(OperatorABC):
-    def __init__(self, embedding_model_path: str):
+    def __init__(self, num_samples: int, method: str = "random", embedding_model_path: str = "Alibaba-NLP/gte-Qwen2-7B-instruct"):
+        self.num_samples = num_samples
+        self.method = method
         self.embedding_model_path = embedding_model_path
         self.logger = get_logger()
 
@@ -188,8 +190,6 @@ class ContentChooser(OperatorABC):
             self,
             storage:DataFlowStorage,
             input_key: str = "content",
-            num_samples: int = 1000,
-            method: str = "random"
             ) -> list:
         '''
         Execute the answer format filter process
@@ -201,9 +201,9 @@ class ContentChooser(OperatorABC):
         texts = dataframe[self.input_key].tolist()
         indexes =  np.zeros(len(dataframe)).astype(int)
         
-        if method == "random":
-            chooss_indexes = random.sample(range(len(texts)), num_samples)
-        elif method == "kcenter":
+        if self.method == "random":
+            chooss_indexes = random.sample(range(len(texts)), self.num_samples)
+        elif self.method == "kcenter":
             model_name = self.embedding_model_path
 
             from vllm import LLM
@@ -217,10 +217,10 @@ class ContentChooser(OperatorABC):
             embeddings_list = [output.outputs.embedding for output in outputs]
             embeddings = torch.tensor(embeddings_list)
 
-            sampler = KCenterGreedy(embedding=embeddings, sampling_ratio= num_samples / len(texts))
+            sampler = KCenterGreedy(embedding=embeddings, sampling_ratio= self.num_samples / len(texts))
             chooss_indexes = sampler.select_coreset_idxs()
         else:
-            raise ValueError(f"Invalid method: {method}")
+            raise ValueError(f"Invalid method: {self.method}")
 
         for index in chooss_indexes:
             indexes[index] = 1
