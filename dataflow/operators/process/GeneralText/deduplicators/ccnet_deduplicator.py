@@ -41,9 +41,11 @@ def sha1_hash(data: bytes, d: int = 32) -> int:
 
 @OPERATOR_REGISTRY.register()
 class CCNetDeduplicator(OperatorABC):
+    
     def __init__(self, bit_length: int = 64):
         self.logger = get_logger()
         self.bit_length = bit_length
+        self.logger.info(f"Initializing {self.__class__.__name__} with bit length = {bit_length}...")
         
     def _compute_hash(self, text: str) -> str:
         return sha1_hash(text, self.bit_length)
@@ -55,7 +57,10 @@ class CCNetDeduplicator(OperatorABC):
         if input_keys is not None and input_key is not None:
             self.logger.error(f"{self.__class__.__name__} only need one input args!")
             raise ValueError(f"{self.__class__.__name__} only need one input args!")
-        self.logger.info(f"Start running {self.__class__.__name__}...")
+        if input_keys is not None:
+            self.logger.info(f"Running {self.__class__.__name__} with input_keys = {input_keys} and output_key = {output_key}")
+        else:
+            self.logger.info(f"Running {self.__class__.__name__} with input_key = {input_key} and output_key = {output_key}")
         self.input_key = input_key
         self.input_keys = input_keys
         self.output_key = output_key

@@ -17,7 +17,7 @@ class DebertaV3Filter(OperatorABC):
             device=device,
             batch_size=batch_size,
         )
-        
+        self.logger.info(f"Initializing {self.__class__.__name__} with allowed_scores = {self.allowed_scores}...")
         
     def run(self, storage: DataFlowStorage, input_key: str, output_key: str = 'Debertav3Score'):
         self.input_key = input_key
