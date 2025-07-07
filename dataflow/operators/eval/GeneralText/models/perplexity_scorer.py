@@ -20,7 +20,7 @@ class PerplexityScorer(OperatorABC):
             self.logger.error(f"Error loading model: {e}")
             self.logger.error("The model has not been downloaded yet.")
             self.logger.error("Please download the model from: https://huggingface.co/edugp/kenlm/tree/main")
-            raise RuntimeError(f"Model loading failed. Please download the model from the provided link: https://huggingface.co/edugp/kenlm/tree/main. For default configuration, you can download en.arpa.bin, en.sp.model and en.sp.vocab, and put them in the folder dataflow/Eval/Text/models/Kenlm/wikipedia")
+            raise RuntimeError(f"Model loading failed. Please download the model from the provided link: https://huggingface.co/edugp/kenlm/tree/main. For default configuration, you can download en.arpa.bin, en.sp.model and en.sp.vocab, and put them in the folder dataflow/operators/GeneralText/models/Kenlm/wikipedia")
         
     def eval(self, dataframe, input_key):
         input_texts = dataframe.get(input_key, '').to_list()

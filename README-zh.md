@@ -137,7 +137,7 @@ You are using the latest version: 1.0.0.
   <img src="./static/images/xiaohongshu.jpg" width="30%">
 </div>
 
-<!-- 
+
 ## 统计信息
 <a href="https://star-history.com/#OpenDCAI/DataFlow&Date">
  <picture>
@@ -145,4 +145,4 @@ You are using the latest version: 1.0.0.
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
  </picture>
-</a> -->
+</a>

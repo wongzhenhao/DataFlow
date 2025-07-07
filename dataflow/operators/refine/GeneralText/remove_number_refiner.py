@@ -1,4 +1,3 @@
-import re
 from tqdm import tqdm
 from dataflow import get_logger
 from dataflow.core import OperatorABC
@@ -6,39 +5,31 @@ from dataflow.utils.storage import DataFlowStorage
 from dataflow.utils.registry import OPERATOR_REGISTRY
 
 @OPERATOR_REGISTRY.register()
-class HtmlUrlRemoverRefiner(OperatorABC):
+class RemoveNumberRefiner(OperatorABC):
     def __init__(self):
         self.logger = get_logger()
-    
-    @staticmethod
-    def get_desc(lang: str = "zh"):
-        return "去除文本中的URL和HTML标签" if lang == "zh" else "Remove URLs and HTML tags from the text."
+        self.logger.info(f"Initializing {self.__class__.__name__} ...")
 
     def run(self, storage: DataFlowStorage, input_key: str):
         self.input_key = input_key
         dataframe = storage.read("dataframe")
+        self.logger.info(f"Running {self.__class__.__name__} with input_key = {self.input_key}...")
         numbers = 0
         refined_data = []
         for item in tqdm(dataframe[self.input_key], desc=f"Implementing {self.__class__.__name__}"):
             modified = False
             original_text = item
-            refined_text = original_text
-
-            # Remove URLs
-            refined_text = re.sub(r'https?:\/\/\S+[\r\n]*', '', refined_text, flags=re.MULTILINE)
-            # Remove HTML tags
-            refined_text = re.sub(r'<.*?>', '', refined_text)
-
-            if original_text != refined_text:
-                item = refined_text
-                modified = True
-                self.logger.debug(f"Modified text for key '{self.input_key}': Original: {original_text[:30]}... -> Refined: {refined_text[:30]}...")
+            no_number_text = ''.join([char for char in original_text if not char.isdigit()])
+            if original_text != no_number_text:
+                item = no_number_text
+                modified = True  
+                self.logger.debug(f"Modified text for key '{self.input_key}': Original: {original_text[:30]}... -> Refined: {no_number_text[:30]}...")
 
             refined_data.append(item)
             if modified:
                 numbers += 1
                 self.logger.debug(f"Item modified, total modified so far: {numbers}")
-
+        self.logger.info(f"Refining Complete. Total modified items: {numbers}")
         dataframe[self.input_key] = refined_data
         output_file = storage.write(dataframe)
         return [self.input_key]
