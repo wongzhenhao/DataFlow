@@ -9,7 +9,7 @@ from dataflow.operators.eval.GeneralText import LexicalDiversityScorer
 @OPERATOR_REGISTRY.register()
 class LexicalDiversityFilter(OperatorABC):
     
-    def __init__(self, min_scores: dict = {'mtld': 0.7, 'hdd': 0.5}, max_scores: dict = {'mtld': 1.0, 'hdd': 1.0}):
+    def __init__(self, min_scores: dict = {'mtld': 50, 'hdd': 0.8}, max_scores: dict = {'mtld': 99999, 'hdd': 1.0}):
         
         self.min_scores = min_scores
         self.max_scores = max_scores
@@ -35,11 +35,11 @@ class LexicalDiversityFilter(OperatorABC):
             max_score = self.max_scores[_label]
             label = self.metric_name_map[_label]
             dataframe[label] = pd.DataFrame(scores)[label]
-            print(dataframe[label])
             metric_scores = np.array(dataframe[label])
             metric_filter = (min_score <= metric_scores) & (metric_scores <= max_score)
+            nan_filter = np.isnan(metric_scores)
+            metric_filter = metric_filter | nan_filter    
             results = results & metric_filter.astype(int)
-            print(results)
             self.logger.debug(f"Filtered by {_label}, {np.sum(results)} data remained")
             dataframe[f"{label}_label"] = metric_filter.astype(int)
         filtered_dataframe = dataframe[results == 1]

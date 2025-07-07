@@ -1,4 +1,4 @@
-from dataflow.operators.process.GeneralText import  CCNetDeduplicator
+from dataflow.operators.process.GeneralText import LexicalDiversityFilter
 from dataflow.utils.storage import FileStorage
 from dataflow.llmserving import APILLMServing_request
 import os
@@ -11,7 +11,7 @@ class TextPipeline():
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
-        self.processor = CCNetDeduplicator()
+        self.processor = LexicalDiversityFilter()
 
     def forward(self):
         self.processor.run(
