@@ -9,33 +9,33 @@ from dataflow.operators.eval.GeneralText import LangkitScorer
 @OPERATOR_REGISTRY.register()
 class LangkitFilter(OperatorABC):
     def __init__(self, 
-                 min_scores: dict = {
-                    "flesch_reading_ease": 0,
-                    "automated_readability_index": 0,
-                    "aggregate_reading_level": 1.0,
-                    "syllable_count": 100,
-                    "lexicon_count": 200,
-                    "sentence_count": 5,
-                    "character_count": 500,
-                    "letter_count": 400,
-                    "polysyllable_count": 50,
-                    "monosyllable_count": 150,
-                    "difficult_words": 10,
-                 },
-                 max_scores: dict = {
-                    "flesch_reading_ease": 10.0,
-                    "automated_readability_index": 15.0,
-                    "aggregate_reading_level": 12.0,
-                    "syllable_count": 200,
-                    "lexicon_count": 400,
-                    "sentence_count": 50,
-                    "character_count": 2000,
-                    "letter_count": 1500,
-                    "polysyllable_count": 100,
-                    "monosyllable_count": 300,
-                    "difficult_words": 50,
-                 },
-                 metrics_to_keep: list = [
+                 min_scores = {
+                    "flesch_reading_ease": 0,     # max(−144.8, 55.19−18.03)
+                    "automated_readability_index": 0,  # max(0.9, 11.77−4.41)
+                    "aggregate_reading_level": 0,  # max(0.0, 11.23−3.70)
+                    "syllable_count": 32.0,         # max(32,   815.4−1516.6 → clip to 32)
+                    "lexicon_count": 23.0,          # max(23,   524.2−1029.8 → clip to 23)
+                    "sentence_count": 1.0,          # max(1,    29.0−60.1 → clip to 1)
+                    "character_count": 118.0,       # max(118,  2610.2−4856.0 → clip to 118)
+                    "letter_count": 109.0,          # max(109,  2513.5−4679.5 → clip to 109)
+                    "polysyllable_count": 0.0,      # max(0,    78.9−137.5 → clip to 0)
+                    "monosyllable_count": 13.0,     # max(13,   334.7−709.4 → clip to 13)
+                    "difficult_words": 4.0,         # max(4,    93.4−120.0 → clip to 4)
+                },
+                max_scores = {
+                    "flesch_reading_ease": 100,    # min(106.4, 55.19+18.03)
+                    "automated_readability_index": 100, # min(98.2, 11.77+4.41)
+                    "aggregate_reading_level": 100, # min(77.0, 11.23+3.70)
+                    "syllable_count": 2331.9,       # min(43237, 815.4+1516.6)
+                    "lexicon_count": 1554.0,        # min(33033, 524.2+1029.8)
+                    "sentence_count": 89.1,         # min(2193,  29.0+60.1)
+                    "character_count": 7466.3,      # min(139807,2610.2+4856.0)
+                    "letter_count": 7193.0,         # min(134507,2513.5+4679.5)
+                    "polysyllable_count": 216.4,    # min(3261,  78.9+137.5)
+                    "monosyllable_count": 1044.1,   # min(25133,334.7+709.4)
+                    "difficult_words": 213.4,       # min(2366,  93.4+120.0)
+                },
+                metrics_to_keep: list = [
                     "flesch_reading_ease",
                     "automated_readability_index",
                     "aggregate_reading_level",
