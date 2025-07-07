@@ -20,7 +20,7 @@ class QuestionRefiner(OperatorABC):
         self.max_retries = max_retries
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于对已有的自然语言问题进行润色改写。\n\n"

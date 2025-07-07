@@ -34,6 +34,8 @@ DataFlow 是一个数据准备系统，旨在从噪声数据源（PDF、纯文�
 
 ## 3 数据流程功能介绍
 
+### 3.1 推荐使用的完整流水线
+
 目前 DataFlow 包含以下主要数据处理流程：
 
 - **文本处理流程（Text Pipeline）**：从大规模纯文本（多为网络爬取）中挖掘问答对，用于监督微调和强化学习训练。
@@ -48,11 +50,20 @@ DataFlow 是一个数据准备系统，旨在从噪声数据源（PDF、纯文�
   - ![](./static/images/dataflow_text2sql_pipeline.jpg)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Text2SQL)
 
-- **Agent式RAG流程**：从已有问答或知识库中挖掘需要外部知识才能作答的问答对，用于训练 Agentic RAG 模型。
+- **知识库清洗流程**：从表格、PDF 和 Word 文档等非结构化数据源中提取并整理知识，将其转化为可用于下游 RAG 或 QA 配对生成的可用条目。
+  - ![](./static/images/dataflow_KnowledgeBaseClean_pipeline.jpg)
 
-此外，我们还提供：
+- **Agent式RAG流程**：从已有问答或知识库中挖掘需要外部知识才能作答的问答对，用于训练 Agentic RAG 模型。
+  - ![](./static/images/dataflow_agenticRAG_pipeline.jpg)
+    
+### 3.2 算子自由组合的灵活流水线
+
+在本框架中，算子可灵活组合构建数据处理流水线，按功能分为基础算子（Fundamental Operators）、通用算子（Generic Operators）、领域特定算子（Domain-Specific Operators）和评估算子（Evaluation Operators）等，覆盖从清洗到评估的多种任务。详见[项目文档](https://OpenDCAI.github.io/DataFlow-Doc/)了解具体用法。
+
+### 3.3 Agent驱动的流水线自动编排
 
 - **DataFlow-Agent**：基于任务需求，自动编排现有算子并合成新的数据处理流程。
+  - ![](./static/images/dataflow_agent_pipeline.jpg)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Agent)
 
 ## 4 快速开始
@@ -119,8 +130,14 @@ You are using the latest version: 1.0.0.
 
 ![Text2SQL结果图](./static/images/text2sql.png)
 
+## 关注我们
 
-<!-- 
+📌 欢迎关注我们课题组的小红书账号 26133106768，我们会在账号上持续更新最新研究成果和项目进展，期待与你分享更多前沿内容！🎉🎉🎉
+<div align="center">
+  <img src="./static/images/xiaohongshu.jpg" width="30%">
+</div>
+
+
 ## 统计信息
 <a href="https://star-history.com/#OpenDCAI/DataFlow&Date">
  <picture>
@@ -128,4 +145,4 @@ You are using the latest version: 1.0.0.
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=OpenDCAI/DataFlow&type=Date" />
  </picture>
-</a> -->
+</a>

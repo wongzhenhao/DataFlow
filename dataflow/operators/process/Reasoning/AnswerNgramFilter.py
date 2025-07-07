@@ -21,7 +21,7 @@ class AnswerNgramFilter(OperatorABC):
         self.logger = get_logger()
         
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子基于n-gram重复率过滤答案，检测回答中的重复模式。\n\n"

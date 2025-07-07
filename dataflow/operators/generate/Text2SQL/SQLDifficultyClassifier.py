@@ -722,7 +722,7 @@ class SQLDifficultyClassifier(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于基于SQL中的关键词数量统计划分难度。\n\n"

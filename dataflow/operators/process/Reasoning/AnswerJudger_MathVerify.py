@@ -13,7 +13,7 @@ class AnswerJudger_MathVerify(OperatorABC):
         self.logger = get_logger()
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子通过符号计算验证答案正确性，执行数学表达式解析和等价性验证。\n\n"

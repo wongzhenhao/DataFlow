@@ -36,7 +36,7 @@ class AnswerGroundTruthFilter(OperatorABC):
                 return False
 
     @staticmethod
-    def get_desc(self, lang):
+    def get_desc(lang: str = "zh"):
         if lang == "zh":
             return (
                 "该算子用于对比预测答案与标准答案的匹配度，支持精确匹配和数学验证两种方式。\n\n"
