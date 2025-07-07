@@ -14,6 +14,7 @@ class KnowledgeExtractor(OperatorABC):
     def __init__(self, **kwargs):
         self.logger = get_logger()
         self.intermediate_dir=kwargs.get("intermediate_dir", "intermediate")
+        self.lang=kwargs.get("lang", "en")
         
     @staticmethod
     def get_desc(lang: str = "zh"):
@@ -47,7 +48,7 @@ class KnowledgeExtractor(OperatorABC):
                 "- Generates intermediate files to specified directory(intermediate_dir)"
             )
 
-    def run(self, storage:DataFlowStorage ,raw_file=None, url=None,lang="en"):
+    def run(self, storage:DataFlowStorage ,raw_file=None, url=None):
         self.logger.info("starting to extract...")
         self.logger.info("If you are providing a url or a large file, this may take a while, please wait...")
         if(url):
@@ -81,7 +82,7 @@ please make sure you have gpu on your machine.
             output_file=_parse_pdf_to_md(
                 raw_file,
                 self.intermediate_dir,
-                lang,
+                self.lang,
                 "txt"
             )
         elif(raw_file_suffix in [".doc", ".docx", ".pptx", ".ppt"]):

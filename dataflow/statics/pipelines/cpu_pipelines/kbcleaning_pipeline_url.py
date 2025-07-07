@@ -14,7 +14,8 @@ class KBCleaningPipeline():
         )
 
         self.knowledge_cleaning_step1 = KnowledgeExtractor(
-            intermediate_dir="../example_data/KBCleaningPipeline/raw/"
+            intermediate_dir="../example_data/KBCleaningPipeline/raw/",
+            lang="en",
         )
 
         self.knowledge_cleaning_step2 = CorpusTextSplitter(
@@ -28,7 +29,6 @@ class KBCleaningPipeline():
             storage=self.storage,
             raw_file=raw_file,
             url=url,
-            lang="en"
         )
         
         self.knowledge_cleaning_step2.run(
