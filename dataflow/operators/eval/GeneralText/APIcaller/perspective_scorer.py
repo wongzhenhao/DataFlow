@@ -5,11 +5,12 @@ from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
 import pandas as pd
 from dataflow.core import LLMServingABC
+from dataflow.serving import PerspectiveAPIServing
 
 @OPERATOR_REGISTRY.register()
 class PerspectiveScorer(OperatorABC):
     """Operator that assigns Perspective API toxicity scores to text inputs."""
-    def __init__(self, serving: LLMServingABC = None):
+    def __init__(self, serving: PerspectiveAPIServing = None):
         self.logger = get_logger()
         self.logger.info(f"Initializing {self.__class__.__name__}...")
         self.serving = serving
