@@ -8,7 +8,7 @@ from dataflow.operators.process.AgenticRAG import (
     ContentChooser,
 )
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request
+from dataflow.serving import APILLMServing_request
 
 class AgenticRAGPipeline():
     def __init__(self, llm_serving=None):
