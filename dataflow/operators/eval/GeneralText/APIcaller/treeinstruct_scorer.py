@@ -12,7 +12,7 @@ class TreeinstructScorer(OperatorABC):
         self.logger = get_logger()
         self.logger.info(f'Initializing {self.__class__.__name__}...')
         self.llm_serving = llm_serving
-        self.score_name = 'AlpagasusScore'
+        self.score_name = 'TreeinstructScore'
         self.prompt = TreeinstructPrompt()
         self.logger.info(f'{self.__class__.__name__} initialized.')
 

@@ -38,6 +38,8 @@ vendi-score==0.0.3
 google-api-core
 google-api-python-client
 evaluate
+contractions
+symspellpy
 
 # knowledge base cleaning
 chonkie
