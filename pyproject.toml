@@ -51,6 +51,7 @@ dependencies = {file = "requirements.txt"}
 
 [project.optional-dependencies]
 vllm = ["vllm<0.8"]
+sglang =["sglang[all]<=0.4.3"]
 agent = [
     "cloudpickle",
     "fastapi",

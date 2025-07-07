@@ -6,7 +6,7 @@ from dataflow.operators.generate.AgenticRAG import (
 
 from dataflow.operators.process.AgenticRAG import *
 from dataflow.utils.storage import FileStorage
-from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing
+from dataflow.serving import APILLMServing_request, LocalModelLLMServing
 from dataflow.core import LLMServingABC
 
 # 这里或许未来可以有个pipeline基类
