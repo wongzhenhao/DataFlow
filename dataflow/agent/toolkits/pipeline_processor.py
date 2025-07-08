@@ -236,8 +236,8 @@ def _topological_sort(nodes: List[Dict[str, Any]],
     id2node = {n["id"]: n for n in nodes}
     indeg = defaultdict(int)
     graph = defaultdict(list)
-    logger.info(f"[nodes]:{nodes}")
-    logger.info(f"[edges]:{edges}")
+    # logger.info(f"[nodes]:{nodes}")
+    # logger.info(f"[edges]:{edges}")
     for e in edges:
         src, dst = e["source"], e["target"]
         graph[src].append(dst)

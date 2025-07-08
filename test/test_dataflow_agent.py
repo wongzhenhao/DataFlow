@@ -24,6 +24,8 @@ memorys = {
 }
 BASE_DIR = DataFlowPath.get_dataflow_dir()
 DATAFLOW_DIR = BASE_DIR.parent
+api_key = os.environ.get("CHATANY_API_KEY", "")
+chat_api_url = os.environ.get("CHATANY_API_URL", "")
 
 def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
     router   = TaskRegistry.get("conversation_router", prompts_template=tmpl,request=req)
@@ -37,7 +39,8 @@ def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
 
     cfg = TaskChainConfig(pipeline_tasks={"data_content_classification","recommendation_inference_pipeline","execute_the_recommended_pipeline",},
                           operator_tasks={"match_operator","write_the_operator","exe_and_debug_operator"},
-                          debuggable_tools={"local_tool_for_execute_the_recommended_pipeline": True})
+                          debuggable_tools={"local_tool_for_execute_the_recommended_pipeline": True,
+                                            "local_tool_for_debug_and_exe_operator":True})
     return [router, classify, rec, exe , op_match, op_write, op_debug], cfg
 
 async def _run_service(req: ChatAgentRequest) -> ChatResponse:
@@ -74,6 +77,8 @@ if __name__ == "__main__":
     pipeline_recommand_params = {
         "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
         "py_path": f"{DATAFLOW_DIR}/test/recommend_pipeline.py",
+        "api_key": api_key,
+        "chat_api_url": chat_api_url,
         "execute_the_pipeline": False,
         "use_local_model": True,
         "local_model_name_or_path": "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
@@ -84,7 +89,11 @@ if __name__ == "__main__":
     operator_write_params = {
         "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
         "py_path": f"{DATAFLOW_DIR}/test/operator.py",
-        "execute_the_operator": True,
+        "api_key": api_key,
+        "chat_api_url": chat_api_url,
+        "execute_the_operator": False,
+        "use_local_model": True,
+        "local_model_name_or_path": "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
         "timeout": 3600,
         "max_debug_round": 5
     }
@@ -93,23 +102,17 @@ if __name__ == "__main__":
         test_req = ChatAgentRequest(
             language="zh",
             target="帮我针对数据推荐一个的pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
-            api_key="sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
-            chat_api_url="https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             **pipeline_recommand_params
         )
-
         resp = asyncio.run(_run_service(test_req))
         print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))
         sys.exit(0) 
-
     if len(sys.argv) == 2 and sys.argv[1] == "write":
         test_req = ChatAgentRequest(
             language="zh",
             target="我需要一个新的算子，这个算子可以使用MinHash算法进行文本去重!!",
-            api_key="sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
-            chat_api_url="https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             ** operator_write_params
