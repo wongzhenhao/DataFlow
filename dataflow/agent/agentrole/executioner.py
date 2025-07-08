@@ -783,7 +783,7 @@ class ExecutionAgent:
         if is_debug_subprocess_code:
             import secrets
             orig_path = Path(call_args["request"].py_path)          # recommend_pipeline.py
-            token     = secrets.token_hex(8)                       # 16-char hex
+            token     = secrets.token_hex(8)                        # 8-char hex
             call_args.get("request").py_path = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
             py_path: str | None = call_args.get("request").py_path
             if not py_path:

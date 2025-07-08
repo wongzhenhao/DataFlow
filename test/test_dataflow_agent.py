@@ -81,7 +81,7 @@ if __name__ == "__main__":
         "max_debug_round": 5
     }
 
-    operator_write = {
+    operator_write_params = {
         "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
         "py_path": f"{DATAFLOW_DIR}/test/operator.py",
         "execute_the_operator": True,
@@ -89,12 +89,12 @@ if __name__ == "__main__":
         "max_debug_round": 5
     }
 
-    if len(sys.argv) == 2 and sys.argv[1] == "recommand":
+    if len(sys.argv) == 2 and sys.argv[1] == "recommend":
         test_req = ChatAgentRequest(
             language="zh",
-            target="帮我针对数据推荐一个预测的pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
-            api_key="",
-            chat_api_url="",
+            target="帮我针对数据推荐一个的pipeline!!!我只想要前4个处理算子！！！其余的都不要！！",
+            api_key="sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
+            chat_api_url="https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
             **pipeline_recommand_params
@@ -108,11 +108,11 @@ if __name__ == "__main__":
         test_req = ChatAgentRequest(
             language="zh",
             target="我需要一个新的算子，这个算子可以使用MinHash算法进行文本去重!!",
-            api_key="",
-            chat_api_url="",
+            api_key="sk-ao5wGhCOAWidgaEK3WEcqWbk5a1KP8SSMsnOAy9IeRQNylVs",
+            chat_api_url="https://api.chatanywhere.com.cn/v1/chat/completions",
             model="deepseek-v3",
             sessionKEY="dataflow_demo",
-            ** operator_write
+            ** operator_write_params
         )
         resp = asyncio.run(_run_service(test_req))
         print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))

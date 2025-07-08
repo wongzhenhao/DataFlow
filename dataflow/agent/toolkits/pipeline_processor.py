@@ -24,6 +24,7 @@ from typing import List, Dict, Any, Type, Iterable, Tuple,Optional
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from pathlib import Path
 import os
+from .tool_factory import TOOL
 from dataflow import get_logger
 logger = get_logger()
 
@@ -235,7 +236,8 @@ def _topological_sort(nodes: List[Dict[str, Any]],
     id2node = {n["id"]: n for n in nodes}
     indeg = defaultdict(int)
     graph = defaultdict(list)
-
+    logger.info(f"[nodes]:{nodes}")
+    logger.info(f"[edges]:{edges}")
     for e in edges:
         src, dst = e["source"], e["target"]
         graph[src].append(dst)
@@ -398,6 +400,7 @@ def generate_pipeline_py(
     py_path.write_text(code, encoding="utf-8")
     return code
 
+@TOOL(desc="生成pipeline代码并且执行")
 def local_tool_for_execute_the_recommended_pipeline(
     pre_task_result: Dict[str, Any],
     request,

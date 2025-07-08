@@ -18,6 +18,9 @@ match_operator:
   get_operator_content:
     data_key: 
       ContentSubType: MIXTURE
+    keep_keys: [name, type, description]
+      
+
 
 write_the_operator:
   special_model: o3
