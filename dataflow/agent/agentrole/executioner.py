@@ -784,7 +784,9 @@ class ExecutionAgent:
             import secrets
             orig_path = Path(call_args["request"].py_path)          # recommend_pipeline.py
             token     = secrets.token_hex(8)                        # 8-char hex
-            call_args.get("request").py_path = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
+            new_path  = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
+            shutil.copy(orig_path, new_path) 
+            call_args["request"].py_path = new_path
             py_path: str | None = call_args.get("request").py_path
             if not py_path:
                 raise ValueError("call_args must include the 'py_path' field")
@@ -844,12 +846,12 @@ class ExecutionAgent:
                 )
 
                 response_content = await self.debug_agent.debug_pipeline_tool_code(
-                    template_name="task_prompt_for_pipeline_code_debug",
-                    code=textwrap.dedent(code_src),
-                    error=result.traceback,
-                    cls_detail_code=cls_detail_code,
-                    history=history,
-                    data_keys=data_keys,
+                    template_name   = "task_prompt_for_pipeline_code_debug",
+                    code            = textwrap.dedent(code_src),
+                    error           = result.traceback,
+                    cls_detail_code = cls_detail_code,
+                    history         = history,
+                    data_keys       = data_keys,
                 )
                 
                 json_content = self.robust_parse_json(response_content)
