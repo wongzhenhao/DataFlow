@@ -24,14 +24,14 @@ def local_tool_for_get_match_operator_code(pre_task_result: Dict[str, Any]) -> s
         The source code text of all matched operators, separated by two newlines.
     """
     if not pre_task_result or not isinstance(pre_task_result, dict):
-        return "# ❗ pre_task_result 为空，无法提取算子名"
+        return "# ❗ pre_task_result is empty, cannot extract operator names"
     from dataflow.utils.registry import OPERATOR_REGISTRY
     _NAME2CLS = {name: cls for name, cls in OPERATOR_REGISTRY}
     blocks: List[str] = []
     for op_name in pre_task_result.get("match_operators", []):
         cls = _NAME2CLS.get(op_name)
         if cls is None:
-            blocks.append(f"# --- {op_name} 未在 OPERATOR_REGISTRY 中注册 ---")
+            blocks.append(f"# --- {op_name} is not registered in OPERATOR_REGISTRY ---")
             continue
         try:
             cls_src = inspect.getsource(cls)
@@ -47,7 +47,7 @@ def local_tool_for_get_match_operator_code(pre_task_result: Dict[str, Any]) -> s
             src_block = f"# === Source of {op_name} ===\n{import_block}\n\n{cls_src}"
             blocks.append(src_block)
         except (OSError, TypeError) as e:
-            blocks.append(f"# --- 无法获取 {op_name} 的源码: {e} ---")
+            blocks.append(f"# --- Failed to get the source code of {op_name}: {e} ---")
     return "\n\n".join(blocks)
 
 def local_tool_for_debug_and_exe_operator(

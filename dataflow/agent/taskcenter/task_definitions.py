@@ -79,7 +79,6 @@ def _make_recommendation_task(prompts_template,request):
         task_template="task_prompt_for_recommendation_inference_pipeline",
         param_funcs={
             "local_tool_for_sample": local_tool_for_sample,
-            # "operator": get_operator_content,
             "operator": get_operator_content_map_from_all_operators,
             "workflow_bg":local_tool_for_get_purpose
 
@@ -133,7 +132,7 @@ def _make_write_and_exe_operator(prompts_template,request):
             "example": local_tool_for_get_match_operator_code,
             "target": local_tool_for_get_purpose
         },
-        is_result_process = False,
+        is_result_process = True,
         task_result_processor = post_process_save_op_code ,   # 结果后处理，存储；
         use_pre_task_result = True, 
         task_name         = "write_the_operator"

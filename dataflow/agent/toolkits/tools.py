@@ -37,7 +37,6 @@ import subprocess
 from collections import defaultdict, deque
 from dataflow.utils.storage import FileStorage
 from .pipeline_processor import local_tool_for_update_operators_info
-# from .logger import get_logger
 from dataflow import get_logger
 logger = get_logger()
 from dataflow.cli_funcs.paths import DataFlowPath
@@ -172,7 +171,7 @@ def get_kb_content(request: ChatAgentRequest) -> Optional[Any]:
         print(f"Error: An unknown error occurred: {e}")
     return None
 
-def get_operator_content(request: Any, data_key: Union[Dict[str, Any], List[Dict[str, Any]]]) -> Any:
+def get_operator_content(request: Any, data_key: Union[Dict[str, Any], List[Dict[str, Any]]], keep_keys = None) -> Any:
     """
     Retrieve operator content from the configuration file based on the data key.
     """
@@ -206,14 +205,18 @@ def get_operator_content(request: Any, data_key: Union[Dict[str, Any], List[Dict
         print(f"Error: Unable to parse JSON file {file_path}!")
         return None
     result = operator_content.get(subtype)
-    KEEP_KEYS = {
-        "name",
-        "type",
-        "description",
-    }
-    result = [
-        {k: op.get(k) for k in KEEP_KEYS} for op in result
-    ]
+    # KEEP_KEYS = {
+    #     "node",
+    #     "name",
+    #     "type",
+    #     "description",
+    #     "command",
+    # }
+    if keep_keys is not None:
+        KEEP_KEYS = keep_keys
+        result = [
+            {k: op.get(k) for k in KEEP_KEYS} for op in result
+        ]
     if result is None:
         print(f"Warning: Key '{subtype}' not found in Operator.json; available keys: {list(operator_content.keys())}")
     return result
@@ -336,21 +339,6 @@ def get_operator_descriptions(root_package: str = "dataflow",
         return None
     # 2. 生成描述 ------------------------------------------------------
     desc_list: List[Dict[str, Any]] = []
-    # for idx, cls in enumerate(operator_classes, 1):
-    #     try:
-    #         desc = cls.get_desc(lang)
-    #     except Exception as e:
-    #         # 调用失败直接跳过，不写入结果
-    #         print(f"[Skip] {cls.__name__}: {e}")
-    #         continue
-
-    #     desc_list.append(
-    #         {
-    #             "node": idx,
-    #             "name": cls.__name__,
-    #             "description": desc,
-    #         }
-    #     )
     for idx, cls in enumerate(operator_classes, 1):
         desc = _call_get_desc_static(cls, lang)
         if desc is None:

@@ -69,6 +69,9 @@ class AnalysisService:
         self.debug_agent = execution_agent.debug_agent
         self.execution_agent = execution_agent
         self.cfg =  cfg
+        self.post_porcess_args = {
+            'request': self.request
+        }
 
     async def process_request(self):
 
@@ -146,6 +149,8 @@ class AnalysisService:
             formatted_context = await agent.generate_analysis_results(request)
             last_result = formatted_context
             self.task_results.append(last_result)
+            self.post_porcess_args['task_results'] = self.task_results
+            self.post_porcess_args['last_result'] = last_result
             if task.task_name == "conversation_router":
                 need_rec           = formatted_context.get("need_recommendation",  False)
                 need_write_operator = formatted_context.get("need_write_operator", False)
@@ -174,7 +179,7 @@ class AnalysisService:
                 continue
             # ---------- end router ----------
             if task.is_result_process:
-                last_result = task.task_result_processor(last_result, self.task_results)
+                last_result = task.task_result_processor(**self.post_porcess_args)
             idx += 1
             logger.info(f"[The final execution result (the result passed to the next task)]:{last_result}")
             self.memory.set_session_data(session_id,f'{task.task_name}',last_result)

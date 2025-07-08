@@ -25,5 +25,5 @@ from .post_processor import post_process_combine_pipeline_result,post_process_sa
 # from .logger import get_logger, setup_logging
 from .pipeline_processor import local_tool_for_execute_the_recommended_pipeline
 from .operator_processor import local_tool_for_debug_and_exe_operator,local_tool_for_get_match_operator_code
-from .tool_factory import ToolRegistry
+from .tool_factory import tool_registry, TOOL, ToolRegistry
 # from .MinioTookits import

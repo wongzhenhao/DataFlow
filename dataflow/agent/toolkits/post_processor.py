@@ -1,33 +1,39 @@
+from pathlib import Path
 import uuid
 from typing import Dict, Any, List, Union
 import json
 from .tools import get_operator_content,get_operator_descriptions
 from .tools import ChatAgentRequest
  
-def post_process_save_op_code(request:ChatAgentRequest,
-                              result: Dict[str, Any]):
-    pass
+def post_process_save_op_code(request: ChatAgentRequest,
+                              last_result: Dict[str, Any],
+                              **kwargs) -> None:
+    try:
+        code: str = last_result["code"]
+    except KeyError: 
+        raise ValueError("`last_result` 字典缺少 'code' 键，无法保存代码。")
+    py_path = Path(request.py_path)     
+    py_path.parent.mkdir(parents=True, exist_ok=True) 
+    py_path.write_text(code, encoding="utf-8")
+    
 
 def post_process_combine_pipeline_result(
-        result: Dict[str, Any],
-        task_results_history: List
+        last_result: Dict[str, Any],
+        task_results: List,
+        **kwargs
 ) -> Dict[str, Any]:
-    edges = result.get("edges")
+    edges = last_result.get("edges")
     if not isinstance(edges, list):
-        return result
-
+        return last_result
+# get_operator_content
     nodes_info: Union[List[Dict[str, Any]], Dict[str, str], None] = None
-    for past in reversed(task_results_history):
+    for past in reversed(task_results):
         if "ContentSubType" in past:
-            if past["ContentSubType"] == "MIXTURE":
-                nodes_info = get_operator_descriptions()
-            else:
-                nodes_info = get_operator_content("", past)
-            break
-
+                nodes_info = get_operator_content(request= "", data_key= past , keep_keys= None)    
+    print("nodes_info:",nodes_info)
     # Handle case when nodes_info is None or not a list/dict
     if nodes_info is None:
-        return result
+        return last_result
     id_map: Dict[str, Dict[str, Any]] = {}
     # Case 1: nodes_info is a dictionary of operator descriptions (for MIXTURE)
     if isinstance(nodes_info, dict):
@@ -83,7 +89,7 @@ def post_process_combine_pipeline_result(
             filtered["id"] = rid
             out_nodes.append(filtered)
 
-    new_result = dict(result)
+    new_result = dict(last_result)
     new_result["nodes"] = out_nodes
     new_result["edges"] = normalized_edges
     new_result["name"] = f"{uuid.uuid4()}_pipeline"
