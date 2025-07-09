@@ -47,11 +47,11 @@ async def _run_service(req: ChatAgentRequest) -> ChatResponse:
     tmpl = PromptsTemplateGenerator(req.language)
     task_chain, chain_cfg = _build_task_chain(req,tmpl = tmpl)
     execution_agent = ExecutionAgent(
-                              req,
-                              memorys["executioner"],
-                              tmpl,
-                              debug_agent=DebugAgent(task_chain[-1],memorys["debugger"],req),
-                              task_chain= task_chain
+                              request           = req,
+                              memory_entity     = memorys["executioner"],
+                              prompt_template   = tmpl,
+                              debug_agent       = DebugAgent(task_chain,memorys["debugger"],req),
+                              task_chain        = task_chain
                               )
     
     service = AnalysisService(
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         "py_path": f"{DATAFLOW_DIR}/test/operator.py",
         "api_key": api_key,
         "chat_api_url": chat_api_url,
-        "execute_the_operator": False,
+        "execute_the_operator": True,
         "use_local_model": True,
         "local_model_name_or_path": "/mnt/public/model/huggingface/Qwen2.5-7B-Instruct",
         "timeout": 3600,
@@ -121,3 +121,7 @@ if __name__ == "__main__":
         print(json.dumps(resp.dict(), ensure_ascii=False, indent=2))
         sys.exit(0)        
     uvicorn.run("test_dataflow_agent:app", host="0.0.0.0", port=8000, reload=True)
+
+    # 我需要一个算子，能够对用户评论进行情感分析并输出积极/消极标签。
+    # 我需要一个算子，能够计算文本的可读性分数并给出优化建议。
+    # 我需要一个新的算子，这个算子可以使用MinHash算法进行文本去重!!

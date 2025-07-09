@@ -65,7 +65,6 @@ class AnalysisService:
         else:
             self.tasks = tasks
         self.prompt_template_generator = self.tasks[-1].prompts_template
-        # self.debug_agent = DebugAgent(self.tasks[-1], self.memory, request=self.request)
         self.debug_agent = execution_agent.debug_agent
         self.execution_agent = execution_agent
         self.cfg =  cfg
