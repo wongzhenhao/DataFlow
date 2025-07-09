@@ -294,7 +294,7 @@ def generate_pipeline_py(
     ]
     extra_imports = [
         "from dataflow.utils.storage import FileStorage",
-        "from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing",
+        "from dataflow.serving import APILLMServing_request, LocalModelLLMServing_vllm, LocalModelLLMServing_sglang",
     ]
 
     def _py_literal(val):
@@ -334,11 +334,11 @@ def generate_pipeline_py(
     if local:
         llm_block = f"""
         # -------- LLM Serving (Local) --------
-        llm_serving = LocalModelLLMServing(
-            model_name_or_path="{local_model_name_or_path}",
-            tensor_parallel_size=1,
-            max_tokens=8192,
-            model_source="local",
+        llm_serving = LocalModelLLMServing_vllm(
+            hf_model_name_or_path="{local_model_name_or_path}",
+            vllm_tensor_parallel_size=1,
+            vllm_max_tokens=8192,
+            hf_local_dir="local",
         )
         """
     else:
@@ -350,11 +350,11 @@ def generate_pipeline_py(
             max_workers=100,
         )
         # For local models, uncomment below
-        # llm_serving = LocalModelLLMServing(
-        #     model_name_or_path="{local_model_name_or_path}",
-        #     tensor_parallel_size=1,
-        #     max_tokens=8192,
-        #     model_source="local",
+        # llm_serving = LocalModelLLMServing_vllm(
+        #     hf_model_name_or_path="{local_model_name_or_path}",
+        #     vllm_tensor_parallel_size=1,
+        #     vllm_max_tokens=8192,
+        #     hf_local_dir="local",
         # )
         """
 
@@ -408,6 +408,7 @@ def local_tool_for_execute_the_recommended_pipeline(
     # py_path: str = "recommend_pipeline.py",
     dry_run: bool = False,
     is_in_debug_process: bool = False,
+    current_round: int = 0
 ):
     """
     Generate and (optionally) execute the recommended pipeline.

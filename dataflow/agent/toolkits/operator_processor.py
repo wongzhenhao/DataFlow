@@ -31,13 +31,10 @@ def _find_first_operator(module) -> type:
 def generate_operator_py(
     request: ChatAgentRequest,
 ) -> str:
-    """
-    根据 request['pyPath'] 读取算子源码，自动在末尾拼接可执行 main，
-    并把结果写到 output_py_path（默认与原文件同名加 _runner）。
-    """
     src_path = Path(request.py_path).expanduser().resolve()
     if not src_path.exists():
         raise FileNotFoundError(src_path)
+    
     original_code = src_path.read_text(encoding="utf-8")
     spec = importlib.util.spec_from_file_location(src_path.stem, src_path)
     module = importlib.util.module_from_spec(spec)
@@ -47,10 +44,14 @@ def generate_operator_py(
     cls_name = operator_cls.__name__
     # 解析 __init__，构造实例化形参（带默认值）
     sig = inspect.signature(operator_cls.__init__)
+
     init_parts = []
-    for name, param in list(sig.parameters.items())[1:]:  # 跳过 self
+    op_need_llm = False
+    llm_block = ' '
+    for name, param in list(sig.parameters.items())[1:]:
         if name == "llm_serving":
             init_parts.append("llm_serving=llm_serving")
+            op_need_llm = True
         elif param.default is param.empty:
             init_parts.append(f"# TODO: {name}=...")
         else:
@@ -58,37 +59,49 @@ def generate_operator_py(
     init_call = f"{cls_name}({', '.join(init_parts)})"
 
     # ---------- LLM-Serving 代码块 ----------
-    if request.use_local_model:
-        llm_block = textwrap.dedent(
-            f"""\
-            # -------- LLM Serving (Local) --------
-            llm_serving = LocalModelLLMServing(
-                model_name_or_path="{request.local_model_name_or_path}",
-                tensor_parallel_size=1,
-                max_tokens=8192,
-                model_source="local",
+    if op_need_llm:
+        if request.use_local_model:
+            # 暂时不写，等确定的Serving
+            llm_block = textwrap.dedent(
+                f"""\
+                # -------- LLM Serving (Local) --------
+                llm_serving = LocalModelLLMServing_vllm(
+                    hf_model_name_or_path="{request.local_model_name_or_path}",
+                    vllm_tensor_parallel_size=1,
+                    vllm_max_tokens=8192,
+                    hf_local_dir="local",
+                )
+                """
             )
-            """
-        )
-    else:
-        llm_block = textwrap.dedent(
-            f"""\
-            # -------- LLM Serving (Remote) --------
-            llm_serving = APILLMServing_request(
-                api_url="https://api.openai.com/v1/chat/completions",
-                model_name="gpt-4o",
-                max_workers=100,
+                # f"""\
+                # # -------- LLM Serving (Local) --------
+                # llm_serving = LocalModelLLMServing_vllm(
+                #     hf_model_name_or_path="{request.local_model_name_or_path}",
+                #     vllm_tensor_parallel_size=1,
+                #     vllm_max_tokens=8192,
+                #     hf_local_dir="local",
+                # )
+                # """
+        else:
+            llm_block = textwrap.dedent(
+                f"""\
+                # -------- LLM Serving (Remote) --------
+                llm_serving = APILLMServing_request(
+                    api_url="https://api.openai.com/v1/chat/completions",
+                    model_name="gpt-4o",
+                    max_workers=100,
+                )
+                # 若需本地模型，请改用 LocalModelLLMServing 并设置 local=True
+                """
             )
-            # 若需本地模型，请改用 LocalModelLLMServing 并设置 local=True
-            """
-        )
 
     # ---------- main 代码块 ----------
     main_block = textwrap.dedent(
         f"""
         # ======== Auto-generated runner ========
         from dataflow.utils.storage import FileStorage
-        from dataflow.llmserving import APILLMServing_request, LocalModelLLMServing
+        from dataflow.serving import APILLMServing_request, LocalModelLLMServing_vllm, LocalModelLLMServing_sglang
+        from dataflow.core import LLMServingABC
 
         if __name__ == "__main__":
             # 1. FileStorage
@@ -116,9 +129,6 @@ def generate_operator_py(
     output_path = Path(request.py_path).expanduser().resolve()
     output_path.write_text(full_code, encoding="utf-8")
     return full_code
-
-
-
 
 def local_tool_for_get_match_operator_code(pre_task_result: Dict[str, Any]) -> str:
     """
@@ -163,16 +173,19 @@ def local_tool_for_debug_and_exe_operator(
     request: ChatAgentRequest,
     *,
     dry_run: bool = False,
-    is_in_debug_process : bool = False
+    is_in_debug_process : bool = False,
+    current_round: int = 0
 ):
     py_file = Path(request.py_path)
     if not py_file.exists():
         raise FileNotFoundError(f"Operator file does not exist: {py_file}")
-    # Always read source code for logging / return
     else:
         code = generate_operator_py(request=request)
-        logger.info(f"Reusing existing opetator file {request.py_path}")
-
+    # if current_round == 0 and py_file.exists():
+    #     code = generate_operator_py(request=request)
+    #     logger.info(f"Reusing existing opetator file {request.py_path}")
+    # else:
+    #     code = py_file.read_text(encoding="utf-8")
     logger.info(f"[Agent Generated Operator Code in {request.py_path}]:\n{code}")
     if dry_run:
         # Only surface the code to the caller – no execution.
