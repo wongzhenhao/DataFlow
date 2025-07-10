@@ -828,12 +828,13 @@ class ExecutionAgent:
             orig_path = Path(call_args["request"].py_path)          # recommend_pipeline.py
             token     = secrets.token_hex(8)                        # 8-char hex
             new_path  = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
-            shutil.copy(orig_path, new_path) 
-            call_args["request"].py_path = new_path
+            if orig_path.exists():
+                shutil.copy(orig_path, new_path) 
+                call_args["request"].py_path = new_path
             py_path: str | None = call_args.get("request").py_path
+            py_file = Path(py_path)
             if not py_path:
                 raise ValueError("call_args must include the 'py_path' field")
-            py_file = Path(py_path)
             if py_file.exists():
                 code_src = py_file.read_text(encoding="utf-8")
             else:
