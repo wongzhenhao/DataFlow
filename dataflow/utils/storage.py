@@ -174,7 +174,6 @@ class FileStorage(DataFlowStorage):
         return file_path
 
 from threading import Lock
-from clickhouse_driver import Client
 
 _clickhouse_clients = {}
 _clickhouse_clients_lock = Lock()
@@ -193,6 +192,10 @@ def get_clickhouse_client(db_config):
     )
     with _clickhouse_clients_lock:
         if key not in _clickhouse_clients:
+            try:
+                from clickhouse_driver import Client
+            except ImportError as e:
+                raise ImportError("clickhouse_driver is required for MyScaleDBStorage but not installed. Please install it via 'pip install clickhouse-driver'.") from e
             _clickhouse_clients[key] = Client(
                 host=db_config['host'],
                 port=db_config.get('port', 9000),
@@ -220,13 +223,13 @@ def safe_json_loads(x):
 def _default_min_hashes(self, data_dict):
     return [0]
 
-class DBStorage(DataFlowStorage):
+class MyScaleDBStorage(DataFlowStorage):
     """
     Storage for Myscale/ClickHouse database using clickhouse_driver.
     """
     def validate_required_params(self):
         """
-        校验DBStorage实例的关键参数有效性：
+        校验MyScaleDBStorage实例的关键参数有效性：
         - pipeline_id, input_task_id, output_task_id 必须非空，否则抛出异常。
         - page_size, page_num 若未设置则赋默认值（page_size=10000, page_num=0）。
         所有算子在使用storage前应调用本方法。
