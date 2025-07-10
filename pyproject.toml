@@ -51,4 +51,4 @@ dependencies = {file = "requirements.txt"}
 
 [project.optional-dependencies]
 vllm = ["vllm<0.8"]
-
+myscale = ["clickhouse-driver"]
