@@ -2,7 +2,7 @@ import os, asyncio
 from fastapi import FastAPI
 from pathlib import Path
 from dataflow.agent.promptstemplates.prompt_template import PromptsTemplateGenerator
-from dataflow.agent.taskcenter import TaskRegistry,TaskChainConfig
+from dataflow.agent.taskcenter import TaskRegistry,TaskChainConfig,build_cfg
 import dataflow.agent.taskcenter.task_definitions
 from dataflow.agent.servicemanager import AnalysisService, Memory
 from dataflow.agent.toolkits import (
@@ -36,12 +36,9 @@ def _build_task_chain(req: ChatAgentRequest, tmpl:PromptsTemplateGenerator):
     op_match = TaskRegistry.get("match_operator",prompts_template=tmpl, request = req)
     op_write = TaskRegistry.get("write_the_operator",prompts_template=tmpl, request = req)
     op_debug = TaskRegistry.get("exe_and_debug_operator",prompts_template=tmpl, request = req)
-
-    cfg = TaskChainConfig(pipeline_tasks={"data_content_classification","recommendation_inference_pipeline","execute_the_recommended_pipeline",},
-                          operator_tasks={"match_operator","write_the_operator","exe_and_debug_operator"},
-                          debuggable_tools={"local_tool_for_execute_the_recommended_pipeline": True,
-                                            "local_tool_for_debug_and_exe_operator":True})
-    return [router, classify, rec, exe , op_match, op_write, op_debug], cfg
+    task_chain = [router, classify, rec, exe , op_match, op_write, op_debug]
+    cfg      = build_cfg(task_chain)
+    return task_chain, cfg
 
 async def _run_service(req: ChatAgentRequest) -> ChatResponse:
     tmpl = PromptsTemplateGenerator(req.language)

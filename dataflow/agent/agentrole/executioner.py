@@ -830,6 +830,7 @@ class ExecutionAgent:
             new_path  = orig_path.with_name(f"{orig_path.stem}_{token}{orig_path.suffix}")
             if orig_path.exists():
                 shutil.copy(orig_path, new_path) 
+                logger.info(f'[copy to new_path]: {new_path}')
                 call_args["request"].py_path = new_path
             py_path: str | None = call_args.get("request").py_path
             py_file = Path(py_path)
