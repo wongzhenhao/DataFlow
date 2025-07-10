@@ -64,19 +64,15 @@ async def _run_service(req: ChatAgentRequest) -> ChatResponse:
     return await service.process_request()
 
 app = FastAPI(title="Dataflow Agent Service")
-@app.post("/recommend", response_model=ChatResponse)
-async def recommend(req: ChatAgentRequest):
-    return await _run_service(req)
-
-@app.post("/recommend_and_execute", response_model=ChatResponse)
-async def recommend_and_execute(req: ChatAgentRequest):
+@app.post("/chatagent", response_model=ChatResponse)
+async def chatagent(req: ChatAgentRequest):
     return await _run_service(req)
 
 if __name__ == "__main__":
     import uvicorn, json, sys, asyncio
     pipeline_recommand_params = {
         "json_file": f"{DATAFLOW_DIR}/dataflow/example/ReasoningPipeline/pipeline_math_short.json",
-        "py_path": f"{DATAFLOW_DIR}/test/recommend_pipeline.py",
+        "py_path": f"{DATAFLOW_DIR}/test/recommend_pipeline_2.py",
         "api_key": api_key,
         "chat_api_url": chat_api_url,
         "execute_the_pipeline": False,

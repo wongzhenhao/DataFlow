@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+"""
+tool_factory.py ── Tool & ToolRegistry: A simple registry for reusable callable tools
+Author  : [Your Name]
+License : MIT
+Created : 2024-07-10
+
+This module defines the Tool and ToolRegistry classes, providing a lightweight framework for registering, managing, and invoking reusable callable tools within a Python application.
+
+Features:
+* Simple decorator-based tool registration for functions.
+* Centralized registry for tool lookup and invocation by name.
+* Optional tool typing and descriptive documentation support.
+* Easy JSON export of tool metadata for inspection or UI integration.
+* Supports extension to remote or advanced tool types with minimal changes.
+
+Designed for agent, pipeline, or utility scenarios that require modular, discoverable, and well-documented function management.
+
+Thread-safety: ToolRegistry is not inherently thread-safe. For concurrent environments, use appropriate synchronization mechanisms.
+"""
 from typing import Callable, Any, Dict
 from functools import wraps
 
