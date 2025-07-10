@@ -179,6 +179,10 @@ from clickhouse_driver import Client
 _clickhouse_clients = {}
 _clickhouse_clients_lock = Lock()
 
+# 预定义字段前缀
+SYS_FIELD_PREFIX = 'sys:'
+USER_FIELD_PREFIX = 'user:'
+
 # 获取ClickHouse Client单例
 def get_clickhouse_client(db_config):
     key = (
@@ -332,7 +336,7 @@ class DBStorage(DataFlowStorage):
         # 自动填充pipeline_id, task_id, raw_data_id, min_hashes
         df['pipeline_id'] = self.pipeline_id
         df['task_id'] = self.output_task_id
-        df['raw_data_id'] = df['data'].apply(lambda d: d.get('raw_data_id', 0) if isinstance(d, dict) else 0)
+        df['raw_data_id'] = df['data'].apply(lambda d: d.get(SYS_FIELD_PREFIX + 'raw_data_id', 0) if isinstance(d, dict) else 0)
         df['min_hashes'] = df['data'].apply(lambda d: _default_min_hashes(d) if isinstance(d, dict) else [0])
         # data字段转为JSON字符串
         df['data'] = df['data'].apply(lambda x: json.dumps(x, ensure_ascii=False) if not isinstance(x, str) else x)
