@@ -326,6 +326,10 @@ class MathQuestionSequentialFusionGeneratorPrompt(PromptABC):
     def __init__(self):
         pass
 
+    def build_system_prompt(self):
+        system_prompt = ""
+        return system_prompt
+    
     def build_prompt(self, input_question_1, input_question_2):
         prompt = f"""
         # Role: Mathematical Problem Merger
@@ -337,19 +341,19 @@ class MathQuestionSequentialFusionGeneratorPrompt(PromptABC):
         Step 2: Formulate a comprehensive plan to merge the two problems by using "#Problem 1#"’s output variable to
         replace an input variable of "#Problem 2#"’s. Merge contextual elements by embedding both problems within a unified
         real-world scenario or extended narrative, aligning units and measurement systems.
-        Step 3: Create a single "#Combined Problem#" where solving "#Problem 1#" is a prerequisite for "#Problem
+        Step 3: Create a single "#New Problem#" where solving "#Problem 1#" is a prerequisite for "#Problem
         ## Output Format
         Please reply strictly in the following format:
         #Elements Identified#:
         #Plan#:
-        #Combined Problem#:
+        #New Problem#:
         ## Input
         ### #Problem 1#
         {input_question_1}
         ### #Problem 2#
         {input_question_2}
         2#". Explicitly state variable dependencies and which variable is replaced. Adjust numerical ranges to maintain arithmetic
-        consistency. The "#Combined Problem#" should contain no supplementary explanation or note.
+        consistency. The "#New Problem#" should contain no supplementary explanation or note.
         ## Output
 
         """
@@ -359,6 +363,10 @@ class MathQuestionSequentialFusionGeneratorPrompt(PromptABC):
 class MathQuestionParallelFusionGeneratorPrompt(PromptABC):
     def __init__(self):
         pass
+
+    def build_system_prompt(self):
+        system_prompt = ""
+        return system_prompt
 
     def build_prompt(self, input_question_1, input_question_2):
         prompt = f"""
@@ -393,10 +401,14 @@ class MathQuestionParallelFusionGeneratorPrompt(PromptABC):
         return prompt
     
 @PROMPT_REGISTRY.register()
-class MathQuestionParallelFusionGeneratorPrompt(PromptABC):
+class MathQuestionConditionFusionGeneratorPrompt(PromptABC):
     def __init__(self):
         pass
 
+    def build_system_prompt(self):
+        system_prompt = ""
+        return system_prompt
+    
     def build_prompt(self, input_question_1, input_question_2):
         prompt = f"""
         # Role: Problem Integrator
@@ -427,7 +439,7 @@ class MathQuestionParallelFusionGeneratorPrompt(PromptABC):
         ### #Problem 2#
         {input_question_2}
         Step 3: Provide the "#New Problem#", which combine "#Problem 1#", "#Problem 2#", and "#New Question#" in a unified
-        real-world scenario. Don’t contain solution of "#Problem 1#" and "#Problem 2#" in "#New Problem#". Avoid using the
+        real-world scenario. Don’t contain solution of "#Problem 1#" and "#Problem 2#" in "#New Problem#".
         ## Output
 
         """
@@ -438,6 +450,10 @@ class MathQuestionEvaluatorPrompt(PromptABC):
     def __init__(self):
         pass
 
+    def build_system_prompt(self):
+        system_prompt = ""
+        return system_prompt
+    
     def build_prompt(self, input_question):
         prompt = f"""
          # Role: Mathematics Grading Teacher
