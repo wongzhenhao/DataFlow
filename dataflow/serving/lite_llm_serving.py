@@ -31,11 +31,6 @@ class LiteLLMServing(LLMServingABC):
                  model_name: str = "gpt-4o",
                  max_workers: int = 10,
                  max_retries: int = 5,
-                 api_url: str = "https://api.openai.com/v1/chat/completions",
-                 key_name_of_api_key: str = "DF_API_KEY",
-                 model_name: str = "gpt-4o",
-                 max_workers: int = 10,
-                 max_retries: int = 5,
                  api_version: Optional[str] = None,
                  temperature: float = 0.7,
                  max_tokens: int = 1024,
@@ -81,12 +76,9 @@ class LiteLLMServing(LLMServingABC):
         
         self.model_name = model_name
         self.api_url = api_url
-        self.model_name = model_name
-        self.api_url = api_url
         self.api_version = api_version
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.max_retries = max_retries
         self.max_retries = max_retries
         self.top_p = top_p
         self.max_workers = max_workers
@@ -107,13 +99,10 @@ class LiteLLMServing(LLMServingABC):
         self._validate_setup()
         
         self.logger.info(f"LiteLLMServing initialized with model: {model_name}")
-        self.logger.info(f"LiteLLMServing initialized with model: {model_name}")
     
     def switch_model(self, 
                      model_name: str,
-                     model_name: str,
                      key_name_of_api_key: Optional[str] = None,
-                     api_url: Optional[str] = None,
                      api_url: Optional[str] = None,
                      api_version: Optional[str] = None,
                      **kwargs: Any):
@@ -291,7 +280,6 @@ class LiteLLMServing(LLMServingABC):
 
         last_error = None
         for attempt in range(self.max_retries):
-        for attempt in range(self.max_retries):
             try:
                 response = self._litellm.completion(**completion_params)
                 # Convert response to dict format for format_response
@@ -299,7 +287,6 @@ class LiteLLMServing(LLMServingABC):
                 return self.format_response(response_dict)
             except Exception as e:
                 last_error = e
-                if attempt < self.max_retries - 1:
                 if attempt < self.max_retries - 1:
                     # Check if error is retryable
                     error_str = str(e).lower()
@@ -311,7 +298,6 @@ class LiteLLMServing(LLMServingABC):
                         continue
                     
                 # Non-retryable error or last attempt
-                self.logger.error(f"Error generating response (attempt {attempt + 1}/{self.max_retries}): {e}")
                 self.logger.error(f"Error generating response (attempt {attempt + 1}/{self.max_retries}): {e}")
                 break
         
@@ -405,9 +391,7 @@ class LiteLLMServing(LLMServingABC):
         
         # Process embeddings with retry logic
         def embed_with_retry(text: str):
-        def embed_with_retry(text: str):
             last_error = None
-            for attempt in range(self.max_retries):
             for attempt in range(self.max_retries):
                 try:
                     response = self._litellm.embedding(
@@ -418,7 +402,6 @@ class LiteLLMServing(LLMServingABC):
                 except Exception as e:
                     last_error = e
                     if attempt < self.max_retries - 1:
-                    if attempt < self.max_retries - 1:
                         error_str = str(e).lower()
                         if any(retryable in error_str for retryable in 
                                ["rate limit", "timeout", "connection", "503", "502", "429"]):
@@ -426,7 +409,6 @@ class LiteLLMServing(LLMServingABC):
                             self.logger.warning(f"Retryable error in embedding, waiting {wait_time}s: {e}")
                             time.sleep(wait_time)
                             continue
-                    self.logger.error(f"Error generating embedding (attempt {attempt + 1}/{self.max_retries}): {e}")
                     self.logger.error(f"Error generating embedding (attempt {attempt + 1}/{self.max_retries}): {e}")
                     break
             raise last_error
