@@ -5,14 +5,14 @@ from dataflow.utils.storage import FileStorage
 class GPT_generator():
     def __init__(self):
         self.storage = FileStorage(
-            first_entry_file_name= "/mnt/DataFlow/wongzhenhao/DataFlow/dataflow/example/GeneralTextPipeline/translation.jsonl",
+            first_entry_file_name= "../../dataflow/example/GeneralTextPipeline/translation.jsonl",
             cache_path="./cache",
             file_name_prefix="translation",
             cache_type="jsonl",
         )
         self.model_cache_dir = './dataflow_cache'
         self.llm_serving = APILLMServing_request(
-                api_url="http://123.129.219.111:3000/v1/chat/completions",
+                api_url="https://api.openai.com/v1/chat/completions",
                 model_name="gpt-5",
                 max_workers=10,
                 # custom_llm_provider="openai", # if your are using custom llm provider's api
