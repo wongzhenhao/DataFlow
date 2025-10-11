@@ -372,15 +372,12 @@ class LiteLLMServing(LLMServingABC):
         # Prepare embedding parameters
         embedding_params = {
             "model": self.model_name,
-            "model": self.model_name,
             "timeout": self.timeout
         }
         
         # Add optional parameters if provided
         if self.api_key:
             embedding_params["api_key"] = self.api_key
-        if self.api_url:
-            embedding_params["api_base"] = self.api_url
         if self.api_url:
             embedding_params["api_base"] = self.api_url
         if self.api_version:
