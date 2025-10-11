@@ -260,8 +260,6 @@ class LiteLLMServing(LLMServingABC):
             completion_params["api_key"] = self.api_key
         if self.api_url:
             completion_params["api_base"] = self.api_url
-        if self.api_url:
-            completion_params["api_base"] = self.api_url
         if self.api_version:
             completion_params["api_version"] = self.api_version
         if json_schema is not None:
