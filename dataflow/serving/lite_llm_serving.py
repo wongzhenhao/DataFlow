@@ -247,7 +247,6 @@ class LiteLLMServing(LLMServingABC):
         # Prepare completion parameters
         completion_params = {
             "model": self.model_name,
-            "model": self.model_name,
             "messages": messages,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
