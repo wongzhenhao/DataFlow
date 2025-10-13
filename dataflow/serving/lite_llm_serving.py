@@ -111,15 +111,12 @@ class LiteLLMServing(LLMServingABC):
         
         Args:
             model_name: Model name to switch to
-            model_name: Model name to switch to
             key_name_of_api_key: New environment variable name for API key (optional)
-            api_url: New API base URL (optional)
             api_url: New API base URL (optional)
             api_version: New API version (optional)
             **kwargs: Additional parameters for the new model
         """
         # Update model
-        self.model_name = model_name
         self.model_name = model_name
         
         # Update API key if new environment variable provided
@@ -134,8 +131,6 @@ class LiteLLMServing(LLMServingABC):
         # Update other API configuration if provided
         if api_url is not None:
             self.api_url = api_url
-        if api_url is not None:
-            self.api_url = api_url
         if api_version is not None:
             self.api_version = api_version
         
@@ -148,7 +143,6 @@ class LiteLLMServing(LLMServingABC):
         
         # Validate the new configuration
         self._validate_setup()
-        self.logger.success(f"Switched to model: {model_name}")
         self.logger.success(f"Switched to model: {model_name}")
     
     def format_response(self, response: Dict[str, Any]) -> str:
@@ -202,7 +196,6 @@ class LiteLLMServing(LLMServingABC):
             # Prepare completion parameters
             completion_params = {
                 "model": self.model_name,
-                "model": self.model_name,
                 "messages": [{"role": "user", "content": "Hi"}],
                 "max_tokens": 1,
                 "timeout": self.timeout
@@ -211,8 +204,6 @@ class LiteLLMServing(LLMServingABC):
             # Add optional parameters if provided
             if self.api_key:
                 completion_params["api_key"] = self.api_key
-            if self.api_url:
-                completion_params["api_base"] = self.api_url
             if self.api_url:
                 completion_params["api_base"] = self.api_url
             if self.api_version:
