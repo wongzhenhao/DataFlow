@@ -18,6 +18,10 @@ class APIVLMServing_openai(LLMServingABC):
     with support for concurrent requests.
     """
 
+    def start_serving(self) -> None:
+        self.logger.info("APIVLMServing_openai: no local service to start.")
+        return
+    
     def __init__(
         self,
         api_url: str = "https://api.openai.com/v1",
