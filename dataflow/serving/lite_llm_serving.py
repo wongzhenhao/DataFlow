@@ -57,6 +57,10 @@ class LiteLLMServing(LLMServingABC):
             max_tokens: Maximum tokens to generate
             top_p: Top-p sampling parameter
             timeout: Request timeout in seconds
+            custom_llm_provider: 
+                Optional custom provider name registered in LiteLLM for routing requests to 
+                non-default backends (e.g., self-hosted OpenAI-compatible APIs or private endpoints).  
+                Example: `"my_local_llm"` or `"company-internal-provider"`.
             **kwargs: Additional parameters passed to litellm.completion()
             
         Note:
