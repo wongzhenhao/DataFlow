@@ -1,7 +1,7 @@
 # DataFlow
 
 <div align="center">
-  <img src="./static/images/Face.jpg">
+  <img src="https://github.com/user-attachments/assets/3fe636ad-3026-4faf-aa44-c84b8f97a05d">
 
 
 [![Documents](https://img.shields.io/badge/Documents-Click_here-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
@@ -30,11 +30,13 @@ https://github.com/user-attachments/assets/19742159-cfe0-42a6-9d3d-152466d2d588
 
 ## 🔍 2. Overview
 
-  <img src="./static/images/dataflow_framework.jpg">
+<!--  <img src="./static/images/dataflow_framework.jpg"> -->
+  ![dataflow_framework](https://github.com/user-attachments/assets/8a7c5259-dac7-4a44-b0e2-d099e75639c8)
 
-DataFlow is a data preparation and training system designed to **parse, generate, process and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuing, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLM's performance in fields such as healthcare, finance, and law.**
 
-Specifically, we constructing diverse `operators` leveraging rule-based methods, deep learning models, LLMs, and LLM APIs. These operators are systematically integrated into distinct `pipelines`, collectively forming the comprehensive `DataFlow system`. Additionally, we develop an intelligent `DataFlow-agent` capable of dynamically assembling new `pipelines` by recombining existing `operators` on demand.
+DataFlow is a data preparation and training system designed to **parse, generate, process, and evaluate** high-quality data from noisy sources (PDF, plain-text, low-quality QA), thereby improving the performance of large language models (LLMs) in specific domains through targeted training (Pre-training, Supervised Fine-tuning, RL training) or RAG using knowledge base cleaning. **DataFlow has been empirically validated to improve domain-oriented LLMs' performance in fields such as healthcare, finance, and law.**
+
+Specifically, we are constructing diverse `operators` leveraging rule-based methods, deep learning models, LLMs, and LLM APIs. These operators are systematically integrated into distinct `pipelines`, collectively forming the comprehensive `DataFlow system`. Additionally, we develop an intelligent `DataFlow-agent` capable of dynamically assembling new `pipelines` by recombining existing `operators` on demand.
 
 
 
@@ -51,7 +53,8 @@ Dataflow-agent: 用Agent自动合成pipeline。编排已有算子。 -->
 
 DataFlow adopts a modular operator design philosophy, building flexible data processing pipelines by combining different types of operators. As the basic unit of data processing, an operator can receive structured data input (such as in json/jsonl/csv format) and, after intelligent processing, output high-quality data results. For a detailed guide on using operators, please refer to the [Operator Documentation](https://opendcai.github.io/DataFlow-Doc/en/guide/text_evaluation_operators/ ).
 
-![](./static/images/dataflow_operator.jpg)
+
+![dataflow_operator](https://github.com/user-attachments/assets/d79a0d8b-09ef-457e-af8b-85af0d03b73d)
 
 ### 📊 3.2 Operator Classification System
 
@@ -67,18 +70,19 @@ In the DataFlow framework, operators are divided into three core categories base
 ### 🔧 4.1 Ready-to-Use PipeLines
 Current Pipelines in Dataflow are as follows:
 - [📝 **Text Pipeline**](https://opendcai.github.io/DataFlow-Doc/en/guide/textpipeline): Mine question-answer pairs from large-scale plain-text data (mostly crawed from InterNet) for use in SFT and RL training.
-  - ![](./static/images/dataflow_text_pipeline.jpg)
+  - ![dataflow_text_pipeline](https://github.com/user-attachments/assets/34e3aef2-ba4f-4997-9127-9d21fdb2dede)
   - [[HuggingFace🤗 demo input & output for **Text Pipeline**]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Text)
 - [🧠 **Reasoning Pipeline**](https://opendcai.github.io/DataFlow-Doc/en/guide/reasoningpipeline/#_2-question-handling): Enhances existing question–answer pairs with (1) extended chain-of-thought, (2) category classification, and (3) difficulty estimation.
-  - ![](./static/images/dataflow_reasoning_pipeline.jpg)
+  - ![dataflow_reasoning_pipeline](https://github.com/user-attachments/assets/fef5829b-3991-4dcb-99ad-d61d95c982ea)
   - [[HuggingFace🤗 demo input & output for **Reasoning Pipeline**]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Reasonning)
 - [🗃️ **Text2SQL Pipeline**](https://opendcai.github.io/DataFlow-Doc/en/guide/text2sqlpipeline/): Translates natural language questions into SQL queries, supplemented with explanations, chain-of-thought reasoning, and contextual schema information.
-  - ![](./static/images/dataflow_text2sql_pipeline.jpg)
+  - ![dataflow_text2sql_pipeline](https://github.com/user-attachments/assets/bae9914e-851b-4502-8696-291d6c1b8824)
   - [[HuggingFace🤗 demo input & output for **Text2SQL Pipeline**]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Text2SQL)
 - [📚 **Knowlege Base Cleaning Pipeline**](https://opendcai.github.io/DataFlow-Doc/en/guide/r51ooua8/): Extract and structure knowledge from unorganized sources like tables, PDFs, and Word documents into usable entries for downstream RAG or QA pair generation.
-  - ![](./static/images/dataflow_KnowledgeBaseClean_pipeline.jpg)
+  - ![dataflow_KnowledgeBaseClean_pipeline](https://github.com/user-attachments/assets/6f21e682-ec10-42af-b5e2-8fec2929eeae)
 - [🤖 **Agentic RAG Pipeline**](https://opendcai.github.io/DataFlow-Doc/en/guide/agenticrag_pipeline/): Identify and extract QA pairs from existing QA datasets or knowledge bases that require external knowledge to answer, for use in downstream training of Agnetic RAG tasks.
-  - ![](./static/images/dataflow_agenticRAG_pipeline.jpg)
+  - ![dataflow_agenticRAG_pipeline](https://github.com/user-attachments/assets/65e80dca-f286-495b-abb7-804b3fc34a53)
+
 ### ⚙️ 4.2 Flexible Operator PipeLines
 In this framework, operators are categorized into Fundamental Operators, Generic Operators, Domain-Specific Operators, and Evaluation Operators, etc., supporting data processing and evaluation functionalities. Please refer to the [documentation](https://OpenDCAI.github.io/DataFlow-Doc/) for details.
 
@@ -86,7 +90,7 @@ In this framework, operators are categorized into Fundamental Operators, Generic
 <!-- Building on top of this, we also provide the -->
 - **DataFlow Agent**: An intelligent assistant that performs data analysis, writes custom `operators`, and automatically orchestrates them into `pipelines` based on specific task objectives.
 
-  - ![](./static/images/dataflow_agent_pipeline.jpg)
+  - ![dataflow_agent_pipeline](https://github.com/user-attachments/assets/fe0776fa-55bd-49cd-bfe6-06ad377f62bb)
   - [[HuggingFace🤗 demo input & output for **DataFlow Agent**]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Agent)
 
 <!-- ### 3.1 Text Pipeline
@@ -166,11 +170,12 @@ Beyond the local Gradio interface, **DataFlow** is also available as a fully-man
 
 <p align="center">
   <a href="https://adp.originhub.tech/login">
-    <img src="./static/images/ADP.jpg" alt="ADP Platform Interface" width="75%">
+    <img src="https://github.com/user-attachments/assets/c63ac954-f0c8-4a1a-bfc8-5752c25a22cf" alt="ADP Platform Interface" width="75%">
   </a>
 </p>
 
 #### Get Started for Free
+
 
 👉 **[Sign up now to claim your free compute credits!](https://adp.originhub.tech)**
 
@@ -182,20 +187,21 @@ For detailed **usage instructions** and **getting started guide**, please visit 
 For Detailed Experiments setting, please visit our documentation.
 
 
-### 📝 6.1 Text PipeLine
+### 📝 6.1 Text Pipeline
 
 #### 6.1.1 Pre-training data filter pipeline
 The `pre-training data processing pipeline` was applied to randomly sampled data from the RedPajama dataset, resulting in a final data retention rate of 13.65%. The analysis results using `QuratingScorer` are shown in the figure. As can be seen, the filtered pretraining data significantly outperforms the original data across four scoring dimensions: writing style, requirement for expert knowledge, factual content, and educational value. This demonstrates the effectiveness of the DataFlow pretraining data processing.
 
 <div align="center">
-  <img src="./static/images/text-pretrain.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/bc756c64-6640-4f46-b8ed-a4cd9be0a623" width="60%">
 </div>
 
+
 #### 6.1.2 SFT data filter pipeline
-We filted 3k record from `alpaca` dataset and compare it with radom selected 3k data from `alpaca` dataset by training it on Qwen2.5-7B. Results are:
+We filtered 3k records from `alpaca` dataset and compared it with randomly selected 3k data from `alpaca` dataset by training it on Qwen2.5-7B. Results are:
 
 <div align="center">
-  <img src="./static/images/text-sft.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/38d477d4-523d-4843-83f7-b7f518a18c1d" width="60%">
 </div>
 
 ### 🧠 6.2 Reasoning Pipeline
@@ -203,15 +209,17 @@ We filted 3k record from `alpaca` dataset and compare it with radom selected 3k 
 We verify our reasoning pipeline by SFT on a Qwen2.5-32B-Instruct with Reasoning Pipeline synsthized data. We generated 1k and 5k SFT data pairs. Results are: 
 
 <div align="center">
-  <img src="./static/images/reasoning_performance.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/d3af9728-0372-4c2c-9cd3-73f1e337d4c0" width="60%">
 </div>
 
 ### 🗃️ 6.3 Text2SQL PipeLine
 We fine-tuned the Qwen2.5-Coder-7B-Instruct model using both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), with data constructed via the DataFlow-Text2SQL Pipeline. Results are:
 
 <div align="center">
-  <img src="./static/images/text2sql.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/7809f57a-33c5-4792-b91b-10e4f39bafc1" width="60%">
 </div>
+
+
 
 ## 📄 7. Publications
 Our team has published the following papers that form core components of the DataFlow system:
@@ -243,11 +251,11 @@ We are honored to have received **first-place awards** in two major internationa
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="./static/images/icml_certificate.jpg" alt="ICML 2025 Certificate" width="95%"><br>
+      <img src="https://github.com/user-attachments/assets/8f28e0fe-c883-42c0-b224-3693f6281a14" alt="ICML 2025 Certificate" width="95%"><br>
       <sub><em>ICML 2025 Automated Math Reasoning Challenge — First Place Winner</em></sub>
     </td>
     <td align="center" width="30%">
-      <img src="./static/images/lic_certificate.jpg" alt="LIC 2025 Certificate" width="95%"><br>
+      <img src="https://github.com/user-attachments/assets/364618b6-4dfa-4c34-928f-e3da85cbd03a" alt="LIC 2025 Certificate" width="95%"><br>
       <sub><em>BAAI Language & Intelligence Challenge 2025 — First Prize</em></sub>
     </td>
   </tr>
@@ -257,7 +265,7 @@ We are honored to have received **first-place awards** in two major internationa
 
 
 ## 💐 9. Acknowledgements
-We sincerely appreciate [MinerU](https://github.com/opendatalab/MinerU)'s outstanding contribution, particularly its robust text extraction capabilities from PDFs and documents, which greatly facilitates data loading.
+We sincerely appreciate [MinerU](https://github.com/opendatalab/MinerU)'s outstanding contribution, particularly its robust text extraction capabilities from PDFs and documents, which greatly facilitate data loading.
 
 ## 🤝 10. Community & Support
 Join the DataFlow open-source community to ask questions, share ideas, and collaborate with other developers!
@@ -269,8 +277,9 @@ Join the DataFlow open-source community to ask questions, share ideas, and colla
 •	💬 Join our community groups to connect with us and other contributors!
  
 <div align="center">
-  <img src="./static/images/community_en.jpg" width="60%">
+  <img src="https://github.com/user-attachments/assets/c04cc04c-f1f4-49b0-9758-56d9d8d37c4a" width="60%">
 </div>
+
 
 ## 📜 11. Citation
 If you use DataFlow in your research, feel free to give us a cite.
