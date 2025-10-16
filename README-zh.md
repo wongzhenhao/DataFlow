@@ -1,7 +1,7 @@
 # DataFlow
 
 <div align="center">
-  <img src="./static/images/Face.jpg">
+  <img src="https://github.com/user-attachments/assets/3fe636ad-3026-4faf-aa44-c84b8f97a05d">
 
 [![Documents](https://img.shields.io/badge/官方文档-单击此处-brightgreen?logo=read-the-docs)](https://OpenDCAI.github.io/DataFlow-Doc/)
 [![](https://img.shields.io/github/license/OpenDCAI/DataFlow)](https://github.com/OpenDCAI/DataFlow/blob/main/LICENSE)
@@ -29,7 +29,7 @@ https://github.com/user-attachments/assets/bebe6e47-54bc-43da-abbc-a9c6a29ee44f
 
 ## 🔍 2. 项目概述
 
-<img src="./static/images/dataflow_framework_ch.jpg">
+  ![dataflow_framework](https://github.com/user-attachments/assets/8a7c5259-dac7-4a44-b0e2-d099e75639c8)
 
 DataFlow 是一个数据准备系统，旨在从噪声数据源（PDF、纯文本、低质量问答）中**解析，生成，加工并评估高质量数据**，以提升大语言模型（LLMs）在特定领域的表现，支持预训练、监督微调（SFT）、强化学习训练以及基于知识库的 RAG 系统。**我们在医疗、金融和法律等多个垂类领域实证验证了 DataFlow 的有效性。**
 
@@ -41,7 +41,7 @@ DataFlow 是一个数据准备系统，旨在从噪声数据源（PDF、纯文�
 
 DataFlow采用模块化的算子设计理念，通过组合不同类型的算子来构建灵活的数据处理流水线。算子作为数据处理的基本单元，能够接收结构化数据输入（如json/jsonl/csv格式），经过智能处理后输出高质量的数据结果。详细的算子使用指南请参考：[项目文档](https://opendcai.github.io/DataFlow-Doc/zh/guide/text_evaluation_operators/)
 
-![](./static/images/dataflow_operator.jpg)
+![dataflow_operator](https://github.com/user-attachments/assets/d79a0d8b-09ef-457e-af8b-85af0d03b73d)
 
 ### 📊 3.2 算子分类体系
 
@@ -60,22 +60,22 @@ DataFlow采用模块化的算子设计理念，通过组合不同类型的算子
 目前 DataFlow 包含以下主要数据处理流程：
 
 - [📝 **文本处理流程（Text Pipeline）**](https://opendcai.github.io/DataFlow-Doc/zh/guide/textpipeline)：从大规模纯文本（多为网络爬取）中挖掘问答对，用于监督微调和强化学习训练。
-  - ![](./static/images/dataflow_text_pipeline.jpg)
+  - ![dataflow_text_pipeline](https://github.com/user-attachments/assets/34e3aef2-ba4f-4997-9127-9d21fdb2dede)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Text)
 
 - [🧠 **推理流程（Reasoning Pipeline）**](https://opendcai.github.io/DataFlow-Doc/zh/guide/reasoningpipeline/#_2-question-handling)：增强已有问答对，添加 (1) 长链式推理（Chain-of-Thought），(2) 类别标注，(3) 难度估计。
-  - ![](./static/images/dataflow_reasoning_pipeline.jpg)
+  - ![dataflow_reasoning_pipeline](https://github.com/user-attachments/assets/fef5829b-3991-4dcb-99ad-d61d95c982ea)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Reasonning)
 
 - [🗃️ **Text2SQL 流程**](https://opendcai.github.io/DataFlow-Doc/zh/guide/text2sqlpipeline/)：将自然语言问题转化为 SQL 查询，辅以解释、思维链推理和数据库结构上下文信息。
-  - ![](./static/images/dataflow_text2sql_pipeline.jpg)
+  - ![dataflow_text2sql_pipeline](https://github.com/user-attachments/assets/bae9914e-851b-4502-8696-291d6c1b8824)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Text2SQL)
 
 - [📚 **知识库清洗流程**](https://opendcai.github.io/DataFlow-Doc/zh/guide/r51ooua8/)：从表格、PDF 和 Word 文档等非结构化数据源中提取并整理知识，将其转化为可用于下游 RAG 或 QA 配对生成的可用条目。
-  - ![](./static/images/dataflow_KnowledgeBaseClean_pipeline.jpg)
+  - ![dataflow_KnowledgeBaseClean_pipeline](https://github.com/user-attachments/assets/6f21e682-ec10-42af-b5e2-8fec2929eeae)
 
 - [🤖 **Agent式RAG流程**](https://opendcai.github.io/DataFlow-Doc/zh/guide/agenticrag_pipeline/)：从已有问答或知识库中挖掘需要外部知识才能作答的问答对，用于训练 Agentic RAG 模型。
-  - ![](./static/images/dataflow_agenticRAG_pipeline.jpg)
+  - ![dataflow_agenticRAG_pipeline](https://github.com/user-attachments/assets/65e80dca-f286-495b-abb7-804b3fc34a53)
 
 
 ### ⚙️ 4.2 算子自由组合的灵活流水线
@@ -85,7 +85,7 @@ DataFlow采用模块化的算子设计理念，通过组合不同类型的算子
 ### 🤖 4.3 Agent驱动的流水线自动编排
 
 - **DataFlow-Agent**：智能助手，可执行数据分析、编写自定义算子，并根据任务目标自动编排算子构建数据处理流水线。
-  - ![](./static/images/dataflow_agent_pipeline.jpg)
+  - ![dataflow_agent_pipeline](https://github.com/user-attachments/assets/fe0776fa-55bd-49cd-bfe6-06ad377f62bb)
   - [[HuggingFace🤗 示例数据]](https://huggingface.co/datasets/Open-Dataflow/dataflow-demo-Agent)
 
 ## ⚡ 5. 快速开始
@@ -152,9 +152,11 @@ https://github.com/user-attachments/assets/5c6aa003-9504-4e2a-9f4e-97bae739894a
 
 ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow数据准备全流程自动化、融合大规模多模态知识库的知识系统、多Agent协同的智能协作，以及支撑数据全链路管理的AI数据库，旨在加速企业通过AI能力充分发挥独有数据的价值。
 
-<div align="center">
-  <img src="./static/images/ADP.jpg" width="60%">
-</div>
+<p align="center">
+  <a href="https://adp.originhub.tech/login">
+    <img src="https://github.com/user-attachments/assets/c63ac954-f0c8-4a1a-bfc8-5752c25a22cf" alt="ADP Platform Interface" width="75%">
+  </a>
+</p>
 
 ### 📖 5.4 参考DataFlow项目文档
 
@@ -171,15 +173,17 @@ ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow
 我们将 `预训练数据处理流程` 应用于从 RedPajama 数据集中随机采样的数据，最终保留率为 **13.65%**。使用 `QuratingScorer` 进行质量评估，结果如下图所示：在**写作风格、专业性要求、事实准确性和教育价值**四个维度上，过滤后的数据显著优于原始数据，验证了 DataFlow 预训练数据处理流程的有效性。
 
 <div align="center">
-  <img src="./static/images/text-pretrain.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/bc756c64-6640-4f46-b8ed-a4cd9be0a623" width="60%">
 </div>
+
+
 
 #### 6.1.2 微调（SFT）数据过滤流程
 
 我们从 `alpaca` 数据集中筛选了 3000 条高质量数据，与随机选取的 3000 条 `alpaca` 数据进行对比，并在 Qwen2.5-7B 模型上进行 SFT 训练。对比结果如下：
 
 <div align="center">
-  <img src="./static/images/text-sft.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/38d477d4-523d-4843-83f7-b7f518a18c1d" width="60%">
 </div>
 
 ### 🧠 6.2 推理流程（Reasoning Pipeline）
@@ -187,7 +191,7 @@ ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow
 我们在 Qwen2.5-32B-Instruct 模型上，使用 Reasoning Pipeline 合成的 1000 条和 5000 条数据进行了微调训练（SFT），评估其对模型推理能力的提升，结果如下图所示：
 
 <div align="center">
-  <img src="./static/images/reasoning_performance.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/d3af9728-0372-4c2c-9cd3-73f1e337d4c0" width="60%">
 </div>
 
 ### 🗃️ 6.3 Text2SQL 流程
@@ -195,8 +199,9 @@ ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow
 我们使用 DataFlow-Text2SQL 流程构建数据，并分别通过监督微调（SFT）与强化学习（RL）对 Qwen2.5-Coder-7B-Instruct 模型进行了训练。实验结果如下：
 
 <div align="center">
-  <img src="./static/images/text2sql.png" width="60%">
+  <img src="https://github.com/user-attachments/assets/7809f57a-33c5-4792-b91b-10e4f39bafc1" width="60%">
 </div>
+
 
 ## 📄 7. 发表论文
 
@@ -230,11 +235,11 @@ ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="./static/images/icml_certificate.jpg" alt="ICML 2025 Certificate" width="95%"><br>
+      <img src="https://github.com/user-attachments/assets/8f28e0fe-c883-42c0-b224-3693f6281a14" alt="ICML 2025 Certificate" width="95%"><br>
       <sub><em>ICML 2025 Automated Math Reasoning Challenge — First Place Winner</em></sub>
     </td>
     <td align="center" width="30%">
-      <img src="./static/images/lic_certificate.jpg" alt="LIC 2025 Certificate" width="95%"><br>
+      <img src="https://github.com/user-attachments/assets/364618b6-4dfa-4c34-928f-e3da85cbd03a" alt="LIC 2025 Certificate" width="95%"><br>
       <sub><em>BAAI Language & Intelligence Challenge 2025 — First Prize</em></sub>
     </td>
   </tr>
@@ -256,8 +261,9 @@ ADP是OriginHub推出的智能数据平台，具备四大核心能力：DataFlow
 •	💬 欢迎扫码加入下方社群（微信群、小红书、Twitter），与我们和其他开发者互动交流~
 
 <div align="center">
-  <img src="./static/images/community_ch.jpg" width="60%">
+  <img src="https://github.com/user-attachments/assets/3c2e5d4d-d1ea-4d8c-9146-ff14e657e857" width="60%">
 </div>
+
 
 ## 📜 11. 引用
 
