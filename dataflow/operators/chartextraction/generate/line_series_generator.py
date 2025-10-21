@@ -24,7 +24,7 @@ class LineSeriesGenerator(OperatorABC):
 
     DataFrame 输入字段（可配置，默认如下）：
     - png_path_key: PNG图片路径字段，默认为 'png_path'（每行一张图）
-    - output_dir_key: 输出目录；若为空则使用原图所在目录
+    - input_save_dir: 输出目录；若为空则使用原图所在目录
     - figure_info_key: 图表信息字段，默认为 'figure_info'（用于重绘）
     - parser_json_key: OCR Parser JSON路径字段，默认为 'ocr_parser_json'（用于坐标映射，可选）
     
@@ -48,10 +48,10 @@ class LineSeriesGenerator(OperatorABC):
     - 坐标变换和重绘: plot_result.ipynb
     """
 
-    def __init__(self, lf_serving, ocr_parse_url="http://101.126.82.63:50010/parse"):
+    def __init__(self, lf_serving, ocr_parser_host="http://101.126.82.63:50010/parse"):
         self.logger = get_logger()
         self.lf_serving = lf_serving
-        self.ocr_parse_url = ocr_parse_url
+        self.ocr_parser_host = ocr_parser_host
 
     @staticmethod
     def _dump_image_base64_str(image: Image.Image, quality: int = 85) -> str:
@@ -86,8 +86,8 @@ class LineSeriesGenerator(OperatorABC):
                 uuid="string_of_image",
             )
             
-            self.logger.debug(f"Calling OCR API: {self.ocr_parse_url}")
-            r = requests.post(self.ocr_parse_url, json=kwargs, timeout=30)
+            self.logger.debug(f"Calling OCR API: {self.ocr_parser_host}")
+            r = requests.post(self.ocr_parser_host, json=kwargs, timeout=30)
             
             if r.status_code != 200:
                 self.logger.error(f"OCR API returned status code {r.status_code}")
@@ -239,7 +239,7 @@ class LineSeriesGenerator(OperatorABC):
             try:
                 params, _ = curve_fit(self._linear_model, x_pixel, x_real)
                 x_params = tuple(params)
-                self.logger.info(f"X-axis transform: x_real = {x_params[0]:.6f} * x_pixel + {x_params[1]:.6f}")
+                # self.logger.info(f"X-axis transform: x_real = {x_params[0]:.6f} * x_pixel + {x_params[1]:.6f}")
             except Exception as e:
                 self.logger.warning(f"Failed to fit x-axis transform: {e}")
         else:
@@ -251,7 +251,7 @@ class LineSeriesGenerator(OperatorABC):
             try:
                 params, _ = curve_fit(self._linear_model, y_pixel, y_real)
                 y_params = tuple(params)
-                self.logger.info(f"Y-axis transform: y_real = {y_params[0]:.6f} * y_pixel + {y_params[1]:.6f}")
+                # self.logger.info(f"Y-axis transform: y_real = {y_params[0]:.6f} * y_pixel + {y_params[1]:.6f}")
             except Exception as e:
                 self.logger.warning(f"Failed to fit y-axis transform: {e}")
         else:
@@ -396,7 +396,7 @@ class LineSeriesGenerator(OperatorABC):
     def run(self,
             storage: DataFlowStorage,
             png_path_key: str = "png_path",
-            output_dir_key: str = "output_dir",
+            input_save_dir: str = "output_dir",
             output_key: str = "line_series",
             lineformer_json_key: str = "lineformer_json_path",
             save_json: bool = True,
@@ -413,20 +413,12 @@ class LineSeriesGenerator(OperatorABC):
         df: pd.DataFrame = storage.read('dataframe')
         self.logger.info(f"Loading, number of rows: {len(df)}")
 
-        # 使用传入的 lf_serving 或创建新实例
-        if self.lf_serving is None:
-            from dataflow.serving.api_lineformer_serving_local import APILineFormerServing_local
-            serving = APILineFormerServing_local()
-        else:
-            serving = self.lf_serving
-
         # 结果容器
         line_series_list: List[Optional[List]] = [None] * len(df)
         json_path_list: List[Optional[str]] = [None] * len(df)
         replot_path_list: List[Optional[str]] = [None] * len(df)
 
-        # 启动 Serving
-        serving.start_serving()
+        self.lf_serving.start_serving()
 
         try:
             # 收集所有有效的 PNG 路径
@@ -447,7 +439,7 @@ class LineSeriesGenerator(OperatorABC):
                 self.logger.info(f"Processing {len(batch_image_paths)} PNG images via LineFormer...")
 
                 # 批量处理
-                results = serving.extract_from_image_paths(
+                results = self.lf_serving.extract_from_image_paths(
                     batch_image_paths,
                     return_image=save_vis,
                     save_json_dir=None,
@@ -464,7 +456,7 @@ class LineSeriesGenerator(OperatorABC):
                         line_series_list[idx] = line_series
                         
                         # 准备输出目录
-                        out_dir = row.get(output_dir_key)
+                        out_dir = row.get(input_save_dir)
                         if not out_dir or not isinstance(out_dir, str):
                             out_dir = os.path.dirname(png_path)
                         os.makedirs(out_dir, exist_ok=True)
@@ -480,7 +472,7 @@ class LineSeriesGenerator(OperatorABC):
                                 json.dump(line_series, jf, ensure_ascii=False, indent=2)
                             
                             json_path_list[idx] = json_path
-                            self.logger.info(f"Row {idx}: Saved line series to {json_path}")
+                            # self.logger.info(f"Row {idx}: Saved line series to {json_path}")
                         
                         # 保存可视化（可选）
                         if save_vis and result.get("visualized_base64"):
@@ -490,16 +482,15 @@ class LineSeriesGenerator(OperatorABC):
                             with open(vis_path, "wb") as vf:
                                 vf.write(base64.b64decode(result["visualized_base64"]))
                             
-                            self.logger.info(f"Row {idx}: Saved visualization to {vis_path}")
+                            # self.logger.info(f"Row {idx}: Saved visualization to {vis_path}")
                         
                         # 重绘功能（可选）
                         if replot:
                             try:
-                                # 获取 figure_info
                                 figure_info = row.get(figure_info_key)
                                 self.logger.debug(f"Row {idx}: figure_info type: {type(figure_info)}, value: {figure_info}")
                                 if not isinstance(figure_info, dict):
-                                    self.logger.warning(f"Row {idx}: No valid figure_info for replotting")
+                                    # self.logger.warning(f"Row {idx}: No valid figure_info for replotting")
                                     replot_path_list[idx] = None
                                     continue
                                 
@@ -508,7 +499,6 @@ class LineSeriesGenerator(OperatorABC):
                                 label_dict = {}
                                 parser_data = None
                                 
-                                # 确定 parser_json 路径
                                 if not parser_json_path or not isinstance(parser_json_path, str):
                                     parser_json_path = png_path.replace('.png', '_parser.json')
                                     self.logger.debug(f"Row {idx}: Generated parser_json_path: {parser_json_path}")
@@ -517,7 +507,7 @@ class LineSeriesGenerator(OperatorABC):
                                 self.logger.debug(f"Row {idx}: auto_generate_parser={auto_generate_parser}, file_exists={os.path.exists(parser_json_path)}")
                                 
                                 if auto_generate_parser and not os.path.exists(parser_json_path):
-                                    self.logger.info(f"Row {idx}: Parser JSON not found at {parser_json_path}, generating via OCR API...")
+                                    # self.logger.info(f"Row {idx}: Parser JSON not found at {parser_json_path}, generating via OCR API...")
                                     parser_data = self._get_parser_result(png_path, padding=ocr_padding, lang=ocr_lang)
                                     
                                     if parser_data is not None:
@@ -526,7 +516,7 @@ class LineSeriesGenerator(OperatorABC):
                                             self.logger.debug(f"Row {idx}: Saving parser_data type={type(parser_data)} to {parser_json_path}")
                                             with open(parser_json_path, 'w', encoding='utf-8') as f:
                                                 json.dump(parser_data, f, ensure_ascii=False, indent=4)
-                                            self.logger.info(f"Row {idx}: ✓ Saved parser JSON to {parser_json_path}")
+                                            # self.logger.info(f"Row {idx}: ✓ Saved parser JSON to {parser_json_path}")
                                             # 验证文件是否真的被创建
                                             if os.path.exists(parser_json_path):
                                                 file_size = os.path.getsize(parser_json_path)
@@ -536,12 +526,10 @@ class LineSeriesGenerator(OperatorABC):
                                         except Exception as e:
                                             self.logger.error(f"Row {idx}: Failed to save parser JSON: {e}")
                                             import traceback
-                                            self.logger.error(f"Row {idx}: Traceback: {traceback.format_exc()}")
+                                            self.logger.debug(f"Row {idx}: Traceback: {traceback.format_exc()}")
                                     else:
                                         self.logger.warning(f"Row {idx}: Failed to get parser result from OCR API")
                                         parser_json_path = None
-                                elif os.path.exists(parser_json_path):
-                                    self.logger.info(f"Row {idx}: Parser JSON already exists at {parser_json_path}")
                                 
                                 # 加载 parser_json
                                 if parser_json_path and os.path.exists(parser_json_path):
@@ -585,8 +573,8 @@ class LineSeriesGenerator(OperatorABC):
                             except Exception as e:
                                 import traceback
                                 self.logger.error(f"Row {idx}: Failed to replot: {e}")
-                                self.logger.error(f"Row {idx}: Exception type: {type(e).__name__}")
-                                self.logger.error(f"Row {idx}: Traceback:\n{traceback.format_exc()}")
+                                self.logger.debug(f"Row {idx}: Exception type: {type(e).__name__}")
+                                self.logger.debug(f"Row {idx}: Traceback:\n{traceback.format_exc()}")
                                 replot_path_list[idx] = None
                     else:
                         line_series_list[idx] = []
@@ -595,7 +583,7 @@ class LineSeriesGenerator(OperatorABC):
                         self.logger.warning(f"Row {idx}: Failed to process {png_path}: {result.get('error', 'Unknown error')}")
 
         finally:
-            serving.stop_serving()
+            self.lf_serving.stop_serving()
 
         # 回写 DataFrame
         df[output_key] = line_series_list

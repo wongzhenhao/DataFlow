@@ -48,7 +48,7 @@ class ChartExtractionPipeline:
             first_entry_file_name="/mnt/DataFlow/wongzhenhao/DataFlow/dataflow/example/ChartExtractionePipeline/example.jsonl",
             cache_path="./cache",
             file_name_prefix="chart_extraction",
-            cache_type="json",
+            cache_type="jsonl",
         )
         
         # 创建图表信息生成器（传入 VLM serving）
@@ -63,16 +63,15 @@ class ChartExtractionPipeline:
             storage=self.storage.step(),
             input_pdf_key="pdf_path",           # PDF 路径字段名
             parser_key="uniparser_json",        # UniParser JSON 路径字段名（用于图表结构识别）
-            output_dir_key="output_dir",        # 输出目录字段名（可选）
+            output_save_dir="output_dir",        # 输出目录字段名（可选）
             output_key="figure_info",           # 输出字段名
-            expand_rows=True                    # 展开每张图为一行
         )
 
         # Step 2: 为每张图提取线条数据并重绘
         self.line_series_generator.run(
             storage=self.storage.step(),
             png_path_key='png_path',            # PNG路径字段名
-            output_dir_key='output_dir',        # 输出目录字段名
+            input_save_dir='output_dir',        # 输出目录字段名
             output_key='line_series',           # 输出字段名
             lineformer_json_key='lineformer_json_path',  # LineFormer JSON路径字段名
             save_json=True,                     # 保存JSON
@@ -91,13 +90,3 @@ if __name__ == "__main__":
     # 使用方式 1: 使用 Pipeline
     pipeline = ChartExtractionPipeline()
     pipeline.forward()
-    
-    # 使用方式 2: 直接使用（适合更灵活的配置）
-    # from dataflow.operators.chartextraction.generate import FigureInfoGenerator
-    # from dataflow.serving.api_vlm_serving_openai import APIVLMServing_openai
-    # from dataflow.utils.storage import FileStorage
-    # 
-    # vlm = APIVLMServing_openai(model_name="gpt-4o-mini")
-    # storage = FileStorage(first_entry_file_name="data.json")
-    # generator = FigureInfoGenerator()
-    # generator.run(storage.step(), vlm_serving=vlm)

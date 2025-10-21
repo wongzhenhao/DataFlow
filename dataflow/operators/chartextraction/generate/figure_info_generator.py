@@ -1,7 +1,8 @@
 import pandas as pd
 import os
 import json
-from typing import Dict, Any, List, Tuple
+import requests
+from typing import Dict, Any, List, Tuple, Optional
 from dataflow.utils.chartextraction.get_figure import batch_extract_figures_and_components
 from dataflow.utils.chartextraction.extract_figure_info import extract_figure_components
 from dataflow.utils.registry import OPERATOR_REGISTRY
@@ -11,17 +12,19 @@ from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
 from dataflow.core import LLMServingABC
 from dataflow.core.prompt import prompt_restrict
+from tqdm import tqdm
 
 @prompt_restrict(
     ChartInfoExtractionPrompt
 )
 @OPERATOR_REGISTRY.register()
 class FigureInfoGenerator(OperatorABC):
-    def __init__(self, vlm_serving: LLMServingABC):
+    def __init__(self, vlm_serving: LLMServingABC, uniparser_host: str = "http://101.126.82.63:40001"):
         self.logger = get_logger()
         self.vlm_serving = vlm_serving
         self.prompt_template = ChartInfoExtractionPrompt()
         self.json_schema = self.prompt_template.get_json_schema()
+        self.uniparser_host = uniparser_host
         
     
     @staticmethod
@@ -33,12 +36,9 @@ class FigureInfoGenerator(OperatorABC):
                 "- vlm_serving：VLM服务对象（可选），用于图表信息提取\n"
                 "- input_pdf_key：PDF文件路径字段名，默认为'pdf_path'\n"
                 "- parser_key：UniParser JSON文件路径字段名，默认为'parser_json'\n"
-                "- output_dir_key：输出目录字段名，默认为'output_dir'（可选）\n"
+                "- output_save_dir：输出目录字段名，默认为'output_dir'（可选）\n"
                 "- output_key：图表信息输出字段名，默认为'figure_info'\n"
-                "- expand_rows：是否展开每张图为一行，默认为True\n"
                 "输出参数：\n"
-                "- expand_rows=True时：每张PNG图作为一行，包含pdf_path、png_path、json_path、figure_filename、figure_info等字段\n"
-                "- expand_rows=False时：每个PDF一行，figure_info为{文件名: 图表信息}的字典\n"
                 "- 提取的PNG文件和对应的JSON文件保存在output_dir中\n"
                 "注意：只处理 _chart.png 图片（包括所有子chart），不处理 figure、caption、legend 等其他组件"
             )
@@ -49,12 +49,9 @@ class FigureInfoGenerator(OperatorABC):
                 "- vlm_serving: VLM serving object (optional) for chart information extraction\n"
                 "- input_pdf_key: Field name for PDF file path, default is 'pdf_path'\n"
                 "- parser_key: Field name for UniParser JSON file path, default is 'parser_json'\n"
-                "- output_dir_key: Field name for output directory, default is 'output_dir' (optional)\n"
+                "- output_save_dir: Field name for output directory, default is 'output_dir' (optional)\n"
                 "- output_key: Field name for figure info output, default is 'figure_info'\n"
-                "- expand_rows: Whether to expand each figure as a row, default is True\n\n"
                 "Output Parameters:\n"
-                "- expand_rows=True: Each PNG as a row with pdf_path, png_path, json_path, figure_filename, figure_info fields\n"
-                "- expand_rows=False: One row per PDF, figure_info as {filename: chart_info} dict\n"
                 "- Extracted PNG files and corresponding JSON files saved in output_dir\n"
                 "Note: Only processes _chart.png images (including sub-charts), excluding figure, caption, legend components"
             )
@@ -74,7 +71,6 @@ class FigureInfoGenerator(OperatorABC):
             解析后的图表信息字典
         """
         try:
-            # 移除可能的 markdown 代码块标记
             response_text = response.strip()
             if response_text.startswith("```json"):
                 response_text = response_text[7:]
@@ -84,15 +80,14 @@ class FigureInfoGenerator(OperatorABC):
                 response_text = response_text[:-3]
             response_text = response_text.strip()
             
-            # 解析 JSON
             result = json.loads(response_text)
             return result
         except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decode error: {e}")
-            self.logger.error(f"Response text: {response_text[:500]}...")
+            self.logger.warning(f"JSON decode error: {e}")
+            self.logger.warning(f"Response text: {response_text[:500]}...")
             return self._get_empty_chart_info()
         except Exception as e:
-            self.logger.error(f"Error parsing chart info: {str(e)}")
+            self.logger.warning(f"Error parsing chart info: {str(e)}")
             return self._get_empty_chart_info()
     
     def _get_empty_chart_info(self) -> Dict[str, Any]:
@@ -108,19 +103,71 @@ class FigureInfoGenerator(OperatorABC):
             "text": [],
             "figure_type": "",
         }
+    
+    def _parse_pdf_with_uniparser(self, pdf_path: str, output_json_path: str) -> Optional[Dict]:
+        """
+        调用UniParser API解析PDF文件
+        参考: uni_parser_api.py
+        
+        Args:
+            pdf_path: PDF文件路径
+            output_json_path: 输出JSON文件路径
+            
+        Returns:
+            解析结果字典，失败返回 None
+        """
+        try:
+            trigger_url = f"{self.uniparser_host}/trigger-file-async"
+            result_url = f"{self.uniparser_host}/get-result"
+            
+            token = os.path.basename(pdf_path)[:15]
+            
+            data = {
+                'token': token,
+                'sync': True,
+                'textual': 3,
+                'chart': False, 
+                "table": True, 
+                "molecule": True, 
+                "equation": True,
+                "figure": False,
+                "expression": False,
+            }
+            files = {
+                'file': open(pdf_path, 'rb')
+            }
+            
+            self.logger.info(f"Calling UniParser API: {trigger_url}")
+            r = requests.post(trigger_url, files=files, data=data, timeout=300)
+            files['file'].close()
+            
+            response_json = r.json()
+            if response_json.get('status') != 'success':
+                self.logger.error(f"UniParser API returned error: {response_json}")
+                return None
+            
+            # Step 2: Get parse result
+            result = requests.post(result_url, json={'token': token}, timeout=300).json()
+            with open(output_json_path, "w", encoding='utf-8') as f:
+                json.dump(result, f, indent=4, ensure_ascii=False)
+            
+            self.logger.info(f"✓ Saved UniParser result to {output_json_path}")
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Failed to parse PDF {pdf_path}: {e}")
+            import traceback
+            self.logger.debug(f"Traceback: {traceback.format_exc()}")
+            return None
 
     def run(self, storage: DataFlowStorage, 
             input_pdf_key: str = "pdf_path", 
             parser_key: str = "uniparser_json", 
-            output_dir_key: str = "output_dir",
+            output_save_dir: str = "output_dir",
             output_key: str = "figure_info",
-            expand_rows: bool = True):
-        """
-        Args:
-            expand_rows: 如果为True，每张PNG作为一行输出（复制原PDF元数据）；
-                        如果为False，保持原有行为（每个PDF一行，figure_info为字典）
-        """
-        self.input_pdf_key, self.parser_key, self.output_dir_key, self.output_key = input_pdf_key, parser_key, output_dir_key, output_key
+            ):
+
+        self.input_pdf_key, self.parser_key, self.output_save_dir, self.output_key = input_pdf_key, parser_key, output_save_dir, output_key
         self.logger.info("Running FigureInfoGenerator...")
 
         # Load the raw dataframe from the input file
@@ -128,22 +175,29 @@ class FigureInfoGenerator(OperatorABC):
         self.logger.info(f"Loading, number of rows: {len(dataframe)}")
         
         # Step 1: 提取所有 PDF 的图表到 PNG
-        png_metadata_list = []  # 存储 (row_idx, row_data, png_path, output_dir, filename) 的元组
-        figure_info_list = [None] * len(dataframe)  # 预分配结果列表（用于 expand_rows=False）
+        png_metadata_list = []
+        figure_info_list = [None] * len(dataframe)
         
         for idx, row in dataframe.iterrows():
             try:
                 pdf_path = row.get(input_pdf_key)
                 parser_json_path = row.get(parser_key)
-                output_dir = row.get(output_dir_key)
+                output_dir = row.get(output_save_dir)
                 
                 if not pdf_path or not os.path.exists(pdf_path):
                     self.logger.warning(f"Row {idx}: PDF file not found: {pdf_path}")
                     continue
                 
                 if not parser_json_path or not os.path.exists(parser_json_path):
-                    self.logger.warning(f"Row {idx}: Parser JSON file not found: {parser_json_path}")
-                    continue
+                    self.logger.info(f"Row {idx}: Parsing PDF file {pdf_path} to {parser_json_path}")
+                    if not parser_json_path:
+                        doi = os.path.splitext(os.path.basename(pdf_path))[0]
+                        parser_json_path = os.path.join(os.path.dirname(pdf_path), f"{doi}.json")
+
+                    result = self._parse_pdf_with_uniparser(pdf_path, parser_json_path)
+                    if result is None:
+                        self.logger.error(f"Row {idx}: Failed to parse PDF, skipping...")
+                        continue
                 
                 # Create output directory if not specified
                 if not output_dir:
@@ -152,7 +206,7 @@ class FigureInfoGenerator(OperatorABC):
                 
                 os.makedirs(output_dir, exist_ok=True)
                 
-                # Load parser JSON
+                # Load uniparser JSON
                 with open(parser_json_path, 'r', encoding='utf-8') as f:
                     parser_json = json.load(f)
                 
@@ -176,7 +230,6 @@ class FigureInfoGenerator(OperatorABC):
                             # 保存完整的行数据用于后续展开
                             png_metadata_list.append((idx, row.to_dict(), pic_path, output_dir, file))
                 
-                # 初始化该行的结果为空字典（用于 expand_rows=False）
                 figure_info_list[idx] = {}
                 
             except Exception as e:
@@ -186,79 +239,62 @@ class FigureInfoGenerator(OperatorABC):
         # Step 2: 批量调用 VLM 处理所有图片
         png_results = {}  # {(row_idx, filename): (chart_info, json_path, png_path)}
         
-        if png_metadata_list:
-            self.logger.info(f"Processing {len(png_metadata_list)} PNG files with VLM...")
-            
-            # 准备所有图片路径
-            image_paths = [metadata[2] for metadata in png_metadata_list]
-            
-            # 批量调用 VLM
-            try:
-                llm_outputs = self.vlm_serving.generate_from_input(image_paths, self.prompt_template.build_prompt(), json_schema = self.json_schema)
-                
-                # Step 3: 解析结果并保存
-                for (row_idx, row_data, pic_path, output_dir, filename), response in zip(png_metadata_list, llm_outputs):
-                    try:
-                        # 解析 JSON 响应
-                        chart_info = self._parse_chart_info(response)
+        self.logger.info(f"Processing {len(png_metadata_list)} PNG files with VLM...")
+        
+        image_paths = [metadata[2] for metadata in png_metadata_list]
+        
+        try:
+            llm_outputs = self.vlm_serving.generate_from_input(image_paths, self.prompt_template.build_prompt(), json_schema = self.json_schema)
+                            
+            for (row_idx, row_data, pic_path, output_dir, filename), response in tqdm(zip(png_metadata_list, llm_outputs), total=len(png_metadata_list), desc="Parsing chart infos (VLM)"):
+                try:
+                    chart_info = self._parse_chart_info(response)
+                    
+                    json_name = filename.replace(".png", ".json")
+                    json_path = os.path.join(output_dir, json_name)
+                    with open(json_path, 'w', encoding='utf-8') as jf:
+                        json.dump(chart_info, jf, ensure_ascii=False, indent=4)
+                    
+                    png_results[(row_idx, filename)] = (chart_info, json_path, pic_path)
+                    
+                    if figure_info_list[row_idx] is not None:
+                        figure_info_list[row_idx][filename] = chart_info
                         
-                        # 保存 JSON 文件
-                        json_name = filename.replace(".png", ".json")
-                        json_path = os.path.join(output_dir, json_name)
-                        with open(json_path, 'w', encoding='utf-8') as jf:
-                            json.dump(chart_info, jf, ensure_ascii=False, indent=4)
-                        
-                        # 保存结果
-                        png_results[(row_idx, filename)] = (chart_info, json_path, pic_path)
-                        
-                        # 同时填充到 figure_info_list（用于 expand_rows=False）
-                        if figure_info_list[row_idx] is not None:
-                            figure_info_list[row_idx][filename] = chart_info
-                        
-                        self.logger.info(f"Row {row_idx}: Generated figure info for {filename}")
-                        
-                    except Exception as e:
-                        self.logger.error(f"Row {row_idx}: Error processing {pic_path}: {str(e)}")
-                        chart_info = self._get_empty_chart_info()
-                        json_path = os.path.join(output_dir, filename.replace(".png", ".json"))
-                        png_results[(row_idx, filename)] = (chart_info, json_path, pic_path)
-                        if figure_info_list[row_idx] is not None:
-                            figure_info_list[row_idx][filename] = chart_info
-                
-            except Exception as e:
-                self.logger.error(f"Error in batch VLM processing: {str(e)}")
-                # 如果批量处理失败，填充空结果
-                for row_idx, row_data, pic_path, output_dir, filename in png_metadata_list:
+                except Exception as e:
+                    self.logger.warning(f"Row {row_idx}: Error processing {pic_path}: {str(e)}")
                     chart_info = self._get_empty_chart_info()
                     json_path = os.path.join(output_dir, filename.replace(".png", ".json"))
                     png_results[(row_idx, filename)] = (chart_info, json_path, pic_path)
                     if figure_info_list[row_idx] is not None:
                         figure_info_list[row_idx][filename] = chart_info
+                
+        except Exception as e:
+            self.logger.error(f"Error in batch VLM processing: {str(e)}")
+            # 如果批量处理失败，填充空结果
+            for row_idx, row_data, pic_path, output_dir, filename in png_metadata_list:
+                chart_info = self._get_empty_chart_info()
+                json_path = os.path.join(output_dir, filename.replace(".png", ".json"))
+                png_results[(row_idx, filename)] = (chart_info, json_path, pic_path)
+                if figure_info_list[row_idx] is not None:
+                    figure_info_list[row_idx][filename] = chart_info
         
         # Step 4: 构建输出 DataFrame
-        if expand_rows:
-            # 新模式：每张图一行（展开行）
-            new_rows = []
-            for (row_idx, row_data, pic_path, output_dir, filename) in png_metadata_list:
-                chart_info, json_path, png_path = png_results.get((row_idx, filename), (self._get_empty_chart_info(), "", pic_path))
-                
-                # 复制原行数据
-                new_row = row_data.copy()
-                # 添加新字段
-                new_row['png_path'] = png_path
-                new_row['json_path'] = json_path
-                new_row['figure_filename'] = filename
-                new_row[output_key] = chart_info
-                new_rows.append(new_row)
+        new_rows = []
+        for (row_idx, row_data, pic_path, output_dir, filename) in png_metadata_list:
+            chart_info, json_path, png_path = png_results.get((row_idx, filename), (self._get_empty_chart_info(), "", pic_path))
             
-            output_df = pd.DataFrame(new_rows)
-            self.logger.info(f"Expanded {len(dataframe)} PDFs to {len(output_df)} figures")
-        else:
-            # 旧模式：每个PDF一行，figure_info为字典
-            dataframe[output_key] = figure_info_list
-            output_df = dataframe
+            new_row = row_data.copy()
+            new_row['png_path'] = png_path
+            new_row['json_path'] = json_path
+            new_row['figure_filename'] = filename
+            new_row[self.output_key] = chart_info
+            new_rows.append(new_row)
+        
+        output_df = pd.DataFrame(new_rows)
+        self.logger.info(f"Expanded {len(dataframe)} PDFs to {len(output_df)} figures")
+
         
         # Save the updated dataframe to the output file
         output_file = storage.write(output_df)
         self.logger.info(f"FigureInfoGenerator completed. Output saved to {output_file}")
-        return output_key
+        return [self.output_key, "png_path", "json_path", "figure_filename"]
