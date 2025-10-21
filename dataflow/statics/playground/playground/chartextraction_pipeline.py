@@ -2,9 +2,19 @@
 图表提取 Pipeline 示例
 从 PDF 中提取图表并生成结构化信息
 
-使用方式类似 prompted_vqa_generator:
-1. 在 __init__ 中配置 VLM serving
-2. 传入 FigureInfoGenerator
+重要：区分两种不同的 Parser JSON
+1. uniparser_json - UniParser 输出，用于图表结构识别（FigureInfoGenerator）
+   - 包含图表的整体布局、区域划分等信息
+   - 格式：UniParser 模型的输出格式
+
+2. ocr_parser_json - OCR 输出，用于文本识别和坐标变换（LineSeriesGenerator）
+   - 包含图表中的文字、坐标、置信度
+   - 格式：[[[bbox_4points], [text, confidence]], ...]
+   - 自动生成：设置 auto_generate_parser=True 会自动生成 *_parser.json
+
+使用方式：
+1. 在 __init__ 中配置 VLM serving 和 LineFormer serving
+2. 传入 FigureInfoGenerator 和 LineSeriesGenerator
 3. 批量处理所有图片
 """
 from dataflow.operators.chartextraction import FigureInfoGenerator, LineSeriesGenerator
@@ -51,26 +61,29 @@ class ChartExtractionPipeline:
         # Step 1: 提取图表并生成结构化信息（每张图一行）
         self.figure_generator.run(
             storage=self.storage.step(),
-            input_pdf_key="pdf_path",      # PDF 路径字段名
-            parser_key="parser_json",      # UniParser JSON 路径字段名
-            output_dir_key="output_dir",   # 输出目录字段名（可选）
-            output_key="figure_info",      # 输出字段名
-            expand_rows=True               # 展开每张图为一行
+            input_pdf_key="pdf_path",           # PDF 路径字段名
+            parser_key="uniparser_json",        # UniParser JSON 路径字段名（用于图表结构识别）
+            output_dir_key="output_dir",        # 输出目录字段名（可选）
+            output_key="figure_info",           # 输出字段名
+            expand_rows=True                    # 展开每张图为一行
         )
 
         # Step 2: 为每张图提取线条数据并重绘
         self.line_series_generator.run(
             storage=self.storage.step(),
-            png_path_key='png_path',       # PNG路径字段名
-            output_dir_key='output_dir',   # 输出目录字段名
-            output_key='line_series',      # 输出字段名
+            png_path_key='png_path',            # PNG路径字段名
+            output_dir_key='output_dir',        # 输出目录字段名
+            output_key='line_series',           # 输出字段名
             lineformer_json_key='lineformer_json_path',  # LineFormer JSON路径字段名
-            save_json=True,                # 保存JSON
-            save_vis=True,                #  保存可视化
-            replot=True,                   # 启用重绘功能
-            replot_key='replot_path',      # 重绘图表路径字段名
-            figure_info_key='figure_info', # 图表信息字段名
-            parser_json_key='parser_json'  # Parser JSON路径字段名
+            save_json=True,                     # 保存JSON
+            save_vis=True,                      # 保存可视化
+            replot=True,                        # 启用重绘功能
+            replot_key='replot_path',           # 重绘图表路径字段名
+            figure_info_key='figure_info',      # 图表信息字段名（来自Step 1）
+            parser_json_key='ocr_parser_json',  # OCR Parser JSON路径字段名（用于坐标变换）
+            auto_generate_parser=True,          # 自动生成OCR parser（*_parser.json）
+            ocr_padding=20,                     # OCR图像填充
+            ocr_lang='en'                       # OCR语言
         )
 
 

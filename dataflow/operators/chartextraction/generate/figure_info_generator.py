@@ -21,7 +21,6 @@ class FigureInfoGenerator(OperatorABC):
         self.logger = get_logger()
         self.vlm_serving = vlm_serving
         self.prompt_template = ChartInfoExtractionPrompt()
-        # 从 prompt 模板获取 JSON schema（用于 OpenAI API Structured Outputs）
         self.json_schema = self.prompt_template.get_json_schema()
         
     
@@ -112,7 +111,7 @@ class FigureInfoGenerator(OperatorABC):
 
     def run(self, storage: DataFlowStorage, 
             input_pdf_key: str = "pdf_path", 
-            parser_key: str = "parser_json", 
+            parser_key: str = "uniparser_json", 
             output_dir_key: str = "output_dir",
             output_key: str = "figure_info",
             expand_rows: bool = True):

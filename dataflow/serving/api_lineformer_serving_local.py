@@ -11,7 +11,6 @@ from pathlib import Path
 from ..logger import get_logger
 
 _g_initialized = False
-_g_lineformer_root = None
 _g_config = None
 _g_checkpoint = None
 _g_device = None
@@ -21,31 +20,29 @@ _g_infer = None
 _g_line_utils = None
 
 
-def _worker_init(lineformer_root: str,
-                 config_path: str,
+def _worker_init(config_path: str,
                  checkpoint_path: str,
                  device: str,
                  padding_size: int,
                  border_color: Tuple[int, int, int]):
-    global _g_initialized, _g_lineformer_root, _g_config, _g_checkpoint, _g_device
+    global _g_initialized, _g_config, _g_checkpoint, _g_device
     global _g_infer, _g_line_utils, _g_padding_size, _g_border_color
 
     if _g_initialized:
         return
 
-    _g_lineformer_root = lineformer_root
     _g_config = config_path
     _g_checkpoint = checkpoint_path
     _g_device = device
     _g_padding_size = padding_size
     _g_border_color = border_color
 
-    if _g_lineformer_root and _g_lineformer_root not in sys.path:
-        sys.path.insert(0, _g_lineformer_root)
-
-    import importlib
-    _g_infer = importlib.import_module("infer")
-    _g_line_utils = importlib.import_module("line_utils")
+    # 在worker进程中导入模块
+    from ..utils.chartextraction import infer as _infer
+    from ..utils.chartextraction import line_utils as _line_utils
+    
+    _g_infer = _infer
+    _g_line_utils = _line_utils
 
     _g_infer.load_model(_g_config, _g_checkpoint, _g_device)
     _g_initialized = True
@@ -155,7 +152,6 @@ class APILineFormerServing_local():
             processes=self.num_workers,
             initializer=_worker_init,
             initargs=(
-                self.lineformer_root,
                 self.config_path,
                 self.checkpoint_path,
                 self.device,
