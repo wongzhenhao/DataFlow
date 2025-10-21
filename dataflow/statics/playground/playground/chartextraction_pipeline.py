@@ -58,7 +58,7 @@ class ChartExtractionPipeline:
             expand_rows=True               # 展开每张图为一行
         )
 
-        # Step 2: 为每张图提取线条数据
+        # Step 2: 为每张图提取线条数据并重绘
         self.line_series_generator.run(
             storage=self.storage.step(),
             png_path_key='png_path',       # PNG路径字段名
@@ -66,7 +66,11 @@ class ChartExtractionPipeline:
             output_key='line_series',      # 输出字段名
             lineformer_json_key='lineformer_json_path',  # LineFormer JSON路径字段名
             save_json=True,                # 保存JSON
-            save_vis=False                 # 不保存可视化
+            save_vis=True,                #  保存可视化
+            replot=True,                   # 启用重绘功能
+            replot_key='replot_path',      # 重绘图表路径字段名
+            figure_info_key='figure_info', # 图表信息字段名
+            parser_json_key='parser_json'  # Parser JSON路径字段名
         )
 
 

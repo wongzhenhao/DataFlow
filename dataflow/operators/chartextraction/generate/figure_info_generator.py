@@ -40,7 +40,8 @@ class FigureInfoGenerator(OperatorABC):
                 "输出参数：\n"
                 "- expand_rows=True时：每张PNG图作为一行，包含pdf_path、png_path、json_path、figure_filename、figure_info等字段\n"
                 "- expand_rows=False时：每个PDF一行，figure_info为{文件名: 图表信息}的字典\n"
-                "- 提取的PNG文件和对应的JSON文件保存在output_dir中"
+                "- 提取的PNG文件和对应的JSON文件保存在output_dir中\n"
+                "注意：只处理 _chart.png 图片（包括所有子chart），不处理 figure、caption、legend 等其他组件"
             )
         elif lang == "en":
             return (
@@ -55,7 +56,8 @@ class FigureInfoGenerator(OperatorABC):
                 "Output Parameters:\n"
                 "- expand_rows=True: Each PNG as a row with pdf_path, png_path, json_path, figure_filename, figure_info fields\n"
                 "- expand_rows=False: One row per PDF, figure_info as {filename: chart_info} dict\n"
-                "- Extracted PNG files and corresponding JSON files saved in output_dir"
+                "- Extracted PNG files and corresponding JSON files saved in output_dir\n"
+                "Note: Only processes _chart.png images (including sub-charts), excluding figure, caption, legend components"
             )
         else:
             return (
@@ -166,10 +168,11 @@ class FigureInfoGenerator(OperatorABC):
                     figures_info=figure_list
                 )
                 
-                # 收集所有提取的 PNG 文件路径
+                # 收集所有提取的 PNG 文件路径（只收集 chart 图，包括所有子chart）
                 for root, dirs, files in os.walk(output_dir):
                     for file in files:
-                        if file.endswith(".png"):
+                        # 只处理 chart 图片（包括所有子chart），排除 figure、caption、legend 等
+                        if file.endswith(".png") and "_chart.png" in file:
                             pic_path = os.path.join(root, file)
                             # 保存完整的行数据用于后续展开
                             png_metadata_list.append((idx, row.to_dict(), pic_path, output_dir, file))

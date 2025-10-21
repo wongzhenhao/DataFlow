@@ -233,6 +233,8 @@ def batch_extract_figures_and_components(
                 if result.success:
                     for index, comp in enumerate(figure["components"]):
                         comp_type = comp["class"]
+                        if comp_type != "chart":
+                            continue  # 只存为chart的
                         comp_coords = comp["float_xyxy"]  # Already normalized coordinates (0-1)
                         # Create component filename using simplified format
                         comp_filename = f"page{page_num-1}_fig{fig_idx + 1}_{index}_{comp_type}.png"
