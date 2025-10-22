@@ -38,6 +38,8 @@ class ChartExtractionPipeline:
         )
         # 配置 LineFormer 本地多进程 serving（方案二）
         self.lineformer_serving = APILineFormerServing_local(
+            config_path="/mnt/DataFlow/wongzhenhao/lineextract_clean/core/lineformer_swin_t_config.py",
+            checkpoint_path="/mnt/DataFlow/wongzhenhao/lineextract_standalone/weights/iter_3000.pth",
             device="cpu",           # 如需 GPU 切换为 "cuda"
             num_workers=2,           # 每进程各自加载一份模型
             padding_size=40

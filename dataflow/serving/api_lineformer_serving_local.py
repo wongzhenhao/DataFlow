@@ -142,7 +142,6 @@ class APILineFormerServing_local():
     
     def __init__(
         self,
-        lineformer_root: str = "/mnt/DataFlow/wongzhenhao/ChartExtract/figures_paser",
         config_path: str = "/mnt/DataFlow/wongzhenhao/lineextract_clean/core/lineformer_swin_t_config.py",
         checkpoint_path: str = "/mnt/DataFlow/wongzhenhao/lineextract_standalone/weights/iter_3000.pth",
         device: str = "cpu",
@@ -164,7 +163,6 @@ class APILineFormerServing_local():
             num_workers: 工作进程数量，默认为 CPU核心数-1
             timeout: 超时时间（秒）
         """
-        self.lineformer_root = lineformer_root
         self.config_path = config_path
         self.checkpoint_path = checkpoint_path
         self.device = device
