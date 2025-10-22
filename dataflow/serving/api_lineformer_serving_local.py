@@ -2,11 +2,23 @@ import os
 import sys
 import json
 import base64
-import cv2
 import time
 from typing import Any, Dict, List, Optional, Tuple
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
+
+# Chart extraction specific dependencies - lazy import with helpful error messages
+try:
+    import cv2
+except ImportError:
+    raise Exception(
+        """
+OpenCV (opencv-python) is not installed in this environment yet.
+Chart extraction requires opencv-python. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install opencv-python
+"""
+    )
 
 from ..logger import get_logger
 
@@ -142,8 +154,8 @@ class APILineFormerServing_local():
     
     def __init__(
         self,
-        config_path: str = "/mnt/DataFlow/wongzhenhao/lineextract_clean/core/lineformer_swin_t_config.py",
-        checkpoint_path: str = "/mnt/DataFlow/wongzhenhao/lineextract_standalone/weights/iter_3000.pth",
+        config_path: str = "path/to/your/lineformer_swin_t_config.py",
+        checkpoint_path: str = "path/to/your/iter_3000.pth",
         device: str = "cpu",
         padding_size: int = 40,
         border_color: Tuple[int, int, int] = (255, 255, 255),

@@ -1,6 +1,29 @@
-from PIL import Image, ImageDraw, ImageStat
 import numpy as np
-import cv2
+
+# Chart extraction specific dependencies - lazy import with helpful error messages
+try:
+    from PIL import Image, ImageDraw, ImageStat
+except ImportError:
+    raise Exception(
+        """
+Pillow (PIL) is not installed in this environment yet.
+Chart extraction requires Pillow for image processing. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install pillow
+"""
+    )
+
+try:
+    import cv2
+except ImportError:
+    raise Exception(
+        """
+OpenCV (opencv-python) is not installed in this environment yet.
+Chart extraction requires opencv-python. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install opencv-python
+"""
+    )
 
 def polygon2bbox(polygon_dic):
     x_coords = []

@@ -1,10 +1,65 @@
 import itertools
 import numpy as np
-import cv2
-from skimage.morphology import skeletonize
 from scipy.interpolate import CubicSpline, interp1d
-import matplotlib.pyplot as plt
-from mmdet.apis import (inference_detector, init_detector)
+
+# Chart extraction specific dependencies - lazy import with helpful error messages
+try:
+    import cv2
+except ImportError:
+    raise Exception(
+        """
+OpenCV (opencv-python) is not installed in this environment yet.
+Chart extraction requires opencv-python. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install opencv-python
+"""
+    )
+
+try:
+    from skimage.morphology import skeletonize
+except ImportError:
+    raise Exception(
+        """
+scikit-image is not installed in this environment yet.
+Chart extraction requires scikit-image. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install scikit-image
+"""
+    )
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    raise Exception(
+        """
+Matplotlib is not installed in this environment yet.
+Chart extraction requires matplotlib. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install matplotlib
+"""
+    )
+
+try:
+    from mmdet.apis import (inference_detector, init_detector)
+except ImportError:
+    raise Exception(
+        """
+MMDetection is not installed in this environment yet.
+Chart extraction requires mmcv and mmdet. Please install them:
+
+Option 1 (Recommended - Fast, no CUDA compilation):
+  pip install mmcv==2.1.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip install mmdet==2.28.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+Option 2 (Full version with CUDA ops, slower to install):
+  mim install mmcv-full -i https://pypi.tuna.tsinghua.edu.cn/simple
+  mim install mmdet==2.28.2 -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+Or install the chartextract extra first:
+  pip install -e .[chartextract]
+  # Then follow one of the options above
+"""
+    )
 
 # import sys
 # sys.path.append("/home/csgrad/jayashok/Mask2Former/")

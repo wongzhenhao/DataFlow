@@ -1,22 +1,3 @@
-"""
-图表提取 Pipeline 示例
-从 PDF 中提取图表并生成结构化信息
-
-重要：区分两种不同的 Parser JSON
-1. uniparser_json - UniParser 输出，用于图表结构识别（FigureInfoGenerator）
-   - 包含图表的整体布局、区域划分等信息
-   - 格式：UniParser 模型的输出格式
-
-2. ocr_parser_json - OCR 输出，用于文本识别和坐标变换（LineSeriesGenerator）
-   - 包含图表中的文字、坐标、置信度
-   - 格式：[[[bbox_4points], [text, confidence]], ...]
-   - 自动生成：设置 auto_generate_parser=True 会自动生成 *_parser.json
-
-使用方式：
-1. 在 __init__ 中配置 VLM serving 和 LineFormer serving
-2. 传入 FigureInfoGenerator 和 LineSeriesGenerator
-3. 批量处理所有图片
-"""
 from dataflow.operators.chartextraction import FigureInfoGenerator, LineSeriesGenerator
 from dataflow.serving.api_vlm_serving_openai import APIVLMServing_openai
 from dataflow.utils.storage import FileStorage
@@ -31,23 +12,23 @@ class ChartExtractionPipeline:
         # 配置 VLM serving
         self.vlm_serving = APIVLMServing_openai(
             model_name="gpt-4o-mini",  # 或 "gpt-4o" 等其他模型
-            api_url="http://123.129.219.111:3000/v1",
+            api_url="https://api.openai.com/v1/chat/completions",
             key_name_of_api_key="DF_API_KEY",
-            max_workers=5,  # 并发数
+            max_workers=5,
             timeout=1800
         )
-        # 配置 LineFormer 本地多进程 serving（方案二）
+
         self.lineformer_serving = APILineFormerServing_local(
-            config_path="/mnt/DataFlow/wongzhenhao/lineextract_clean/core/lineformer_swin_t_config.py",
-            checkpoint_path="/mnt/DataFlow/wongzhenhao/lineextract_standalone/weights/iter_3000.pth",
-            device="cpu",           # 如需 GPU 切换为 "cuda"
-            num_workers=2,           # 每进程各自加载一份模型
+            config_path="path/to/your/lineformer_swin_t_config.py",
+            checkpoint_path="path/to/your/iter_3000.pth",
+            device="cpu",           
+            num_workers=2,
             padding_size=40
         )
         
         # 配置存储
         self.storage = FileStorage(
-            first_entry_file_name="/mnt/DataFlow/wongzhenhao/DataFlow/dataflow/example/ChartExtractionePipeline/example.jsonl",
+            first_entry_file_name="../example_data/ChartExtractionePipeline/example.jsonl",
             cache_path="./cache",
             file_name_prefix="chart_extraction",
             cache_type="jsonl",

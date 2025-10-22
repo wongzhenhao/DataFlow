@@ -1,11 +1,44 @@
 import numpy as np
-import cv2
-from  matplotlib import pyplot as plt
 import scipy
+
+# Chart extraction specific dependencies - lazy import with helpful error messages
+try:
+    import cv2
+except ImportError:
+    raise Exception(
+        """
+OpenCV (opencv-python) is not installed in this environment yet.
+Chart extraction requires opencv-python. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install opencv-python
+"""
+    )
+
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    raise Exception(
+        """
+Matplotlib is not installed in this environment yet.
+Chart extraction requires matplotlib. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install matplotlib
+"""
+    )
 
 # For line interpolation:
 # Comment this out if not using 'get_interp_points' function
-from bresenham import bresenham
+try:
+    from bresenham import bresenham
+except ImportError:
+    raise Exception(
+        """
+bresenham is not installed in this environment yet.
+Chart extraction requires bresenham for line interpolation. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install bresenham
+"""
+    )
 
 def hsv_to_bgr(h, s, v):
     # Get RGB values

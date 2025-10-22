@@ -5,11 +5,34 @@ from io import BytesIO
 from typing import Dict, Any, List, Optional, Tuple
 
 import pandas as pd
-import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import numpy as np
 import requests
-from PIL import Image, ImageOps
+
+# Chart extraction specific dependencies - lazy import with helpful error messages
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    raise Exception(
+        """
+Matplotlib is not installed in this environment yet.
+Chart extraction requires matplotlib. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install matplotlib
+"""
+    )
+
+try:
+    from PIL import Image, ImageOps
+except ImportError:
+    raise Exception(
+        """
+Pillow (PIL) is not installed in this environment yet.
+Chart extraction requires Pillow for image processing. Install with:
+  pip install -e .[chartextract]
+  # or directly: pip install pillow
+"""
+    )
 
 from dataflow.utils.registry import OPERATOR_REGISTRY
 from dataflow import get_logger
