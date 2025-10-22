@@ -89,7 +89,6 @@ chartextract = [
     "matplotlib",
     "opencv-python",
     "pillow",
-    # Note: mmcv-full and mmdet should be installed via openmim after installing this package:
-    #   mim install mmcv-full
-    #   mim install mmdet==2.28.2
+    "mmcv-full",
+    "mmdet==2.28.2"
 ]
