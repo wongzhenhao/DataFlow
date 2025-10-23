@@ -6,19 +6,6 @@ from typing import List, Optional, Dict, Any, Union, Tuple
 from dataflow.core import LLMServingABC
 from dataflow.logger import get_logger
 
-try:
-    from lightrag import LightRAG, QueryParam
-    from lightrag.llm.openai import openai_complete_if_cache
-    from lightrag.llm.ollama import ollama_embed
-    from lightrag.utils import EmbeddingFunc
-    from lightrag.kg.shared_storage import initialize_pipeline_status
-except ImportError:
-    raise Exception(
-    """
-    lightrag is not installed in this environment yet.
-    Please use pip install lightrag-hku.
-    """
-    )
 import asyncio
 from tqdm.asyncio import tqdm_asyncio
 
@@ -69,6 +56,20 @@ class LightRAGServing(LLMServingABC):
                  max_embed_tokens: int = 8192,
                  document_list: List[str] = []
                  ):
+        try:
+            from lightrag import LightRAG, QueryParam
+            from lightrag.llm.openai import openai_complete_if_cache
+            from lightrag.llm.ollama import ollama_embed
+            from lightrag.utils import EmbeddingFunc
+            from lightrag.kg.shared_storage import initialize_pipeline_status
+        except ImportError:
+            raise Exception(
+            """
+            lightrag is not installed in this environment yet.
+            Please use pip install lightrag-hku.
+            """
+            )
+
         self.rag: LightRAG = None
         self.api_url = api_url
         self.llm_model_name = llm_model_name
