@@ -6,7 +6,6 @@ from dataflow.utils.storage import DataFlowStorage
 from dataflow.core import OperatorABC
 from dataflow.core import LLMServingABC
 from dataflow.serving.light_rag_serving import LightRAGServing
-import asyncio
 
 @OPERATOR_REGISTRY.register()
 class RetrievalGenerator(OperatorABC):
