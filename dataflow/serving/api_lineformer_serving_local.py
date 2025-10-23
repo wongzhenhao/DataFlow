@@ -256,7 +256,8 @@ class APILineFormerServing_local():
         results: List[Dict[str, Any]] = []
         t0 = time.time()
         try:
-            for out in self._pool.imap_unordered(_process_image_worker, tasks, chunksize=chunksize):
+            # Use ordered iterator to preserve input order in results
+            for out in self._pool.imap(_process_image_worker, tasks, chunksize=chunksize):
                 results.append(out)
         except Exception as e:
             self.logger.error(f"Multiprocess execution failed: {e}")

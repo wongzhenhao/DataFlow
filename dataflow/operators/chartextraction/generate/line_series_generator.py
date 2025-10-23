@@ -470,10 +470,20 @@ class LineSeriesGenerator(OperatorABC):
                     chunksize=4
                 )
 
-                # 分配结果回各行
+                # 分配结果回各行（假设与输入顺序一致；服务端已保证按输入顺序返回）
                 for idx_pos, (idx, png_path, result) in enumerate(zip(row_indices, batch_image_paths, results)):
                     row = df.loc[idx]
                     
+                    # 安全校验：确认结果对应的图片路径一致
+                    try:
+                        res_img_path = result.get("image_path")
+                        if isinstance(res_img_path, str) and res_img_path != png_path:
+                            self.logger.warning(
+                                f"Row {idx}: result image_path mismatch, expected {png_path}, got {res_img_path}"
+                            )
+                    except Exception:
+                        pass
+
                     if result.get("status") == "success":
                         line_series = result.get("line_dataseries", [])
                         line_series_list[idx] = line_series

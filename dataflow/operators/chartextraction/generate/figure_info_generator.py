@@ -34,7 +34,7 @@ class FigureInfoGenerator(OperatorABC):
                 "从PDF文档中提取图表并使用VLM生成结构化图表信息。\n"
                 "输入参数：\n"
                 "- vlm_serving：VLM服务对象（可选），用于图表信息提取\n"
-                "- input_pdf_key：PDF文件路径字段名，默认为'pdf_path'\n"
+                "- input_path_key：PDF文件路径字段名，默认为'pdf_path'\n"
                 "- parser_key：UniParser JSON文件路径字段名，默认为'parser_json'\n"
                 "- output_save_dir：输出目录字段名，默认为'output_dir'（可选）\n"
                 "- output_key：图表信息输出字段名，默认为'figure_info'\n"
@@ -47,7 +47,7 @@ class FigureInfoGenerator(OperatorABC):
                 "Extract figures from PDF documents and generate structured chart information using VLM.\n"
                 "Input Parameters:\n"
                 "- vlm_serving: VLM serving object (optional) for chart information extraction\n"
-                "- input_pdf_key: Field name for PDF file path, default is 'pdf_path'\n"
+                "- input_path_key: Field name for PDF file path, default is 'pdf_path'\n"
                 "- parser_key: Field name for UniParser JSON file path, default is 'parser_json'\n"
                 "- output_save_dir: Field name for output directory, default is 'output_dir' (optional)\n"
                 "- output_key: Field name for figure info output, default is 'figure_info'\n"
@@ -161,13 +161,13 @@ class FigureInfoGenerator(OperatorABC):
             return None
 
     def run(self, storage: DataFlowStorage, 
-            input_pdf_key: str = "pdf_path", 
+            input_path_key: str = "input_path", 
             parser_key: str = "uniparser_json", 
             output_save_dir: str = "output_dir",
             output_key: str = "figure_info",
             ):
 
-        self.input_pdf_key, self.parser_key, self.output_save_dir, self.output_key = input_pdf_key, parser_key, output_save_dir, output_key
+        self.input_path_key, self.parser_key, self.output_save_dir, self.output_key = input_path_key, parser_key, output_save_dir, output_key
         self.logger.info("Running FigureInfoGenerator...")
 
         # Load the raw dataframe from the input file
@@ -180,9 +180,45 @@ class FigureInfoGenerator(OperatorABC):
         
         for idx, row in dataframe.iterrows():
             try:
-                pdf_path = row.get(input_pdf_key)
+                pdf_path = row.get(input_path_key)
                 parser_json_path = row.get(parser_key)
                 output_dir = row.get(output_save_dir)
+                
+                # 如果输入的是 PNG，跳过 Step 1（PDF -> PNG 提取），直接进入后续统一处理
+                if isinstance(pdf_path, str) and pdf_path.lower().endswith(".png"):
+                    if not os.path.exists(pdf_path):
+                        self.logger.warning(f"Row {idx}: PNG file not found: {pdf_path}")
+                        continue
+                    # 统一改名为 *_chart.png
+                    png_dir = os.path.dirname(pdf_path)
+                    base_name = os.path.basename(pdf_path)
+                    if "_chart.png" not in base_name:
+                        name_wo_ext, _ = os.path.splitext(base_name)
+                        new_name = f"{name_wo_ext}_chart.png"
+                        new_path = os.path.join(png_dir, new_name)
+                        try:
+                            # 若目标已存在则直接使用目标
+                            if os.path.exists(new_path):
+                                pic_path = new_path
+                            else:
+                                os.rename(pdf_path, new_path)
+                                pic_path = new_path
+                        except Exception as e:
+                            self.logger.warning(f"Row {idx}: Failed to rename PNG to *_chart.png: {e}. Using original path.")
+                            pic_path = pdf_path
+                            base_name = os.path.basename(pic_path)
+                    else:
+                        pic_path = pdf_path
+                        new_name = base_name
+                    # 设定输出目录：优先使用行里的 output_dir，其次使用 PNG 所在目录
+                    if not output_dir:
+                        output_dir = os.path.dirname(pic_path)
+                    os.makedirs(output_dir, exist_ok=True)
+                    # 保存到元数据列表，便于后续 VLM 统一处理
+                    filename = os.path.basename(pic_path)
+                    png_metadata_list.append((idx, row.to_dict(), pic_path, output_dir, filename))
+                    figure_info_list[idx] = {}
+                    continue
                 
                 if not pdf_path or not os.path.exists(pdf_path):
                     self.logger.warning(f"Row {idx}: PDF file not found: {pdf_path}")

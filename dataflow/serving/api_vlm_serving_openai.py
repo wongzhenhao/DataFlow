@@ -362,8 +362,8 @@ class APIVLMServing_openai(LLMServingABC):
                                                self.model_name,
                                                self.timeout,
                                                json_schema = json_schema,))
-        for future in as_completed(futures):
-            idx,res = future.result()
-            result_text_list[idx] = res
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Generating"):
+                idx,res = future.result()
+                result_text_list[idx] = res
         return result_text_list
     

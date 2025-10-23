@@ -44,7 +44,7 @@ class ChartExtractionPipeline:
         # Step 1: 提取图表并生成结构化信息（每张图一行）
         self.figure_generator.run(
             storage=self.storage.step(),
-            input_pdf_key="pdf_path",           # PDF 路径字段名
+            input_path_key="input_path",           # PDF 路径字段名
             parser_key="uniparser_json",        # UniParser JSON 路径字段名（用于图表结构识别）
             output_save_dir="output_dir",        # 输出目录字段名（可选）
             output_key="figure_info",           # 输出字段名
