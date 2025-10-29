@@ -66,6 +66,8 @@ sseclient-py
 # speech
 librosa
 soundfile
+biopython==1.85 
+beautifulsoup4==4.12.2
 
 # map visualize
 # matplotlib - removed as no longer needed
