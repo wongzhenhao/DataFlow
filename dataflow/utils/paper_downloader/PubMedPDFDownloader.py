@@ -8,7 +8,6 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from dataflow import get_logger
 
-
 class PubMedPDFDownloader:
     def __init__(self):
         self.logger = get_logger()
