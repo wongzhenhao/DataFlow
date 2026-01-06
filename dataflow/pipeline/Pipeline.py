@@ -582,18 +582,28 @@ class BatchedPipelineABC(PipelineABC):
                     storage = op_node.storage
                     storage.batch_step = 0 if idx - 1 > resume_step else resume_batch
                     storage.batch_size = batch_size
-                    storage.read() # read to set data count
-                    record_count = storage.record_count
-                            
+                    record_count = storage.get_record_count()
+                    data_stream = storage.iter_chunks()
+                    for _ in range(storage.batch_step):
+                        next(data_stream, None)
+
                 RUN_TIMES = 1 if batch_size is None else ((record_count - 1) // batch_size + 1) - storage.batch_step
                 if batch_size is not None: 
                     self.logger.info(f"Pipeline will run for {RUN_TIMES} iterations to cover {record_count} records with batch size {batch_size}.")
                 for _ in tqdm(range(RUN_TIMES), desc=f"\033[1;36mRunning {op_node.op_name} with batch size={batch_size}\033[0m", position=0, dynamic_ncols=True, colour='cyan'):
+                    if batch_size is not None:
+                        try:
+                            current_batch_df = next(data_stream)
+                            op_node.storage._current_streaming_chunk = current_batch_df
+                        except StopIteration:
+                            break
+
                     op_node.op_obj.run(
                         storage=op_node.storage,
                         **op_node.kwargs
                     )
                     if batch_size is not None:
+                        op_node.storage._current_streaming_chunk = None
                         op_node.storage.batch_step += 1
                     if resume_from_last:
                         resume_batch = op_node.storage.batch_step if batch_size is not None else 0
