@@ -528,36 +528,10 @@ class FileStorage(DataFlowStorage):
         return self
     
     def get_keys_from_dataframe(self) -> list[str]:
-        # dataframe = self.read(output_type="dataframe")
-        # return dataframe.columns.tolist() if isinstance(dataframe, pd.DataFrame) else []
-        if self._dataframe_buffer.get(self.operator_step) is not None:
-            return self._dataframe_buffer[self.operator_step].columns.tolist()
-
-        file_path = self._get_cache_file_path(self.operator_step)
-        ext = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1].lower()
-        try:
-            if ext == "csv":
-                # nrows=0 只读表头，不读数据
-                return pd.read_csv(file_path, nrows=0).columns.tolist()
-            
-            elif ext == "jsonl":
-                # 只读第一行并解析 Key
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    line = f.readline()
-                    if line:
-                        return list(json.loads(line).keys())
-                return []
-
-            elif ext == "parquet":
-                # Parquet 格式在 Footer 存有 Schema，读取开销几乎为零
-                import pyarrow.parquet as pq
-                return pq.ParquetFile(file_path).schema.names
-                
-        except Exception as e:
-            self.logger.warning(f"Failed to read header from {file_path} directly: {e}. Falling back to read().")
-        return []
-        
-    def _load_local_file(self, file_path: str, file_type: str, batch_size: int = None) -> pd.DataFrame:
+        dataframe = self.read(output_type="dataframe")
+        return dataframe.columns.tolist() if isinstance(dataframe, pd.DataFrame) else []
+    
+    def _load_local_file(self, file_path: str, file_type: str) -> pd.DataFrame:
         """Load data from local file based on file type."""
         # check if file exists
         if not os.path.exists(file_path):
@@ -567,9 +541,9 @@ class FileStorage(DataFlowStorage):
             if file_type == "json":
                 return pd.read_json(file_path)
             elif file_type == "jsonl":
-                return pd.read_json(file_path, lines=True, chunksize = batch_size)
+                return pd.read_json(file_path, lines=True)
             elif file_type == "csv":
-                return pd.read_csv(file_path, chunksize = batch_size)
+                return pd.read_csv(file_path)
             elif file_type == "parquet":
                 return pd.read_parquet(file_path)
             elif file_type == "pickle":
@@ -968,30 +942,7 @@ class BatchedFileStorage(FileStorage):
         self._dataframe_buffer = {}
         if cache_type not in ["jsonl", "csv"]:
             raise ValueError(f"BatchedFileStorage only supports 'jsonl' and 'csv' cache types, got: {cache_type}")
-    
-    def get_record_count(self) -> int:
-        """显式获取记录总数，支持缓存以提高性能"""
-        if hasattr(self, "_cached_record_count"):
-            return self._cached_record_count
-
-        file_path = self._get_cache_file_path(self.operator_step)
-        local_cache = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1]
-
-        if local_cache == "parquet":
-            import pyarrow.parquet as pq
-            count = pq.ParquetFile(file_path).metadata.num_rows
-        elif local_cache in ["jsonl", "csv"]:
-            count = 0
-            with open(file_path, 'rb') as f:
-                for _ in f: count += 1
-            if local_cache == "csv": count -= 1 # 扣除表头
-        else:
-            df = self._load_local_file(file_path, local_cache)
-            count = len(df)
-
-        self._cached_record_count = count
-        return count
-
+        
     def read(self, output_type: Literal["dataframe", "dict"]="dataframe") -> Any:
         """
         Read data from current file managed by storage.
@@ -1014,10 +965,6 @@ class BatchedFileStorage(FileStorage):
             self.logger.info("first_entry_file_name is empty, returning empty dataframe")
             empty_dataframe = pd.DataFrame()
             return self._convert_output(empty_dataframe, output_type)
-            
-        if hasattr(self, "_current_streaming_chunk") and self._current_streaming_chunk is not None:
-            test = self._convert_output(self._current_streaming_chunk, output_type)
-            return test
 
         file_path = self._get_cache_file_path(self.operator_step)
         self.logger.info(f"Reading data from {file_path} with type {output_type}")
@@ -1064,28 +1011,11 @@ class BatchedFileStorage(FileStorage):
             self._dataframe_buffer[self.operator_step] = dataframe.copy()
         self.record_count = len(dataframe)
         # 读出当前批次数据
-        # if self.batch_size:
-        #     dataframe = dataframe.iloc[
-        #         self.batch_step * self.batch_size : (self.batch_step + 1) * self.batch_size
-        #     ]
+        if self.batch_size:
+            dataframe = dataframe.iloc[
+                self.batch_step * self.batch_size : (self.batch_step + 1) * self.batch_size
+            ]
         return self._convert_output(dataframe, output_type)
-    
-    def iter_chunks(self) -> Generator[pd.DataFrame, None, None]:
-        """
-        专门供 Pipeline 调用：产生原始的 DataFrame 流。
-        """
-        file_path = self._get_cache_file_path(self.operator_step)
-        local_cache = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1]
-        
-        # 这里的 _load_local_file 必须确保在 batch_size 不为 None 时返回迭代器
-        reader = self._load_local_file(file_path, local_cache, self.batch_size)
-        
-        # 确保 reader 是可迭代的
-        if hasattr(reader, "__iter__") or isinstance(reader, pd.io.json._json.JsonReader):
-            for chunk in reader:
-                yield chunk
-        else:
-            yield reader # 如果不支持流式，就产出整个 DF
     
     def write(self, data: Any) -> Any:
         """
@@ -1130,7 +1060,8 @@ class BatchedFileStorage(FileStorage):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         self.logger.success(f"Writing data to {file_path} with type {self.cache_type}")
         if self.cache_type == "jsonl":
-            with open(file_path, 'a', encoding='utf-8') as f:
+            open_mode = 'w' if self.batch_step == 0 else 'a'
+            with open(file_path, open_mode, encoding='utf-8') as f:
                 dataframe.to_json(f, orient="records", lines=True, force_ascii=False)
         elif self.cache_type == "csv":
             if self.batch_step == 0:
@@ -1140,4 +1071,110 @@ class BatchedFileStorage(FileStorage):
         else:
             raise ValueError(f"Unsupported file type: {self.cache_type}, output file should end with jsonl, csv")
         
-        return file_path 
+        return file_path
+
+class StreamBatchedFileStorage(BatchedFileStorage):
+    """
+    流式批量文件存储，支持按批次读写数据。
+    """
+    def __init__(
+        self, 
+        first_entry_file_name: str,
+        cache_path:str="./cache",
+        file_name_prefix:str="dataflow_cache_step",
+        cache_type:Literal["jsonl", "csv"] = "jsonl",
+    ):
+        super().__init__(first_entry_file_name, cache_path, file_name_prefix, cache_type)
+    
+    def get_keys_from_dataframe(self) -> list[str]:
+        if self._dataframe_buffer.get(self.operator_step) is not None:
+            return self._dataframe_buffer[self.operator_step].columns.tolist()
+
+        file_path = self._get_cache_file_path(self.operator_step)
+        ext = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1].lower()
+        try:
+            if ext == "csv":
+                return pd.read_csv(file_path, nrows=0).columns.tolist()
+            
+            elif ext == "jsonl":
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    line = f.readline()
+                    if line:
+                        return list(json.loads(line).keys())
+                return []
+
+            elif ext == "parquet":
+                # Parquet 格式在 Footer 存有 Schema，读取开销几乎为零
+                import pyarrow.parquet as pq
+                return pq.ParquetFile(file_path).schema.names
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to read header from {file_path} directly: {e}. Falling back to read().")
+        return []
+
+    def _load_local_file(self, file_path: str, file_type: str,batchsize: int=None) -> pd.DataFrame:
+        """Load data from local file based on file type."""
+        # check if file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File {file_path} does not exist. Please check the path.")
+
+        try:
+            if file_type == "jsonl":
+                return pd.read_json(file_path, lines=True, chunksize=batchsize)
+            elif file_type == "csv":
+                return pd.read_csv(file_path, chunksize=batchsize)
+            return super()._load_local_file(file_path, file_type)
+        except Exception as e:
+            raise ValueError(f"Failed to load {file_type} file: {str(e)}")
+
+    def get_record_count(self) -> int:
+        """显式获取记录总数，支持缓存以提高性能"""
+        if hasattr(self, "_cached_record_count"):
+            return self._cached_record_count
+
+        file_path = self._get_cache_file_path(self.operator_step)
+        local_cache = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1]
+
+        if local_cache == "parquet":
+            import pyarrow.parquet as pq
+            count = pq.ParquetFile(file_path).metadata.num_rows
+        elif local_cache in ["jsonl", "csv"]:
+            count = 0
+            with open(file_path, 'rb') as f:
+                for _ in f: count += 1
+            if local_cache == "csv": count -= 1 # 扣除表头
+        else:
+            df = self._load_local_file(file_path, local_cache)
+            count = len(df)
+
+        self._cached_record_count = count
+        return count
+
+    def read(self, output_type: Literal["dataframe", "dict"]="dataframe") -> Any:
+
+        if hasattr(self, "_current_streaming_chunk") and self._current_streaming_chunk is not None:
+            return self._convert_output(self._current_streaming_chunk, output_type)
+        
+        if self.cache_type not in ["jsonl", "csv"]:
+            self.logger.warning(
+                f"Current cache_type '{self.cache_type}' does not support optimized streaming. "
+                f"The storage will fall back to loading the full file into memory."
+            )
+        return super().read(output_type)
+    
+    def iter_chunks(self) -> Generator[pd.DataFrame, None, None]:
+        """
+        专门供 Pipeline 调用：产生原始的 DataFrame 流。
+        """
+        file_path = self._get_cache_file_path(self.operator_step)
+        local_cache = self.cache_type if self.operator_step != 0 else file_path.split(".")[-1]
+        
+        # 这里的 _load_local_file 必须确保在 batch_size 不为 None 时返回迭代器
+        reader = self._load_local_file(file_path, local_cache, self.batch_size)
+        
+        # 确保 reader 是可迭代的
+        if hasattr(reader, "__iter__") or isinstance(reader, pd.io.json._json.JsonReader):
+            for chunk in reader:
+                yield chunk
+        else:
+            yield reader # 如果不支持流式，就产出整个 DF
