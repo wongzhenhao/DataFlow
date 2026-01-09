@@ -15,7 +15,7 @@ from dataflow.core import LLMServingABC
 from dataflow.prompts.pdf2vqa import QAExtractPrompt
 from dataflow.core.prompt import prompt_restrict
 from dataflow.utils.pdf2vqa.format_utils import merge_qa_pair, jsonl_to_md
-
+from dataflow.utils.kbc.mineru_api_caller import MinerUBatchExtractorViaAPI
 @prompt_restrict(QAExtractPrompt)
 @OPERATOR_REGISTRY.register()
 class VQAExtractor(OperatorABC):
@@ -151,68 +151,139 @@ class VQAExtractor(OperatorABC):
                             pass
         return '\n'.join(texts)
     
-    def _extract_doc_layout(self, input_pdf_file_path: str, output_folder: str, mineru_backend: Literal["vlm-transformers","vlm-vllm-engine"] = "vlm-transformers"):
-        """提取 PDF 的布局信息（合并自 VQAExtractDocLayoutMinerU）"""
-        try:
-            import mineru
-            from mineru.cli.client import main as mineru_main
-        except ImportError:
-            raise Exception(
-                """
-                MinerU is not installed in this environment yet.
-                Please refer to https://github.com/opendatalab/mineru to install.
-                Or you can just execute 'pip install mineru[pipeline]' and 'mineru-models-download' to fix this error.
-                Please make sure you have GPU on your machine.
-                """
-            )
-        try:
-            from pypdf import PdfReader, PdfWriter, PageObject
-        except ImportError:
-            raise Exception(
-                """
-                pypdf is not installed in this environment yet.
-                Please use pip install pypdf.
-                """
-            )
-        try:
-            from reportlab.pdfgen import canvas
-        except ImportError:
-            raise Exception(
-                """
-                reportlab is not installed in this environment yet.
-                Please use pip install reportlab.
-                """
-            )
+    # def _extract_doc_layout(self, input_pdf_file_path: str, output_folder: str, mineru_backend: Literal["vlm-transformers","vlm-vllm-engine"] = "vlm-transformers"):
+    #     """提取 PDF 的布局信息（合并自 VQAExtractDocLayoutMinerU）"""
+    #     try:
+    #         import mineru
+    #         from mineru.cli.client import main as mineru_main
+    #     except ImportError:
+    #         raise Exception(
+    #             """
+    #             MinerU is not installed in this environment yet.
+    #             Please refer to https://github.com/opendatalab/mineru to install.
+    #             Or you can just execute 'pip install mineru[pipeline]' and 'mineru-models-download' to fix this error.
+    #             Please make sure you have GPU on your machine.
+    #             """
+    #         )
+    #     try:
+    #         from pypdf import PdfReader, PdfWriter, PageObject
+    #     except ImportError:
+    #         raise Exception(
+    #             """
+    #             pypdf is not installed in this environment yet.
+    #             Please use pip install pypdf.
+    #             """
+    #         )
+    #     try:
+    #         from reportlab.pdfgen import canvas
+    #     except ImportError:
+    #         raise Exception(
+    #             """
+    #             reportlab is not installed in this environment yet.
+    #             Please use pip install reportlab.
+    #             """
+    #         )
         
-        os.environ['MINERU_MODEL_SOURCE'] = "local"
+    #     os.environ['MINERU_MODEL_SOURCE'] = "local"
         
-        MinerU_Version = {"pipeline": "auto", "vlm-transformers": "vlm", "vlm-vllm-engine": "vlm"}
+    #     MinerU_Version = {"pipeline": "auto", "vlm-transformers": "vlm", "vlm-vllm-engine": "vlm"}
         
-        if mineru_backend == "pipeline":
-            raise ValueError("The 'pipeline' backend is not supported due to its incompatible output format. Please use 'vlm-transformers' or 'vlm-vllm-engine' instead.")
+    #     if mineru_backend == "pipeline":
+    #         raise ValueError("The 'pipeline' backend is not supported due to its incompatible output format. Please use 'vlm-transformers' or 'vlm-vllm-engine' instead.")
         
+    #     raw_file = Path(input_pdf_file_path)
+    #     pdf_name = raw_file.stem
+    #     intermediate_dir = output_folder
+    #     args = [
+    #         "-p", str(raw_file),
+    #         "-o", str(intermediate_dir),
+    #         "-b", mineru_backend,
+    #         "--source", "local"
+    #     ]
+    #     if mineru_backend == "vlm-vllm-engine":
+    #         assert torch.cuda.is_available(), "MinerU vlm-vllm-engine backend requires GPU support."
+    #         args += ["--tensor-parallel-size", "2" if torch.cuda.device_count() >= 2 else "1"]
+        
+    #     try:
+    #         mineru_main(args)
+    #     except SystemExit as e:
+    #         if e.code != 0:
+    #             raise RuntimeError(f"MinerU execution failed with exit code: {e.code}")
+        
+    #     output_json_file = os.path.join(intermediate_dir, pdf_name, MinerU_Version[mineru_backend], f"{pdf_name}_content_list.json")
+    #     output_layout_file = os.path.join(intermediate_dir, pdf_name, MinerU_Version[mineru_backend], f"{pdf_name}_layout.pdf")
+    #     return output_json_file, output_layout_file
+
+
+    import os
+    import shutil
+    from pathlib import Path
+    import glob
+
+    def _extract_doc_layout(
+            self,
+            input_pdf_file_path: str,
+            output_folder: str,
+            mineru_backend: str = "vlm",
+        ):
+        """
+        使用 MinerU HTTP API 提取 PDF 布局信息
+        并将输出文件夹和文件重命名为固定格式
+        """
+
         raw_file = Path(input_pdf_file_path)
-        pdf_name = raw_file.stem
-        intermediate_dir = output_folder
-        args = [
-            "-p", str(raw_file),
-            "-o", str(intermediate_dir),
-            "-b", mineru_backend,
-            "--source", "local"
-        ]
-        if mineru_backend == "vlm-vllm-engine":
-            assert torch.cuda.is_available(), "MinerU vlm-vllm-engine backend requires GPU support."
-            args += ["--tensor-parallel-size", "2" if torch.cuda.device_count() >= 2 else "1"]
-        
-        try:
-            mineru_main(args)
-        except SystemExit as e:
-            if e.code != 0:
-                raise RuntimeError(f"MinerU execution failed with exit code: {e.code}")
-        
-        output_json_file = os.path.join(intermediate_dir, pdf_name, MinerU_Version[mineru_backend], f"{pdf_name}_content_list.json")
-        output_layout_file = os.path.join(intermediate_dir, pdf_name, MinerU_Version[mineru_backend], f"{pdf_name}_layout.pdf")
-        return output_json_file, output_layout_file
+        pdf_name = raw_file.stem  # 这里 pdf_name 可以自定义
+        output_folder = Path(output_folder)
+
+        # -------- 1. 调用 MinerU API --------
+        extractor = MinerUBatchExtractorViaAPI(
+            api_key=os.getenv("MINERU_API_KEY"),
+            model_version="vlm",
+        )
+
+        result = extractor.extract_batch(
+            file_paths=[str(raw_file)],
+            out_dir=str(output_folder / pdf_name),  # 临时输出文件夹
+        )
+
+        print(result)
+
+        items = result.get("items", [])
+        if not items or items[0].get("state") != "done":
+            raise RuntimeError(f"MinerU API extraction failed: {items}")
+
+        item = items[0]
+        old_extract_dir = Path(item["extract_dir"])
+
+        # -------- 2. 统一文件夹名为 pdf_name --------
+        final_dir = old_extract_dir.parent / "vlm"
+        if final_dir.exists():
+            shutil.rmtree(final_dir)
+        os.rename(old_extract_dir, final_dir)
+
+        # -------- 3. 重命名输出文件 --------
+        rename_map = {
+            "*content_list.json": f"{pdf_name}_content_list.json",
+            "*model.json": f"{pdf_name}_model.json",
+            "*origin.pdf": f"{pdf_name}_origin.pdf",
+        }
+
+        for pattern, new_name in rename_map.items():
+            files = list(final_dir.glob(pattern))
+            if files:
+                old_file = files[0]
+                new_file = final_dir / new_name
+                if new_file.exists():
+                    new_file.unlink()
+                os.rename(old_file, new_file)
+
+        # -------- 4. 返回文件路径 --------
+        content_json = final_dir / f"{pdf_name}_content_list.json"
+        model_json = final_dir / f"{pdf_name}_model.json"
+        origin_pdf = final_dir / f"{pdf_name}_origin.pdf"
+
+        return str(content_json), None
+
     
     def _convert_response(self, input_response, input_json_path, image_prefix="images"):
         qa_list = []
@@ -336,6 +407,8 @@ class VQAExtractor(OperatorABC):
             system_prompt_len = self._count_tokens(system_prompt)
             
             converted_path = input_json_path.replace('.json', '_converted.json')
+            print(input_json_path)
+            print(converted_path)
             self._convert_json(input_json_path, converted_path)
             
             with open(converted_path, 'r') as infile:
