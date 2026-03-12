@@ -64,7 +64,7 @@ Turn raw data into high-quality LLM training datasets.🔧
 </div>
 
 
-## 📰 1. News
+## 📰 0. News
 
 * **[2026-02-02] 🖥️ DataFlow WebUI is now available!**
   Launch the visual pipeline builder with a single command: `dataflow webui`. Build and run DataFlow pipelines through an intuitive web interface. 👉 [WebUI Docs](#54-webui)
@@ -85,7 +85,7 @@ Turn raw data into high-quality LLM training datasets.🔧
   Our data-centric AI system is now public. Stay tuned for future updates.
 
 
-## 🔍 2. What  is DataFlow？
+## 🔍 1. What  is DataFlow？
 
 <!--  <img src="./static/images/dataflow_framework.jpg"> -->
 
@@ -102,7 +102,7 @@ Through an `operator-based` design, DataFlow turns the entire data cleaning work
 
 <!-- 🔥 New: DataFlow WebUI is now available! Launch the visual pipeline builder with a single command: `dataflow webui`. Build and run DataFlow pipelines through an intuitive web interface. 👉 [DataFlow-WebUI](#54-webui) -->
 
-## 🔍2. Key Features
+## 🔍 2. Key Features
 
 ### ✅2.1  Ready-to-Use Data Synthesis and Cleaning Pipelines
 - High-Quality Training Data Generation
@@ -126,7 +126,7 @@ Through an `operator-based` design, DataFlow turns the entire data cleaning work
 - Built on Python and Git ecosystems for easy distribution, management, and traceability of high-quality, **user-defined** data governance operators and pipelines (❤️enterprise-friendly)
 
 
-## 🛠️3. DataFlow Suite 
+## 🛠️ 3. DataFlow Suite 
 The DataFlow Suite provides the essential infrastructure to automate and scale LLM data preparation with DataFlow main repository. It comprises four tightly integrated layers:
 
 - [DataFlow-WebUI](#️54-webui) – An intuitive, visual interface for constructing and managing complex data pipelines through a drag-and-drop operator workflow.
@@ -139,7 +139,7 @@ The DataFlow Suite provides the essential infrastructure to automate and scale L
 
 Together, these components form a unified, extensible environment that transforms raw data into model-ready intelligence.
 
-## 4. Why use DataFlow?
+## ✅ 4. Why use DataFlow?
 Data generation and cleaning are crucial for high-quality models, but for both enterprises and individuals, these tasks are often time-consuming, labor-intensive, and costly. **DataFlow provides a one-stop solution to tackle these challenges efficiently.**
 Compared with systems like Nemo-Curator and Data-Juicer, DataFlow offers:
 - **Enhanced Support for Data Synthesis Modules** – Seamlessly integrates text, code, and math data generation pipeline for high-quality training datasets.
