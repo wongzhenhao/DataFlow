@@ -49,6 +49,8 @@ class LLMOutputParser(OperatorABC):
                     continue
                 if 'text' in item:
                     texts.append(item['text'])
+                elif 'table_body' in item:
+                    texts.append(item['table_body'])
                 elif 'img_path' in item:
                     try:
                         img_path = item.get('img_path', '')
@@ -131,18 +133,13 @@ class LLMOutputParser(OperatorABC):
             if not os.path.exists(src_images):
                 src_images = os.path.join(src_dir, 'images')
             if not os.path.exists(src_images):
-                raise ValueError(f"Images directory {src_images} not found! There might be a change in Mineru API!")
-            # 下面是物理复制图片的路径，这里用刚才的 image_prefix 拼凑刚好能拼对路径 (cache/math1/vqa_images)
-            # dst_images = os.path.join(self.output_dir, image_prefix)
-            # ✅ 修复 2：物理复制路径必须加上 name，保证存到 cache/math1/vqa_images 里
-            dst_images = os.path.join(self.output_dir, name, image_prefix)
-            try:
-                if os.path.exists(src_images):
+                self.logger.warning(f"Images directory {src_images} not found, skipping image copy (PDF may contain no images).")
+            else:
+                dst_images = os.path.join(self.output_dir, name, image_prefix)
+                try:
                     shutil.copytree(src_images, dst_images)
-                else:
-                    self.logger.warning(f"Source images dir does not exist: {src_images}")
-            except Exception as e:
-                self.logger.warning(f"Failed to copy images from {src_images} to {dst_images}: {e}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to copy images from {src_images} to {dst_images}: {e}")
             
             dataframe.loc[idx, output_qalist_path_key] = output_qalist_path
             
